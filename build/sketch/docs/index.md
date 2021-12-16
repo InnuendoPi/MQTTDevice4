@@ -1,9 +1,9 @@
 #line 1 "c:\\Arduino\\git\\MQTTDevice4\\docs\\index.md"
-# MQTTDevice Version 2
+# MQTTDevice Version 4
 
-**Was ist ein MQTTDevice?**
+*What is MQTTDevice?**
 
-MQTTDevice4 is an Arduino sketch for the ESP8266 Wemos D1 mini modules. This makes it possible to establish communication between the MQTT broker mosquitto and an ESP8266 in order to control sensors and actors with CraftBeerPi V4. MQTTDevice is optimzed for version 4 of craftbeerpi
+MQTTDevice4 is an Arduino sketch for the ESP8266 Wemos D1 mini modules. This makes it possible to establish communication between the MQTT broker mosquitto and an ESP8266 in order to control sensors and actors with CraftBeerPi V4. MQTTDevice is optimzed for version 4 of CraftbeerPi.
 
 ![Startseite](img/startseite.jpg)
 
@@ -36,15 +36,16 @@ Forum: <https://hobbybrauer.de/forum/viewtopic.php?f=58&t=23509>
 
 The installation is divided into three steps:
 
-1. Installation of RaspberryPi and CraftbeerPi3
-2. Installation plug-in for CraftbeerPi3
-3. Installation of MQTTDevice
+1. Installation of RaspberryPi and CraftbeerPi4
+2. Installation MQTT Broker
+3. Installation MQTTDevice
 
 The installation and configuration of CraftbeerPi4 is described here: <https://openbrewing.gitbook.io/craftbeerpi4_support/master/server-installation>
+You will need version 4.0.0.57 or above. Earlier versions do not support MQTT actors.
 
 The installation and configuration of RaspberryPi is available in many good instructions on the internet.
 
-The communication between CraftbeerPi and MQTTDevice takes place via WLAN. Sensors send temperature values ​​to CraftbeerPi and CraftbeerPi sends commands (e.g. switch agitator on / off) to actuators. The MQTT protocol is used for this communication. The MQTT protocol requires a central exchange: an MQTT broker.
+The communication between CraftbeerPi and MQTTDevice takes place via WLAN. Sensors send temperature values ​​to CraftbeerPi and CraftbeerPi sends commands (e.g. switch agitator on / off) to actuators. The MQTT protocol is used for this communication. The MQTT protocol requires a MQTT broker.
 
 **MQTT CraftbeerPi4:**
 
@@ -54,91 +55,91 @@ Preparation on the RaspberryPi: Installation of the MQTT Broker
 
 This instruction installs the MQTT broker mosquitto on the RaspberryPi. The MQTT Broker serves as the central switching point between CraftbeerPi4 and MQTTDevices. CraftbeerPi4 can receive data from sensors via the MQTT protocol and send instructions to actors.
 
-CraftbeerPi3 muss nun einmal neu gestartet werden. Anschließend steht der Typ MQTT für Sensoren und Aktoren zur Verfügung
+Now you need to configure your MQTT environment in your CraftbeerPi4 config files: config/config.yaml
+
+`mqtt: true`
+
+`mqtt_host: localhost`
+
+`mqtt_password: ''`
+
+`mqtt_port: 1883`
+
+`mqtt_username: ''`
+
+Anschließend steht der Typ MQTT für Sensoren und Aktoren zur Verfügung
 ![mqttSensor](img/mqttSensor.jpg)
 ![mqttAktor](img/mqttAktor.jpg)
 
-MQTT kommuniziert mit Topics. Jeder Sensor und jeder Aktor bekommt sein eigenes Topic für die Kommunikation.
-Auf den Bildern dargestellt ist ein CraftbeerPi3 Temperatur Sensor mit dem Namen Temp Induktion. CraftbeerPi3 liest Sensordaten aus dem Topic "induktion/temperatur".
+**MQTTDevice flash firmware:**
 
-Analog zum Sensor sendet CraftbeerPi Befehle an den Aktor Rührwerk in das Topic "induktion/ruehrwerk".
-
-Diese zwei Topics werden nun beispielhaft auf dem MQTTDevice eingerichtet.
-
-*Hinweis 1: falls ein CraftbeerPi3 MQTT Plugin bereits vorhanden ist (bspw. die ältere Version cbpi-mqttCompressor), muss das Plugin ersetzt werden. Dazu die Version cbpi-mqttPub in den Plugins Ordner kopieren und den Ordner cbpi-mqttCompressor löschen.*
-
-*Hinweis 2: wenn das Induktionskochfeld GGM IDS2 eingesetzt wird, sollte das CraftbberPi3 Plugin cbpi-PIDArduinoPowerOutput verwendet werden: <https://github.com/InnuendoPi/cbpi-PIDArduinoPowerOutput>*
-*Zur Konfiguration der PID Einstellungen ist das Plugin cbpi-PIDAutoTunePowerOutput <https://github.com/InnuendoPi/cbpi_PIDAutoTunePowerOutput> sehr hilfreich*
-
-**MQTTDevice flashen:**
-
-Mit Hilfe von esptool.exe (<https://github.com/igrr/esptool-ck/releases> ) aus dem Ordner tools kann die Firmware auf das ESP Modul geladen werden. Das ESPTool ist für verschiedene Betriebssysteme verfügbar.
+With the help of esptool.exe (<https://github.com/igrr/esptool-ck/releases>) from the tools folder, the firmware can be loaded onto the ESP module. The ESPTool is available for different operating systems.
 ESPtool-ck Copyright (C) 2014 Christian Klippel ck@atelier-klippel.de. This code is licensed under GPL v2.
 
-Unter Win10 wird der USB Treiber CH341SER benötigt: <http://www.wch.cn/download/CH341SER_ZIP.html>
+The USB driver CH341SER is required under Win10: <http://www.wch.cn/download/CH341SER_ZIP.html>
 
-Beispiel für ein ESP8266 Modul vom Typ Wemos D1 mini mit 4MB Flash verbunden mit COM3
+Example for an ESP8266 module of the type Wemos D1 mini with 4MB Flash connected to COM3
 
-* Von github das Archiv Firmware.zip aus dem Ordner Tools herunterladen und irgendeinem Ordner entpacken
+* Download the Firmware.zip archive from the tools folder on github and extract it to any folder
 
-  * Das Archiv enthält das esptool zum Flashen, das Skript Flashen.cmd und die zwei Firmware Dateien
+  * The archive contains the esptool for flashing, the Flashen.cmd script and the two firmware files
 
-  * Doppelklick auf die Datei Flashen.cmd.
+  * Double click on the file Flashen.cmd.
 
-  Die Firmware wird nun auf das MQTTDevice aufgespielt.
+  The firmware is now installed on the MQTT device.
 
-  *Das Skript Flashen verwendet COM3 als Anschluss für das MQTTDevice. Sollte COM3 nicht der richtige Anschluss für den Wemos D1 mini sein, muss im Skript Flashen.cmd an zwei Stellen COM3 durch den richtigen Anschluss ersetzt werden.*
+  *The Flash script uses COM3 as the connection for the MQTTDevice. If COM3 is not the correct port for the Wemos D1 mini, COM3 must be replaced by the correct port in two places in the Flashen.cmd script.*
 
-  Nach dem Flashen startet das MQTTDevice im Access Point Modus mit dem Namen "ESP8266-xxxx" und der Adresse <http://192.168.4.1>
+  After flashing, the MQTT device starts in access point mode with the name "ESP8266-xxxx" und address <http://192.168.4.1>
 
   ![wlan](img/wlan-ap.jpg)
 
-  Das MQTTDevice muss nun mit dem WLAN verbunden werden und die IP Adresse vom MQTT Broker muss eingetragen werden. In diesem Beispiel wurde der MQTT Broker mosquitto auf dem RaspberryPi installiert. Es ist also die IP Adresse vom RaspberryPi (CraftbeerPi) einzugeben.
+The MQTT device must now be connected to the WLAN and the IP address of the MQTT broker must be entered. In this example the MQTT broker mosquitto was installed on the RaspberryPi. So you have to enter the IP address of the RaspberryPi (CraftbeerPi4).
 
-Der MQTT Sensor "Temp Induktion" und der MQTT Aktor "Rührwerk" werden nun auf dem MQTTDevice mit den identischen Topics angelegt:
+The MQTT sensor "Induction temperature" and the MQTT actor "Agitator" are now created on the MQTT device with the identical topics:
 
 ![mqttSensor2](img/mqttSensor2.jpg)
 ![mqttAktor2](img/mqttAktor2.jpg)
 
-Der Sensor- oder Aktorname darf unterschiedlich sein. Mit diesen Schritten ist die beispielhafte Installation und Konfiguration von MQTT Sensoren und Aktoren abgeschlossen. Es können je MQTTDevice bis zu 6 Sensoren und 6 Aktoren eingerichtet werden. Es können (nahezu) beliebig viele MQTTDevices mit CraftbeerPi über MQTT verbunden werden. Sehr häufig werden zwei MQTTDevices verwendet:
+The sensor or actor name can be different. These steps complete the exemplary installation and configuration of MQTT sensors and actors. Up to 6 sensors and 6 actors can be set up per MQTT device. (Almost) any number of MQTT devices can be connected to CraftbeerPi via MQTT. Two MQTT devices are used very often:
 
-MQTTDevice 1: Sud & Maische Kessel mit Temperatursensoren und Aktoren für Induktionskochfeld und Rührwerk
+MQTTDevice 1: Mash tun with temperature sensors and agitator.
 
-MQTTDevice 2: Nachguss und Pumpen mit Temperatursensoren und Aktoren für Heater, Pumpen, Heizstäbe, Ringheizelemente etc.
+MQTTDevice 2: HLT with temperature sensors, pumps and valves etc.
 
-Es sind beliebige Kombinationen möglich. Weil die Kommunikation MQTT über Topics realisiert ist, muss bspw. ein Temperatursensor und ein Induktionskochfeld für ein CraftbeerPi Kettle nicht am gleichen MQTTDeivce konfiguriert sein.
+Any combination is possible. Because the MQTT communication is implemented via topics, a temperature sensor and an induction hob for a CraftbeerPi Kettle do not have to be configured on the same MQTTDeivce, for example.
 
 **Updates:**
 
-Die Firmware bietet zwei Möglichkeiten, um Updates sehr einfach einspielen zu können.
+The firmware offers two options for installing updates very easily.
 
-1. Update durch Dateiupload
+1. Firmware Update file upload
 
-    Im Webbrowser die URL <http://mqttdevice/update> aufrufen oder im WebIf den Button "Update" -> "Upload" verwenden.
-    Hier kann Firmware und das Filesystem SPIFFS aktualisiert werden. Wenn das Filesystem SPIFFS mit Dateiupload aktualisiert wird, wird die Konfigurationsdatei überschrieben. Siehe Backup und Restore.
+    Call up the URL <http://mqttdevice/update> in the web browser or use the "Update" -> "Upload" button in the WebIf.
+    Firmware and the LittleFS file system can be updated here. If the file system LittleFS is updated with file upload, the configuration file is overwritten. See backup and restore.
 
 2. WebUpdate
 
-    Im Webbrowser die URL <http://mqttdevice> aufrufen und die Funktion "Update" -> "WebUpdate" aufrufen.
-    WebUpdate aktualisiert die Firmware, die index Datei und Zertifikate. Durch WebUpdate wird die Konfigurationsdatei nicht überschrieben.
+    Open the webfront of your MQTTDevice in your web browser and call the "Update" -> "WebUpdate" function.
+    WebUpdate updates the firmware, the index file and certificates. The configuration file is not overwritten by WebUpdate.
 
-Das WebUpdate kann je nach Internetverbindung ein paar Minuten dauern. Während des WebUpdates steht das Web Interface nicht zur Verfügung. Wenn nur eine sehr langsame Internetanbindung zur Verfügung steht, wird nach ca. 60 Sekunden die Meldung "Browser reagiert nicht" angezeigt. Bitte warten und das WebUpdate durchlaufen lassen.
+The WebUpdate can take a few minutes, depending on your internet connection. The web interface is not available during the web update. If only a very slow internet connection is available, the message "Browser not responding" is displayed after approx. 60 seconds. Please wait and let the WebUpdate run through.
 
-**Backup and Restore der Konfiguration:**
+**Backup and Restore:**
 
-Der Dateiexplorer ist erreichbar über den Webbrowser <http://mqttdevice/edit>
+The file explorer can be reached via the web browser <http://mqttdevice/edit>
 
 1. Backup
 
-    Auf die Datei config.txt klicken (li Mouse Taste) und aus dem PopUp Download auswählen.
+   Click on the file config.txt (left mouse button) and select download from the popup.
 
 2. Restore
 
-    Auf Datei auswählen klicken, die config.txt aus dem Backup auswählen und Upload anklicken
+    Click on Select file, select the config.txt from the backup and click on upload
 
-**Unterstützte und getestete Hardware:**
+**Supported and tested hardware:**
 
-Getestete Hardware Stand 09.2020
+Hardware 09.2020
 
 | Anzahl | Link |
 | ------------ | ---- |
@@ -148,208 +149,173 @@ Getestete Hardware Stand 09.2020
 | OLED Display 1.3" | <https://www.amazon.de/dp/B078J78R45/ref=cm_sw_em_r_mt_dp_5FzyFbS1ABDDM> |
 | Piezo Buzzer | <https://www.amazon.de/dp/B07DPR4BTN/ref=cm_sw_em_r_mt_dp_aKzyFbJ0ZVK67> |
 
-*Die Links zu amazon sind rein informativ als Suchhilfe*
-*für allgemein bekannte Anbieter zu verstehen*
+*The links to amazon are purely informative as a search aid*
+*to be understood by well-known providers in germany*
 
 ---
 
-## Verwenden der Firmware
+## Using the firmware
 
-Die meisten Funktionen der Firmware sind selbsterklärend. Das Hinzufügen oder das Löschen von Sensoren und Aktoren wird daher hier nicht beschrieben.
+Most of the functions of the firmware are self-explanatory. The addition or deletion of sensors and actuators is therefore not described here.
 
-**Die Hauptfunktionen:**
+**Main functions:**
 
-    * Hinzufügen, editieren und löschen von Sensoren
+    * Adding, editing and deleting sensors
     * Auto reconnect MQTT
-    * Auto reconnect WLAN
-    * OLED Display optional konfigurieren
-    * System Einstellungen vollständig veränderbar
-    * Firmware und SPIFFS Updates über Dateiupload
+    * Auto reconnect WiFi
+    * Optionally configure the OLED display
+    * System settings fully changeable
+    * Firmware and SPIFFS updates via file upload
     * Firmware WebUpdate
-    * Filebrowser für einefaches Datei-Management (zB backup und restore config.json)
-    * DS18B20 Temperatur Offset - einfaches kalibrieren der Sensoren
+    * Filebrowser for simple file management (e.g. backup and restore config.json)
+    * DS18B20 temperature offset - easy calibration of the sensors
 
-**Das Menü Enstellungen:**
+**Misc settings:**
 
 1. System
 
-    **IP Adresse MQTT Server (CBPi):**
+    **IP address MQTT Server (CBPi):**
 
-    Unter System wird der MQTT Broker eingetragen. In den allermeisten Fällen dürfte dies mosquitto auf dem CBPi sein.
-    Wichtig: die Firmware MQTTDevice versucht permanent, mit dem MQTT Broker eine Verbindung aufzubauen. Wenn der MQTT Broker nicht verfügbar ist, beeinträchtigt das sehr stark Geschwindigkeit vom MQTTDevice (Web-Interface).
+    The MQTT broker is entered under System. In the vast majority of cases, this is likely to be mosquitto on the CBPi.
+    Important: the firmware MQTTDevice tries constantly to establish a connection with the MQTT broker. If the MQTT broker is not available, this will severely affect the speed of the MQTT device (web interface).
 
     **Piezo Buzzer:**
 
-    Ein Piezo Buzzer kann nur an PIN D8 angeschlossen werden. Ein Piezo Buzzer ist optional. Die Firmware unterstützt 4 verschiedene Signale: ON, OFF, OK und ERROR
+    A piezo buzzer can only be connected to PIN D8. A piezo buzzer is optional. The firmware supports 4 different signals: ON, OFF, OK and ERROR
 
     **mDNS:**
 
-    Ein mDNS Name kann anstelle der IP Adresse vom ESP8266 im Webbrowser verwendet werden (<http://mDNSname>). Der Name ist frei wählbar. Der mDNS Name muss im Netzwerk eindeutig sein und darf keine Leer- oder Sonderzeichen enthalten.
+    A mDNS name can be used instead of the IP address of the ESP8266 in the web browser (<http://mDNSname>). The name is freely selectable. The mDNS name must be unique in the network and must not contain any spaces or special characters.
 
-    **Grafana Einstellungen**
+2. Intervals
 
-    Die Anbindung an Grafana, um einen Brautag graphisch darzustellen, ist optional. Die Eingabefelder sind selbsterklärend. Wird Grafana über die Checkbox aktiviert, benötigt das MQTTDevice zwingend einen Reboot.
+    The time intervals that are used for the definition are configured under Intervals
+    * how often sensors are queried and the data is sent to the CBPi
+    * how often commands for actuators / induction are picked up by the CBPi
 
-    Zur Konfiguration siehe Rubrik Visualisierung.
+    With these intervals the performance of the Wemos can be improved. The standard setting of 5 seconds is suitable for environments with few sensors and actuators. In environments with many sensors and actuators, an interval of 10 to 30 seconds would be more suitable for the small Wemos. This has to be tried out individually.
 
-2. Intervalle
+3. Event manager
 
-    Unter Intervalle werden die Zeitabstände konfiguriert, mit denen festgelegt wird
-    * wie häufig Sensoren abgefragt werden und die Daten zum CBPi gesendet werden
-    * wie häufig Befehle für Aktoren / Induktion vom CBPi abgeholt werden
+    The event manager handles events and misconduct. Handling of malfunctions (event handling) is deactivated in the standard setting!
 
-    Mit diesen Intervallen kann die Performance vom Wemos verbessert werden. Die Standard Einstellung von 5 Sekunden für Umgebungen mit wenigen Sensoren und Aktoren geeignet. In Umgebungen mit vielen Sensoren und Aktoren wäre ein Intervall von 10 bis 30 Sekunden für den kleinen Wemos besser geeignet. Dies muss individuell ausprobiert werden.  
+    What should the MQTT device do, if
+    * the WLAN connection is lost
+    * communication with the MQTT server is interrupted
+    * Suddenly no temperature data is supplied in the sensor
 
-3. Der Eventmanager
+    Without event handling, the Wemos doesn't do anything automatically. The state remains unchanged.
 
-    Der Eventmanager behandelt Ereignisse und Fehlverhalten. Das Behandeln von Fehlverhalten (Event handling) ist in der Standard Einstellung deaktiviert!
+    There are 4 basic types of events that can be handled automatically: for actuators and for the induction hob in the event of sensor errors, as well as for actuators and the induction hob in the case of WLAN and MQTT errors. Delays for event handling are configured for these 4 types. The state remains unchanged during the delay. After the delay, the MQTT device can change the status of the actuators and induction hob.
+    The delays are configured under Settings -> EventManager:
 
-    Was soll das MQTTDevice machen, wenn
-    * die WLAN Verbindung verloren geht
-    * der Kommunikation mit dem MQTT Server unterbrochen wird
-    * in Sensor plötzlich keine Temperaturdaten liefert
+    1. Delay for actuators before a sensor triggers an event.
+    2. Delay for the induction hob before a sensor triggers an event.
+    3. Delay in MQTT errors.
+    4. Delay in case of WLAN errors.
 
-    Ohne das Event handling macht der Wemos nichts automatisert. Der Zustand verbleibt unverändert.
+    The standard delay for these 4 events is 120 seconds.
 
-    Es gibt 4 Grundtypen von Ereignissen (Events), die automatisiert behandelt werden können: für Aktoren und für das Induktionkochfeld bei Sensorfehlern, sowie für Aktoren und das Induktionskochfeld bei WLAN und bei MQTT Fehlern. Für diese 4 Typen werden Verzögerungen für das Event handling konfiguriert. Während der Verzögerung verbleibt der Zustand unverändert. Nach der Verzögerung kann das MQTTDevice den Zustand von Aktoren und Induktionskochfeld ändern.
-    Die Verzögerungen werden unter Einstellungen -> EventManager konfiguriert:
+    The WLAN and MQTT event handling can generally be activated or deactivated for all actuators and induction cooktops. If WLAN and MQTT event handling are activated, event handling must also be activated in the actuator settings and for the induction hob. Each device can be configured individually.
 
-    1. Verzögerung für Aktoren bevor ein Sensor ein Event auslöst.
-    2. Verzögerung für das Induktionskochfeld bevor ein Sensor ein Event auslöst.
-    3. Verzögerung bei MQTT Fehlern.
-    4. Verzögerung bei WLAN Fehlern.
+    Every sensor also has an event handling property. If event handling is activated for a sensor, this sensor can trigger event handling in the event of a sensor fault. A sensor that is deactivated for event handling cannot trigger event handling accordingly.
 
-    Die Standard Verzögerung für diese 4 Ereignisse beträgt 120 Sekunden.
-
-    Das WLAN und MQTT Event handling kann grundsätzlich aktiviert oder für alle Aktoren und Induktionskochfeld deaktiviert werden. Wird das WLAN und MQTT Event handling aktiviert, muss in den Einstellungen der Aktoren und für das Induktionskochfeld zusätzlich das Event handling aktiviert werden. So kann jedes Gerät individuell konfiguriert werden.
-
-    Auch jeder Sensor hat eine Eigenschaft Event handling. Wird für einen Sensor das Event handling aktiviert, so kann dieser Sensor bei einer Sensorstörung die Event Behandlung auslösen. Ein Sensor, der für das Event handling deaktiviert ist, kann dementsprechend keine Event Behandlung auslösen.
-
-    Die Szenarien für die Verwendung vom Event handling sind sehr vielfältig. Hier sind jeweils die Funktionen von Sensoren und Aktoren individuell zu unterscheiden. Zwei Beispiele zur Erläuterung:
-
-    **Beispiel 1:**
-    Wenn der MQTT Broker unerwartet die Verbindung beendet, dann
-    1. wird automatisch versucht die Verbindung wieder aufzubauen, völlig unabhängig von den Einstellungen Event handling.
-    2. die konfigurierte Verzögerung wird abgewartet, bevor ein Aktor automatisch ausgeschaltet wird
-    3. das Induktionsfeld kann auf eine niedrigere Leistung gesetzt werden (von 100% auf 20%), um die Temperatur zu halten
-
-    **Beispiel 2:**
-    Wenn ein Temeratursensor beim Brauen einen Fehler meldet, bspw. der Stecker löst sich und der Sensor meldet "Unplugged", dann
-    1. wird automatisch versucht, in den nächsten Zyklen brauchbare Messwerte vom Sensor zu erhalten.
-    2. die konfigurierte Verzögerung wird abgewartet.
-    3. nach Ablauf der Verzögerung kann ein Aktor Rührwerk am Sudkessel weiterlaufen: das Event handling für diesen Aktor ist deaktiviert.
-    4. ein Aktor Heater (verbunden mit einem SSR) kann abgeschaltet werden: das Event handling für diesen Aktor ist aktiviert.
-    5. ein Aktor Pumpe kann abgeschaltet werden: das Event handling für den Aktor Pumpe ist aktiviert.
-
-    Beispiel 2 bei komplett deaktiviertem Event handling würde bedeuten, dass CBPi an den Aktor Heater 100% Leistung zum Aufheizen sendet.  
-
-    Die Reihenfolge beim Event handling ist grundsätzlich
-    * WLAN Fehler
-    * MQTT Fehler
-    * Sensor Fehler
-
-    Rückwärts betrachtet kann das Event Sensor Fehler nur dann eintreten, wenn die Kommunikation mit dem MQTT Broker fehlerfrei ist. Ein Event MQTT Fehler kann nur ausgelöst werden, wenn eine WLAN Verbindung hergestellt ist.
-
-4. Restore
-
-    Über das Menü Restore kann der Wemos gelöscht werden. Zur Auswahl stehen
-    * WLAN Einstellungen löschen
-    * Alle Einstellungen löschen (WLAN und Konfiguration)
+    The order in event handling is:
+    * WLAN error
+    * MQTT error
+    * Sensor error
 
 ---
 
-**Das OLED Display:**
+**OLED Display:**
 
-Diese Firmware unterstützt OLED Display monochrom 128x64 I2C 1.3" SH1106 und mit einer kleinen Anpassung am Quellcode das OLED Display monochrom 128x64 I2C 0.96" SSD1306.
+This firmware supports OLED display monochrome 128x64 I2C 1.3 "SH1106 and with a small adjustment to the source code the OLED display monochrome 128x64 I2C 0.96" SSD1306.
 
 ![Oled](img/oled.jpg)
 
-Das Display kann über das WebIf konfiguriert werden. Wenn das Display aktiviert wird, sind die PINS D1 (SDL) und D2 (SDA) belegt. Auf dem Display werden Sensoren, Aktoren und Induktion mit ihren aktuellen Werten dargestellt.
-Dabei bedeutet "S1 78 | A2 100 | I off"
+The display can be configured via the WebIf. When the display is activated, PINS D1 (SDL) and D2 (SDA) are occupied. Sensors, actuators and induction with their current values ​​are shown on the display.
 
-* Sensor 1 meldet eine Temperatur von 78°C
-* Aktor 2 hat einen Powerlevel von 100%
-* Induktion ist ausgeschaltet (oder nicht konfiguriert)
+"Sen: 0 | Act: 1 | Ind: 0" means
 
-Mit jeder Aktualisierung Display wandert die Anzeige auf den nächsten Sensor bzw. Aktor. Im Beispiel wäre das S2 und A3.
+* Sensor 1 reports a temperature of 0° C
+* Actor 1 has a power level of 100%
+* Induction is switched off (or not configured)
 
-Anschluss ESP8266 D1 Mini an ein AZ-Delivery 1.3" i2c 128x64 OLED Display (Verwendung aller Information auf eigene Gefahr!)
+Each time the display is updated, the display moves to the next sensor or actuator. In the example this would be S2 and A3.
+
+Connection of the ESP8266 D1 Mini to an AZ-Delivery 1.3 "i2c 128x64 OLED display (use of all information at your own risk!)
 
 * VCC -> 3.3V
 * GND -> GND
 * SCL -> D1
 * SDA -> D2
 
-Benötigte Bibliothek für das OLED 1.3 SH1106:
+Required library for the OLED 1.3 SH1106:
 
-Die folgende Bibliothek muss heruntergeladen und in das libraries Verzeichnis kopiert werden:
+The following library must be downloaded and copied into the libraries directory:
 <https://github.com/InnuendoPi/Adafruit_SH1106>
-
-Anpassungen für OLED Display mit SSD1306 Chip:
-
-Anschließend müssen im Quellcode die Stellen SH1106 in SSD1306 geändert werden. Die entsprechenden Stellen enthalten bereits Anmerkungen: MQTTDevice2.ino 5_DISPLAY.ino und CONFIGFILE.ino
 
 ---
 
-## Die MQTTDevice Platine
+## MQTTDevice circuit board
 
-**Wichtiger Hinweis:**
+**Important note:**
 
-Die Platine ist aus einem Hobby-Projekt entstanden. Eine fertig bestückte Platine wird nicht angeboten. Das Projekt verfolgt keinerlei kommerzielle Absichten. Die hier geteilten Informationen stellen einen Entwicklungszustand dar und dienen der Weiterentwicklung sowie der Überprüfung, Korrektur und Verbesserung. Inhalte aus externen Links (bspw Forum hobbybrauer) und Angaben zu externen Inhalten (bspw. Artikel allgemein bekannter Anbieter) unterliegen den jeweiligen Rechten der Inhaber. Externe Inhalte sind ausschließlich als informative Starthilfe anzusehen.  
+The circuit board was created from a hobby project. A fully assembled board is not offered. The project has no commercial intent. The information shared here represents a state of development and is used for further development as well as for checking, correcting and improving. Content from external links (e.g. hobby brewer forum) and information on external content (e.g. articles from well-known providers) are subject to the respective rights of the owner. External content is to be viewed solely as an informative start-up aid.
 
-*Alle Informationen über die Platine sind rein informativ und können falsch sein.*
-*Verwendung dieser Informationen auf eigene Gefahr. Jegliche Haftung wird ausgeschlossen.*
+*All information about the board is purely informative and may be incorrect.*
+*Use this information at your own risk. Any liability is excluded.*
 
 ![Platine-bestückt1](img/platine-best1.jpg) ![Platine-bestückt2](img/platine-best2.jpg)
 
-In diesem Projekt wurde eine Platine für das MQTTDevice entwickelt, um mit Klemmschraubblöcken eine einfache Anbindung an Sensoren, Aktoren und an das Induktionskochfeld GGM IDS2 zu bieten. Die Platine ist mit nur wenigen Bauteilen bestückt. Die Platine bietet folgende Vorteile:
+In this project, a circuit board for the MQTT device was developed in order to offer a simple connection to sensors, actuators and the induction hob GGM IDS2 with clamping screw blocks. The board is equipped with only a few components. The board offers the following advantages:
 
-* der Wemos D1 mini steckt auf einem Sockel und kann jederzeit abgenommen werden.
-* alle GPIOs werden auf Schraubklemmen geführt.
-* ein LevelShifter sorgt für 5V Steuerspannung an den Schraubklemmen GPIOs (Logic Level Converter).
-* die Stromversorgung vom Wemos kann bei der Verwendung einer GGM IDS2 direkt vom Induktionskochfeld genutzt werden.
-* Temperatursensoren DS18B20 fest an D3 können direkt an die Schraubklemmen angeschlossen werden.
-* ein optionales OLED Display kann über den Jumper J1 und J2 über D1 (SDL) und D2 (SDA J2) angebunden werden.
-* PIN D4 kann wahlweise per Jumper J3 an den Display Port oder über den LevelShifter an D4 geführt werden.
-* PIN D8 ist ohne LevelShifter auf D8 (3V3) geführt.
-* Spannungsversorgung 5V über Schraubklemme
+* the Wemos D1 mini is on a base and can be removed at any time.
+* all GPIOs are led to screw terminals.
+* A LevelShifter provides 5V control voltage to the screw terminals GPIOs (Logic Level Converter).
+* The power supply from the Wemos can be used directly from the induction hob when using a GGM IDS2.
+* Temperature sensors DS18B20 fixed to D3 can be connected directly to the screw terminals.
+* An optional OLED display can be connected using jumpers J1 and J2 via D1 (SDL) and D2 (SDA J2).
+* PIN D4 can either be routed to the display port via jumper J3 or to D4 via the LevelShifter.
+* PIN D8 is routed to D8 (3V3) without LevelShifter.
+* Power supply 5V via screw terminal
 
-**Einstellung der Jumper:**
+**Jumper settings:**
 
 ![Jumper](img/platine_jumper.jpg)
 
-Auf der Platine befinden sich 4 Steckbrücken (Jumper)
+There are 4 jumpers on the board:
 
 1. Jumper J1: PIN D1
-    1. In der Stellung 1-2 wird D1 zum Anschluss Display geführt (SDL)
-    2. In der Stellung 2-3 wird D1 über den LevelShifter zum Anschluss D1 geführt
+    1. In position 1-2, D1 is led to the display connection (SDL)
+    2. In position 2-3, D1 is led to connection D1 via the LevelShifter
 
 2. Jumper J2: PIN D2
-    1. In der Stellung 1-2 wird D2 zum Anschluss Display geführt (SDA)
-    2. In der Stellung 2-3 wird D2 über den LevelShifter zum Anschluss D2 geführt
+    1. In position 1-2, D2 is led to the display connection (SDA)
+    2. In position 2-3, D2 is led to connection D2 via the LevelShifter
 
 3. Jumper J3: PIN D4
-    1. In der Stellung 1-2 wird D4 zum Anschluss Display als D4 ggfs. für ein TFT geführt
-    2. In der Stellung 2-3 wird D4 über den LevelShifter zum Anschluss D4 geführt
+    1. In position 1-2, D4 is led to the display connection as D4, if necessary for a TFT
+    2. In position 2-3, D4 is led to connection D4 via the LevelShifter
 
-4. Jumper J4: 5V Stromanschluss von GGM IDS2
-    1. Wenn der Jumper gebrückt ist, wird die Stromzufuhr 5V vom Induktionskochfeld (JST-HX Buchse) verwendet
-    2. Wenn der Jumper nicht gesetzt ist, benötigt der Wemos eine Stromzuführ über den 5V Anschluss
-    Jumper J4 ist optional. Wird die GGM IDS2 nicht verwendet, kann die Steckbrück und Anschlussbuchse entfallen.
+4. Jumper J4: 5V power connection GGM IDS2
+    1. If the jumper is bridged, the 5V power supply from the induction hob (JST-HX socket) is used
+    2. If the jumper is not set, the Wemos needs a power supply via the 5V connection
+    Jumper J4 is optional. If the GGM IDS2 is not used, the jumper and connection socket can be omitted.
 
-    *Wenn die Stromversorgung vom Induktionskochfeld bezogen wird (Jumper J4 gesetzt), darf keine Spannungsversorgung zusätzlich über den 5V Eingang angeschlossen werden.*
-    *GPIO0, GPIO2 und GPIO15 bilden den Boot Mode für den Wemos D1 Mini ab. GPIO15 ist nicht über den LevelShifter verbunden und muss für den Flash Boot Mode auf Low stehen. GPIO0 und GPIO2 sind beim Flash Boot auf High*
+    *If the power supply is drawn from the induction hob (jumper J4 set), no additional voltage supply may be connected via the 5V input.*
+    *GPIO0, GPIO2 and GPIO15 map the boot mode for the Wemos D1 Mini. GPIO15 is not connected via the LevelShifter and must be set to low for Flash Boot Mode. GPIO0 and GPIO2 are on high during flash boot*
 
-**Das Platine Layout:**
+* Layout circuit board:**
 
 ![Platine](img/platine.jpg)
 
-Im Ordner Info befindet sich eine EasyEDA Datei, mit deren Hilfe die Platine erstellt werden kann. Ebenfalls im Ordner Info befinden sich STL Dateien für einen 3D Druck MQTTDevice Gehäuse.
-Korrekturen, Verbesserungen und Weiterentwicklungen bitte teilen.
+In the Info folder there is an EasyEDA file that can be used to create the circuit board. STL files for a 3D print MQTTDevice housing are also located in the Info folder.
+Please share corrections, improvements and further developments.
 
-**Platine Stückliste:**
+**Circuit board parts list:**
 
-Folgende Bautteile werden benötigt:
+The following components are required:
 
 | Anzahl | Artikel | ArtikelNr |
 | ------ | ------- | --------- |
@@ -364,43 +330,42 @@ Folgende Bautteile werden benötigt:
 | 1 | D1 mini NodeMcu ESP8266-12E mit Sockel | (Bsp amazon ASIN B01N9RXGHY) |
 | 1 | LevelShifter 8 Kanal 5V 3.3V | (Bsp amazon ASIN B01MZ76GN5) |
 
-*amazon und voelkner sind rein informativ als Suchhilfe*
-*für allgemein bekannter Anbieter zu verstehen*
+*amazon and voelkner are purely informative as a search aid*
+*to be understood by well-known providers (in germany)*
 
 ![LevelShifter](img/platine_levelshifter.jpg)
 
-Bei der Auswahl LevelShifter (Logic Level Converter) muss zwingend die Belgung beachtet werden. Der LevelShifter muss im Eingang Low Voltage (LV) diese Reihenfolge haben:
+When selecting LevelShifter (Logic Level Converter), the assignment must be observed. The LevelShifter must have this order in the Low Voltage (LV) input:
 
 `LV1 - LV2 - LV3 - LV4 - LV (3V3) - Ground - LV5 - LV6 - LV7 - LV8`
 
-**Platine Hinweise zum Aufbau:**
+**Notes on construction:**
 
-Der Widerstand R 4.7kOhm für die Temperatursensoren DS18B20 wird unter dem Wemos D1 mini platziert. Deshalb muss der Wemos gesockelt werden. Die Sockel bieten zudem den Vorteil, dass der Wemos jederzeit von der Platine genommen werden kann, bspw. zum Flashen oder zum Testen. Die DS18B20 werden an VCC mit 5V versorgt. Dies stellt eine stabile Versorgung auch bei längeren Zuleitungen sicher. Der Widerstand ist von Data (PIN D3) gegen 3V3.
-Die JST-HX Buchse und die Steckbrücke J4 für das Induktionskochfeld sind optional.
+The resistor R 4.7kOhm for the temperature sensors DS18B20 is placed under the Wemos D1 mini. Therefore the Wemos has to be socketed. The sockets also offer the advantage that the Wemos can be removed from the circuit board at any time, e.g. for flashing or testing. The DS18B20 are supplied with 5V at VCC. This ensures a stable supply even with longer supply lines. The resistance is from Data (PIN D3) to 3V3. The JST-HX socket and the J4 jumper for the induction hob are optional.
 
-## Anschluss Induktionskochfeld
+## Connection of induction hob
 
-*Die folgende Beschreibung löscht die Garantieansprüche für das Induktionskochfeld*
-*Verwendung dieser Anleitung auf eigene Gefahr*
+*The following description deletes the guarantee claims for the induction hob*
+*Use this manual at your own risk*
 
-Das Induktionskochfeld vom Typ GGM IDS2 kann **optional** mit der Platine verbunden werden. Die GGM IDS2 wird mit einem externen Bedienteil geliefert. Wenn das Bedienteil geöffnet wird, kann die Kabelverbindung vom Bedienteil zum Induktionskochfeld entnommen werden. Dafür muss lediglich das Kabel aus der Buchse im Bedienteil abgezogen werden.
-Die exakt gleiche Buchse (JST-HX) befindet sich auf der MQTTDevice Platine.
+The GGM IDS2 induction hob can **optionally** be connected to the circuit board. The GGM IDS2 is supplied with an external control unit. When the control panel is opened, the cable connection from the control panel to the induction hob can be removed. All you have to do is pull the cable out of the socket in the control panel.
+The exact same socket (JST-HX) is located on the MQTTDevice board.
 
-Die Anschlüsse müssen über das Web Interface wie folgt konfiguriert werden:
+The connections must be configured via the web interface as follows:
 
-* Weiß (Relais) ist fest verbunden mit PIN D7
-* Gelb (Command Channel) ist fest verbunden mit Pin D6
-* Blau (Backchannel) ist fest verbunden mit Pin D5
+* White (relay) is permanently connected to PIN D7
+* Yellow (Command Channel) is permanently connected to pin D6
+* Blue (back channel) is permanently connected to pin D5
 
-Eine separate Stromversorgung ist für das MQTTDevice bei Verwendung der GGM IDS2 nicht erforderlich.
+A separate power supply is not required for the MQTT device when using the GGM IDS2.
 
-## Anschluss DS18B20
+## Connecting sensors DS18B20
 
-Es werden Temperatursensoren vom Typ DS18B20 mit 3 Anschlusskabeln (Data, VCC und GND) unterstützt. Temperatursensoren sind an D3 gebunden. Der notwendige Widerstand 4k7 gegen 3V3 ist auf der Platine vorgesehen. Die Spannungsversorgung der Temperatursensoren ist an 5V angebunden.
+Temperature sensors of type DS18B20 with 3 connection cables (data, VCC and GND) are supported. Temperature sensors are tied to D3. The necessary resistance 4k7 to 3V3 is provided on the board. The voltage supply for the temperature sensors is connected to 5V.
 
-## Anschluss Relaisboards
+## Connecting relais boards
 
-Relaisboards benötigen neben einem GPIO eine 5V Spannungsversorgung. 5V können an einem der drei Anschlüsse für die Temperatursensoren DS18B20 an VCC und GND abgegriffen werden.
+In addition to a GPIO, relay boards require a 5V power supply. 5V can be tapped at one of the three connections for the temperature sensors DS18B20 at VCC and GND.
 
 ---
 
@@ -410,8 +375,8 @@ Relaisboards benötigen neben einem GPIO eine 5V Spannungsversorgung. 5V können
 ![Gehäuse2](img/gehäuse2.jpg)
 ![Grundplatte](img/grundplatte.jpg)
 
-Die benötigten Dateien 3D Druck befinden sich im Ordner Info. Mit dem aktuellen Entwurf Gehäuse werden die Platine und das OLED Display in das Gehäuse verklebt.
+The 3D print files required are located in the Info folder. With the current housing design, the circuit board and the OLED display are glued into the housing.
 
-Das Gehäuse ist mit Halteklammern zwischen Trägerplatte und Gehäusedeckel ausgestattet.
+The housing is equipped with retaining clips between the carrier plate and the housing cover.
 
 ---

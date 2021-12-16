@@ -118,7 +118,7 @@ public:
       sensorsObj["Name"] = sens_name;
       if (sensorsStatus == 0)
       {
-        sensorsObj["Value"] = (sens_value + sens_offset);
+        sensorsObj["Value"] = ((int)((sens_value + sens_offset)*10)) / 10.0;
       }
       else
       {

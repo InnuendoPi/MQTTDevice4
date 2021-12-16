@@ -506,7 +506,7 @@ public:
       sensorsObj["Name"] = sens_name;
       if (sensorsStatus == 0)
       {
-        sensorsObj["Value"] = (sens_value + sens_offset);
+        sensorsObj["Value"] = ((int)((sens_value + sens_offset)*10)) / 10.0;
       }
       else
       {
@@ -2294,12 +2294,12 @@ bool loadFromLittlefs(String path)
 void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
 {
   ;
-  Serial.print("Web: Payload: ");
-  for (int i = 0; i < length; i++)
-  {
-    Serial.print((char)payload[i]);
-  }
-  Serial.println(" ");
+  // Serial.print("Web: Payload: ");
+  // for (int i = 0; i < length; i++)
+  // {
+  //   Serial.print((char)payload[i]);
+  // }
+  // Serial.println(" ");
   char payload_msg[length];
   for (int i = 0; i < length; i++)
   {

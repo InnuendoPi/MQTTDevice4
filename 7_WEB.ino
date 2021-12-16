@@ -73,12 +73,12 @@ bool loadFromLittlefs(String path)
 void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
 {
   DEBUG_MSG("Web: Received MQTT Topic: %s ", topic);
-  Serial.print("Web: Payload: ");
-  for (int i = 0; i < length; i++)
-  {
-    Serial.print((char)payload[i]);
-  }
-  Serial.println(" ");
+  // Serial.print("Web: Payload: ");
+  // for (int i = 0; i < length; i++)
+  // {
+  //   Serial.print((char)payload[i]);
+  // }
+  // Serial.println(" ");
   char payload_msg[length];
   for (int i = 0; i < length; i++)
   {
