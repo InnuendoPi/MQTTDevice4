@@ -1,6 +1,7 @@
 # MQTTDevice4
 
 MQTTDevice4 enables sensors, actors and an induction hob to be connected via WLAN to [CraftBeerPi V4](https://github.com/Manuel83/craftbeerpi4).
+According to the current development status in dec 2021, this fork [CraftBeerPi V4](https://github.com/avollkopf/craftbeerpi4) is highly recommended!
 
 MQTTDevice4 is an Arduino sketch for the ESP8266 Wemos D1 mini modules. This makes it possible to establish communication between the MQTT broker mosquitto and an ESP8266 in order to control sensors and actors with CraftBeerPi V4. MQTTDevice is optimzed for version 4 of craftbeerpi
 
