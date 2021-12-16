@@ -1,4 +1,4 @@
-# MQTTDevice Version 2
+# MQTTDevice Version 4
 
 *What is a MQTTDevice?**
 
