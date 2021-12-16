@@ -1,6 +1,6 @@
 # MQTTDevice Version 4
 
-*What is a MQTTDevice?**
+*What is MQTTDevice?**
 
 MQTTDevice4 is an Arduino sketch for the ESP8266 Wemos D1 mini modules. This makes it possible to establish communication between the MQTT broker mosquitto and an ESP8266 in order to control sensors and actors with CraftBeerPi V4. MQTTDevice is optimzed for version 4 of CraftbeerPi.
 
@@ -57,9 +57,13 @@ This instruction installs the MQTT broker mosquitto on the RaspberryPi. The MQTT
 Now you need to configure your MQTT environment in your CraftbeerPi4 config files: config/config.yaml
 
 `mqtt: true`
+
 `mqtt_host: localhost`
+
 `mqtt_password: ''`
+
 `mqtt_port: 1883`
+
 `mqtt_username: ''`
 
 Anschließend steht der Typ MQTT für Sensoren und Aktoren zur Verfügung
@@ -216,9 +220,9 @@ Most of the functions of the firmware are self-explanatory. The addition or dele
     Every sensor also has an event handling property. If event handling is activated for a sensor, this sensor can trigger event handling in the event of a sensor fault. A sensor that is deactivated for event handling cannot trigger event handling accordingly.
 
     The order in event handling is:
-    * WLAN Fehler
-    * MQTT Fehler
-    * Sensor Fehler
+    * WLAN error
+    * MQTT error
+    * Sensor error
 
 ---
 
@@ -230,10 +234,10 @@ This firmware supports OLED display monochrome 128x64 I2C 1.3 "SH1106 and with a
 
 The display can be configured via the WebIf. When the display is activated, PINS D1 (SDL) and D2 (SDA) are occupied. Sensors, actuators and induction with their current values ​​are shown on the display.
 
-"S1 78 | A2 100 | I off" means
+"Sen: 0 | Act: 1 | Ind: 0" means
 
-* Sensor 1 reports a temperature of 78 ° C
-* Actuator 2 has a power level of 100%
+* Sensor 1 reports a temperature of 0° C
+* Actor 1 has a power level of 100%
 * Induction is switched off (or not configured)
 
 Each time the display is updated, the display moves to the next sensor or actuator. In the example this would be S2 and A3.
