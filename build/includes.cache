@@ -1,0 +1,347 @@
+[
+  {
+    "Sourcefile": null,
+    "Include": "",
+    "Includepath": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\cores\\esp8266"
+  },
+  {
+    "Sourcefile": null,
+    "Include": "",
+    "Includepath": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\variants\\d1_mini"
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\git\\MQTTDevice4\\build\\sketch\\MQTTDevice4.ino.cpp",
+    "Include": "OneWire.h",
+    "Includepath": "c:\\Arduino\\libraries\\OneWire"
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\git\\MQTTDevice4\\build\\sketch\\MQTTDevice4.ino.cpp",
+    "Include": "DallasTemperature.h",
+    "Includepath": "c:\\Arduino\\libraries\\DallasTemperature"
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\git\\MQTTDevice4\\build\\sketch\\MQTTDevice4.ino.cpp",
+    "Include": "ESP8266WiFi.h",
+    "Includepath": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\ESP8266WiFi\\src"
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\git\\MQTTDevice4\\build\\sketch\\MQTTDevice4.ino.cpp",
+    "Include": "ESP8266WebServer.h",
+    "Includepath": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\ESP8266WebServer\\src"
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\git\\MQTTDevice4\\build\\sketch\\MQTTDevice4.ino.cpp",
+    "Include": "ESP8266HTTPUpdateServer.h",
+    "Includepath": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\ESP8266HTTPUpdateServer\\src"
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\git\\MQTTDevice4\\build\\sketch\\MQTTDevice4.ino.cpp",
+    "Include": "WiFiManager.h",
+    "Includepath": "c:\\Arduino\\libraries\\WiFiManager"
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\git\\MQTTDevice4\\build\\sketch\\MQTTDevice4.ino.cpp",
+    "Include": "DNSServer.h",
+    "Includepath": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\DNSServer\\src"
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\git\\MQTTDevice4\\build\\sketch\\MQTTDevice4.ino.cpp",
+    "Include": "LittleFS.h",
+    "Includepath": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\LittleFS\\src"
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\git\\MQTTDevice4\\build\\sketch\\MQTTDevice4.ino.cpp",
+    "Include": "ArduinoJson.h",
+    "Includepath": "c:\\Arduino\\libraries\\arduino_729656\\src"
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\git\\MQTTDevice4\\build\\sketch\\MQTTDevice4.ino.cpp",
+    "Include": "ESP8266mDNS.h",
+    "Includepath": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\ESP8266mDNS\\src"
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\git\\MQTTDevice4\\build\\sketch\\MQTTDevice4.ino.cpp",
+    "Include": "EventManager.h",
+    "Includepath": "c:\\Arduino\\libraries\\EventManager"
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\git\\MQTTDevice4\\build\\sketch\\MQTTDevice4.ino.cpp",
+    "Include": "ESP8266HTTPClient.h",
+    "Includepath": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\ESP8266HTTPClient\\src"
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\git\\MQTTDevice4\\build\\sketch\\MQTTDevice4.ino.cpp",
+    "Include": "ESP8266httpUpdate.h",
+    "Includepath": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\ESP8266httpUpdate\\src"
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\git\\MQTTDevice4\\build\\sketch\\MQTTDevice4.ino.cpp",
+    "Include": "NTPClient.h",
+    "Includepath": "c:\\Arduino\\libraries\\NTPClient"
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\git\\MQTTDevice4\\build\\sketch\\MQTTDevice4.ino.cpp",
+    "Include": "PubSubClient.h",
+    "Includepath": "c:\\Arduino\\libraries\\PubSubClient\\src"
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\git\\MQTTDevice4\\build\\sketch\\MQTTDevice4.ino.cpp",
+    "Include": "Adafruit_SH1106.h",
+    "Includepath": "c:\\Arduino\\libraries\\Adafruit_SH1106"
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\git\\MQTTDevice4\\build\\sketch\\MQTTDevice4.ino.cpp",
+    "Include": "SPI.h",
+    "Includepath": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\SPI"
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\git\\MQTTDevice4\\build\\sketch\\MQTTDevice4.ino.cpp",
+    "Include": "Adafruit_GFX.h",
+    "Includepath": "c:\\Arduino\\libraries\\Adafruit_GFX_Library"
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\git\\MQTTDevice4\\build\\sketch\\MQTTDevice4.ino.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\git\\MQTTDevice4\\build\\sketch\\InnuTicker.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\libraries\\OneWire\\OneWire.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\libraries\\DallasTemperature\\DallasTemperature.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\ESP8266WiFi\\src\\BearSSLHelpers.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\ESP8266WiFi\\src\\CertStoreBearSSL.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\ESP8266WiFi\\src\\ESP8266WiFi.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\ESP8266WiFi\\src\\ESP8266WiFiAP.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\ESP8266WiFi\\src\\ESP8266WiFiGeneric.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\ESP8266WiFi\\src\\ESP8266WiFiGratuitous.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\ESP8266WiFi\\src\\ESP8266WiFiMulti.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\ESP8266WiFi\\src\\ESP8266WiFiSTA-WPS.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\ESP8266WiFi\\src\\ESP8266WiFiSTA.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\ESP8266WiFi\\src\\ESP8266WiFiScan.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\ESP8266WiFi\\src\\WiFiClient.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\ESP8266WiFi\\src\\WiFiClientSecureBearSSL.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\ESP8266WiFi\\src\\WiFiServer.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\ESP8266WiFi\\src\\WiFiServerSecureBearSSL.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\ESP8266WiFi\\src\\WiFiUdp.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\ESP8266WiFi\\src\\enable_wifi_at_boot_time.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\ESP8266WebServer\\src\\detail\\mimetable.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\libraries\\WiFiManager\\WiFiManager.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\DNSServer\\src\\DNSServer.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\LittleFS\\src\\LittleFS.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\LittleFS\\src\\lfs.c",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\LittleFS\\src\\lfs_util.c",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\ESP8266mDNS\\src\\ESP8266mDNS.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\ESP8266mDNS\\src\\LEAmDNS.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\ESP8266mDNS\\src\\LEAmDNS_Control.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\ESP8266mDNS\\src\\LEAmDNS_Helpers.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\ESP8266mDNS\\src\\LEAmDNS_Structs.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\ESP8266mDNS\\src\\LEAmDNS_Transfer.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\libraries\\EventManager\\EventManager.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\ESP8266HTTPClient\\src\\ESP8266HTTPClient.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\ESP8266httpUpdate\\src\\ESP8266httpUpdate.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\libraries\\NTPClient\\NTPClient.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\libraries\\PubSubClient\\src\\PubSubClient.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\libraries\\Adafruit_SH1106\\Adafruit_SH1106.cpp",
+    "Include": "Wire.h",
+    "Includepath": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\Wire"
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\libraries\\Adafruit_SH1106\\Adafruit_SH1106.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\SPI\\SPI.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\libraries\\Adafruit_GFX_Library\\Adafruit_GFX.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\libraries\\Adafruit_GFX_Library\\Adafruit_GrayOLED.cpp",
+    "Include": "Adafruit_I2CDevice.h",
+    "Includepath": "c:\\Arduino\\libraries\\Adafruit_BusIO"
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\libraries\\Adafruit_GFX_Library\\Adafruit_GrayOLED.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\libraries\\Adafruit_GFX_Library\\Adafruit_SPITFT.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\libraries\\Adafruit_GFX_Library\\glcdfont.c",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\Wire\\Wire.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\libraries\\Adafruit_BusIO\\Adafruit_BusIO_Register.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\libraries\\Adafruit_BusIO\\Adafruit_I2CDevice.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "c:\\Arduino\\libraries\\Adafruit_BusIO\\Adafruit_SPIDevice.cpp",
+    "Include": "",
+    "Includepath": null
+  }
+]
