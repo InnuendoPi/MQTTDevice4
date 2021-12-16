@@ -27,11 +27,10 @@ There is support in the hobby brewer forum <https://hobbybrauer.de/forum/> and i
 Libraries: Version 2.60, 12.2021
 
 - ESP8266 3.0.2 (LittleFS)
-- Arduino IDE 1.8.15
-- Visual Code 1.52.1 + modified ESP8266FS Plugin (VSCode 1.52.1 Aruindo 1.8.16)
+- Arduino IDE 1.8.16
+- Visual Code + modified ESP8266FS Plugin (VSCode 1.52.1 Aruindo 1.8.16)
 - PubSubClient 2.8.0
 - ArduinoJSON 6.18.5
-- InfluxDB 3.9.0
 - WiFiManager 2.0.5
 
 Board configuration:
