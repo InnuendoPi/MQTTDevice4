@@ -44,7 +44,7 @@ You will need version 4.0.0.57 or above. Earlier versions do not support MQTT ac
 
 The installation and configuration of RaspberryPi is available in many good instructions on the internet.
 
-The communication between CraftbeerPi and MQTTDevice takes place via WLAN. Sensors send temperature values ​​to CraftbeerPi and CraftbeerPi sends commands (e.g. switch agitator on / off) to actuators. The MQTT protocol is used for this communication. The MQTT protocol requires a MQTT broker.
+The communication between CraftbeerPi and MQTTDevice takes place via WLAN. Sensors send temperature values ​​to CraftbeerPi and CraftbeerPi sends commands (e.g. switch agitator on / off) to actors. The MQTT protocol is used for this communication. The MQTT protocol requires a MQTT broker.
 
 **MQTT CraftbeerPi4:**
 
@@ -66,7 +66,8 @@ Now you need to configure your MQTT environment in your CraftbeerPi4 config file
 
 `mqtt_username: ''`
 
-Anschließend steht der Typ MQTT für Sensoren und Aktoren zur Verfügung
+After CBPi4 restart MQTT is available for sensors and actors
+
 ![mqttSensor](img/mqttSensor.jpg)
 ![mqttAktor](img/mqttAktor.jpg)
 
@@ -155,7 +156,7 @@ Hardware 09.2020
 
 ## Using the firmware
 
-Most of the functions of the firmware are self-explanatory. The addition or deletion of sensors and actuators is therefore not described here.
+Most of the functions of the firmware are self-explanatory. The addition or deletion of sensors and actors is therefore not described here.
 
 **Main functions:**
 
@@ -190,9 +191,9 @@ Most of the functions of the firmware are self-explanatory. The addition or dele
 
     The time intervals that are used for the definition are configured under Intervals
     * how often sensors are queried and the data is sent to the CBPi
-    * how often commands for actuators / induction are picked up by the CBPi
+    * how often commands for actors / induction are picked up by the CBPi
 
-    With these intervals the performance of the Wemos can be improved. The standard setting of 5 seconds is suitable for environments with few sensors and actuators. In environments with many sensors and actuators, an interval of 10 to 30 seconds would be more suitable for the small Wemos. This has to be tried out individually.
+    With these intervals the performance of the Wemos can be improved. The standard setting of 5 seconds is suitable for environments with few sensors and actors. In environments with many sensors and actors, an interval of 10 to 30 seconds would be more suitable for the small Wemos. This has to be tried out individually.
 
 3. Event manager
 
@@ -205,17 +206,17 @@ Most of the functions of the firmware are self-explanatory. The addition or dele
 
     Without event handling, the Wemos doesn't do anything automatically. The state remains unchanged.
 
-    There are 4 basic types of events that can be handled automatically: for actuators and for the induction hob in the event of sensor errors, as well as for actuators and the induction hob in the case of WLAN and MQTT errors. Delays for event handling are configured for these 4 types. The state remains unchanged during the delay. After the delay, the MQTT device can change the status of the actuators and induction hob.
+    There are 4 basic types of events that can be handled automatically: for actors and for the induction hob in the event of sensor errors, as well as for actors and the induction hob in the case of WLAN and MQTT errors. Delays for event handling are configured for these 4 types. The state remains unchanged during the delay. After the delay, the MQTT device can change the status of the actors and induction hob.
     The delays are configured under Settings -> EventManager:
 
-    1. Delay for actuators before a sensor triggers an event.
+    1. Delay for actors before a sensor triggers an event.
     2. Delay for the induction hob before a sensor triggers an event.
     3. Delay in MQTT errors.
     4. Delay in case of WLAN errors.
 
     The standard delay for these 4 events is 120 seconds.
 
-    The WLAN and MQTT event handling can generally be activated or deactivated for all actuators and induction cooktops. If WLAN and MQTT event handling are activated, event handling must also be activated in the actuator settings and for the induction hob. Each device can be configured individually.
+    The WLAN and MQTT event handling can generally be activated or deactivated for all actors and induction cooktops. If WLAN and MQTT event handling are activated, event handling must also be activated in the actor settings and for the induction hob. Each device can be configured individually.
 
     Every sensor also has an event handling property. If event handling is activated for a sensor, this sensor can trigger event handling in the event of a sensor fault. A sensor that is deactivated for event handling cannot trigger event handling accordingly.
 
@@ -232,7 +233,7 @@ This firmware supports OLED display monochrome 128x64 I2C 1.3 "SH1106 and with a
 
 ![Oled](img/oled.jpg)
 
-The display can be configured via the WebIf. When the display is activated, PINS D1 (SDL) and D2 (SDA) are occupied. Sensors, actuators and induction with their current values ​​are shown on the display.
+The display can be configured via the WebIf. When the display is activated, PINS D1 (SDL) and D2 (SDA) are occupied. Sensors, actors and induction with their current values ​​are shown on the display.
 
 "Sen: 0 | Act: 1 | Ind: 0" means
 
@@ -240,7 +241,7 @@ The display can be configured via the WebIf. When the display is activated, PINS
 * Actor 1 has a power level of 100%
 * Induction is switched off (or not configured)
 
-Each time the display is updated, the display moves to the next sensor or actuator. In the example this would be S2 and A3.
+Each time the display is updated, the display moves to the next sensor or actor. In the example this would be S2 and A3.
 
 Connection of the ESP8266 D1 Mini to an AZ-Delivery 1.3 "i2c 128x64 OLED display (use of all information at your own risk!)
 
@@ -267,7 +268,7 @@ The circuit board was created from a hobby project. A fully assembled board is n
 
 ![Platine-bestückt1](img/platine-best1.jpg) ![Platine-bestückt2](img/platine-best2.jpg)
 
-In this project, a circuit board for the MQTT device was developed in order to offer a simple connection to sensors, actuators and the induction hob GGM IDS2 with clamping screw blocks. The board is equipped with only a few components. The board offers the following advantages:
+In this project, a circuit board for the MQTT device was developed in order to offer a simple connection to sensors, actors and the induction hob GGM IDS2 with clamping screw blocks. The board is equipped with only a few components. The board offers the following advantages:
 
 * the Wemos D1 mini is on a base and can be removed at any time.
 * all GPIOs are led to screw terminals.
