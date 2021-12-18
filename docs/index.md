@@ -369,13 +369,13 @@ In addition to a GPIO, relay boards require a 5V power supply. 5V can be tapped 
 
 ---
 
-## Gehäuse
+## Case 3D print
 
 ![Gehäuse1](img/gehäuse1.jpg)
 ![Gehäuse2](img/gehäuse2.jpg)
 ![Grundplatte](img/grundplatte.jpg)
 
-The 3D print files required are located in the Info folder. With the current housing design, the circuit board and the OLED display are glued into the housing.
+3D print files are located in the info folder. With the current housing design, the circuit board and the OLED display are glued into the housing.
 
 The housing is equipped with retaining clips between the carrier plate and the housing cover.
 
