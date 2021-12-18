@@ -16,7 +16,6 @@ When updating to MQTTDevice4 from MQTTDevice2 you must use file upload: MQTTDevi
 ## Documentation
 
 A detailed documentation is available on github pages: <https://innuendopi.github.io/MQTTDevice4/>
-(not yet ready)
 
 ## Support
 
