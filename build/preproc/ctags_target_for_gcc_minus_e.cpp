@@ -2671,7 +2671,7 @@ void handleRequestFirm()
     }
     else
       message = "MQTTDevice4 V ";
-    message += "4.01";
+    message += "4.00";
     goto SendMessage;
   }
 

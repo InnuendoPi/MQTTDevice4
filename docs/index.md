@@ -146,7 +146,7 @@ Hardware 09.2020
 | ESP8266 D1 Mini | <https://www.amazon.de/dp/B01N9RXGHY/ref=cm_sw_em_r_mt_dp_0KzyFbK6YG2BE> |
 | Relais Board 4 Kanal | <https://www.amazon.de/dp/B078Q8S9S9/ref=cm_sw_em_r_mt_dp_PHzyFbSR1PKCH> |
 | Relais Board 1 Kanal | <https://www.amazon.de/dp/B07CNR7K9B/ref=cm_sw_em_r_mt_dp_FIzyFbKXXYE0H> |
-| Nextion Display 3.5" | <https://www.amazon.de/dp/B07SSG86VC/ref=cm_sw_em_r_mt_dp_5Q2FNPMRRV25G4TPW68A?_encoding=UTF8&psc=1> |
+| Nextion Display 3.5" | <https://www.amazon.de/dp/B07SSG86VC/ref=cm_sw_em_r_mt_dp_5Q2FNPMRRV25G4TPW68A> |
 | Piezo Buzzer | <https://www.amazon.de/dp/B07DPR4BTN/ref=cm_sw_em_r_mt_dp_aKzyFbJ0ZVK67> |
 
 *The links to amazon are purely informative as a search aid*
@@ -228,9 +228,13 @@ Most of the functions of the firmware are self-explanatory. The addition or dele
 
 This firmware supports Nextion Touchdisplay HMI TFT 3.5" NX4832T035. Two pages are availible:
 
+Mode BrewPage: max 4 kettle overview
 ![BrewPage](img/Nextion1.jpg)
+
+Mode KettlePage: shows only the first configured sensor and the target temperatur of the sensors connected kettle
 ![KettlePage](img/Nextion2.jpg)
 
+BrewPage is only useable while brewing. When your mash process completed the use of BrewPage ends. The Kettlepage can be used any time as a kettle temperature informatione pannel. Please remeber: your first configured sensor will be display (ToDO).
 The display can be configured via the WebIf. While display is activated, GPIO D1 (SDL) and D2 (SDA) are occupied (software serial tx/rx).
 
 **Instructions to flash NextionsX2 touchdisplay:**
