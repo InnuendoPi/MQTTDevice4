@@ -14,6 +14,9 @@ There are only a few differences between MQTTDevice 2 and 4. MQTTDevice2 with fi
 Firmware update from MQTTDevice2: Update -> file upload -> Firmware -> MQTTDevice4.ino.bin
 Firmware update MQTTDevice2 version 2.3 or earlier (SPIFFS) is not possible. Reflash your device.
 
+Please note:
+All firmware versions 4.x are dedicated to MQTTDevice4. MQTTDevice4 can ONLY operate with CBPi4! If you are using CBPi3 please use MQTTDevice2 and firmware version 2.x
+
 ## Documentation
 
 A detailed documentation is available on github pages: <https://innuendopi.github.io/MQTTDevice4/>
