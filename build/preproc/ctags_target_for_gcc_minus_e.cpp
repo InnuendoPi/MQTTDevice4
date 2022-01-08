@@ -182,7 +182,6 @@ char cbpi4notification_topic[45] = "cbpi/notification";
 bool current_step = false;
 struct Kettles
 {
-    // char id[maxIdSign] = { '\0'};
     char id[23];
     char name[15];
     char current_temp[10];
@@ -195,21 +194,7 @@ char currentStepName[30] = "no active step";
 char currentStepRemain[10] = "0:00";
 char nextStepName[30];
 char nextStepRemain[10];
-
-int numberOfSteps = 1;
-
 bool activeBrew = false;
-
-struct Steps
-{
-    char id[23];
-    // char name[maxStepSign];
-    // char timer[maxRemainSign];
-    char status[2];
-};
-struct Steps structSteps[20];
-
-
 
 char notify[75] = "Waiting for data - start brewing";
 int sliderval = 0;
@@ -2671,7 +2656,7 @@ void handleRequestFirm()
     }
     else
       message = "MQTTDevice4 V ";
-    message += "4.00";
+    message += "4.01";
     goto SendMessage;
   }
 

@@ -50,7 +50,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.00"
+#define Version "4.01"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -218,7 +218,6 @@ char cbpi4notification_topic[45] = "cbpi/notification";
 bool current_step = false;
 struct Kettles
 {
-    // char id[maxIdSign] = { '\0'};
     char id[maxIdSign];
     char name[maxKettleSign];
     char current_temp[maxTempSign];
@@ -231,21 +230,7 @@ char currentStepName[maxStepSign] = "no active step";
 char currentStepRemain[maxRemainSign] = "0:00";
 char nextStepName[maxStepSign];
 char nextStepRemain[maxRemainSign];
-
-int numberOfSteps = 1;
-#define maxSteps 20
 bool activeBrew = false;
-
-struct Steps
-{
-    char id[maxIdSign];
-    // char name[maxStepSign];
-    // char timer[maxRemainSign];
-    char status[2];
-};
-struct Steps structSteps[maxSteps];
-
-
 
 char notify[maxNotifySign] = "Waiting for data - start brewing";
 int sliderval = 0;
@@ -292,7 +277,7 @@ NextionComponent p1notification(nextion, 1, 7);
 const int PIN_BUZZER = D8; // Buzzer
 bool startBuzzer = false;  // Aktiviere Buzzer
 
-#line 293 "c:\\Arduino\\git\\MQTTDevice4\\MQTTDevice4.ino"
+#line 278 "c:\\Arduino\\git\\MQTTDevice4\\MQTTDevice4.ino"
 void configModeCallback(WiFiManager *myWiFiManager);
 #line 1 "c:\\Arduino\\git\\MQTTDevice4\\0_SETUP.ino"
 void setup();
@@ -480,7 +465,7 @@ void handleFileDelete();
 void handleFileCreate();
 #line 129 "c:\\Arduino\\git\\MQTTDevice4\\FSBrowser.ino"
 void handleFileList();
-#line 293 "c:\\Arduino\\git\\MQTTDevice4\\MQTTDevice4.ino"
+#line 278 "c:\\Arduino\\git\\MQTTDevice4\\MQTTDevice4.ino"
 void configModeCallback(WiFiManager *myWiFiManager)
 {
     Serial.print("*** SYSINFO: MQTTDevice in AP mode ");
