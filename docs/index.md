@@ -4,7 +4,7 @@
 
 MQTTDevice4 is an Arduino sketch for the ESP8266 Wemos D1 mini modules. This makes it possible to establish communication between the MQTT broker mosquitto and an ESP8266 in order to control sensors and actors with CraftBeerPi V4. MQTTDevice is optimzed for version 4 of CraftbeerPi.
 
-![Startseite](img/startseite1.jpg)
+![Startseiteq](img/startseite1.jpg)
 
 **What does this firmware offer?**
 
@@ -231,7 +231,7 @@ This firmware supports Nextion Touchdisplay HMI TFT 3.5" NX4832T035. Two pages a
 Mode BrewPage: max 4 kettle overview
 ![BrewPage](img/Nextion1.jpg)
 
-Mode KettlePage: shows only the first configured sensor and the target temperatur of the sensors connected kettle
+Mode KettlePage: shows only the first configured sensor and the target temperatur from sensor's kettle
 ![KettlePage](img/Nextion2.jpg)
 
 BrewPage is only useable while brewing. When your mash process completed the use of BrewPage ends. The Kettlepage can be used any time as a kettle temperature informatione pannel. Please remeber: your first configured sensor will be display (ToDO).
