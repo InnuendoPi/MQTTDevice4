@@ -4,7 +4,7 @@
 
 MQTTDevice4 is an Arduino sketch for the ESP8266 Wemos D1 mini modules. This makes it possible to establish communication between the MQTT broker mosquitto and an ESP8266 in order to control sensors and actors with CraftBeerPi V4. MQTTDevice is optimzed for version 4 of CraftbeerPi.
 
-![Startseite](img/startseite.jpg)
+![Startseite](img/startseite1.jpg)
 
 **What does this firmware offer?**
 
