@@ -224,7 +224,7 @@ Most of the functions of the firmware are self-explanatory. The addition or dele
 
 ---
 
-**Touchdisplay:**
+## Touchdisplay
 
 This firmware supports Nextion Touchdisplay HMI TFT 3.5" NX4832T035. Two pages are availible:
 
