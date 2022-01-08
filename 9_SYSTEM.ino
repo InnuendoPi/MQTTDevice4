@@ -93,10 +93,10 @@ void setTicker()
   TickerSen.config(tickerSenCallback, SEN_UPDATE, 0);
   TickerAct.config(tickerActCallback, ACT_UPDATE, 0);
   TickerInd.config(tickerIndCallback, IND_UPDATE, 0);
-  TickerDisp.config(tickerDispCallback, DISP_UPDATE, 0);
   TickerMQTT.config(tickerMQTTCallback, tickerMQTT, 0);
   TickerWLAN.config(tickerWLANCallback, tickerWLAN, 0);
   TickerNTP.config(tickerNTPCallback, NTP_INTERVAL, 0);
+  TickerNTP.config(tickerDispCallback, DISP_UPDATE, 0);
   TickerMQTT.stop();
   TickerWLAN.stop();
 }

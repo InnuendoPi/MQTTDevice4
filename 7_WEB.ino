@@ -72,44 +72,87 @@ bool loadFromLittlefs(String path)
 
 void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
 {
-  DEBUG_MSG("Web: Received MQTT Topic: %s ", topic);
-  // Serial.print("Web: Payload: ");
-  // for (int i = 0; i < length; i++)
-  // {
-  //   Serial.print((char)payload[i]);
-  // }
-  // Serial.println(" ");
+  /*
+  DEBUG_MSG("Web: Received MQTT Topic with char payload: %s\n", topic);
+  Serial.print("Web: Payload: ");
+  for (int i = 0; i < length; i++)
+  {
+    Serial.print((char)payload[i]);
+  }
+  Serial.println(" ");
+  */
   char payload_msg[length];
   for (int i = 0; i < length; i++)
   {
     payload_msg[i] = payload[i];
   }
 
+  if (useDisplay)
+  {
+    char *p;
+    const char *kettleupdate = "cbpi/kettleupdate/";
+    const char *stepupdate = "cbpi/stepupdate/";
+    const char *sensorupdate = "cbpi/sensordata/";
+    const char *notificationupdate = "cbpi/notification";
+
+    p = strstr(topic, kettleupdate);
+    if (p)
+    {
+      // DEBUG_MSG("Web kettlehandle1 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
+      cbpi4kettle_handlemqtt(payload_msg);
+    }
+    p = strstr(topic, stepupdate);
+    if (p)
+    {
+      // DEBUG_MSG("Web: Received stepupdate topic %s\n", topic);
+      // DEBUG_MSG("Web stephandle1 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
+      cbpi4steps_handlemqtt(payload_msg);
+    }
+    p = strstr(topic, notificationupdate);
+    if (p)
+    {
+      // DEBUG_MSG("Web: Received MQTT Topic with char payload: %s\n", topic);
+
+      // DEBUG_MSG("Web: Received notificationupdate topic %s\n", topic);
+      // DEBUG_MSG("Web notifyhandle1 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
+      cbpi4notification_handlemqtt(payload_msg);
+    }
+    p = strstr(topic, sensorupdate);
+    if (p)
+    {
+      // DEBUG_MSG("Web: Received sensortopic %s\n", topic);
+      // DEBUG_MSG("Web sensorhandle1 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
+      cbpi4sensor_handlemqtt(payload_msg);
+    }
+  }
   if (inductionCooker.mqtttopic == topic)
   {
-    // if (inductionCooker.induction_state)
-    //   {
-      inductionCooker.handlemqtt(payload_msg);
-      DEBUG_MSG("%s\n", "*** Handle MQTT Induktion");
-    //   }
-    // else
-    //   DEBUG_MSG("%s\n", "*** Verwerfe MQTT wegen Status Induktion (Event handling)");
+    inductionCooker.handlemqtt(payload_msg);
+    // DEBUG_MSG("%s\n", "*** Handle MQTT Induktion");
   }
 
   for (int i = 0; i < numberOfActors; i++)
   {
     if (actors[i].argument_actor == topic)
     {
-      // if (actors[i].actor_state)
-      //   {
-        actors[i].handlemqtt(payload_msg);
-      //   DEBUG_MSG("%s %s\n", "*** Handle MQTT Aktor", actors[i].name_actor);
-      //   }
-      // else
-      //   DEBUG_MSG("%s %s\n", "*** Verwerfe MQTT zum Aktor", actors[i].name_actor);
+      actors[i].handlemqtt(payload_msg);
       yield();
     }
   }
+}
+
+void handleRequestMisc2()
+{
+  StaticJsonDocument<256> doc;
+  doc["mqtthost"] = mqtthost;
+  doc["enable_mqtt"] = StopOnMQTTError;
+  doc["mqtt_state"] = mqtt_state; // Anzeige MQTT Status -> mqtt_state verzögerter Status!
+  doc["alertstate"] = alertState;
+  if (alertState)
+    alertState = false;
+  String response;
+  serializeJson(doc, response);
+  server.send(200, "application/json", response);
 }
 
 void handleRequestMisc()
@@ -119,21 +162,19 @@ void handleRequestMisc()
   doc["mdns_name"] = nameMDNS;
   doc["mdns"] = startMDNS;
   doc["buzzer"] = startBuzzer;
+  doc["display"] = useDisplay;
   doc["enable_mqtt"] = StopOnMQTTError;
-  doc["enable_wlan"] = StopOnWLANError;
   doc["delay_mqtt"] = wait_on_error_mqtt / 1000;
-  doc["delay_wlan"] = wait_on_error_wlan / 1000;
   doc["del_sen_act"] = wait_on_Sensor_error_actor / 1000;
   doc["del_sen_ind"] = wait_on_Sensor_error_induction / 1000;
   doc["upsen"] = SEN_UPDATE / 1000;
   doc["upact"] = ACT_UPDATE / 1000;
   doc["upind"] = IND_UPDATE / 1000;
-  doc["mqtt_state"] = oledDisplay.mqttOK; // Anzeige MQTT Status -> mqtt_state verzögerter Status!
-  doc["wlan_state"] = oledDisplay.wlanOK;
-  doc["alertstate"] = alertState;
-  if (alertState)
-    alertState = false;
-  
+  doc["mqtt_state"] = mqtt_state; // Anzeige MQTT Status -> mqtt_state verzögerter Status!
+  // doc["alertstate"] = alertState;
+  // if (alertState)
+  //   alertState = false;
+
   String response;
   serializeJson(doc, response);
   server.send(200, "application/json", response);
@@ -141,23 +182,23 @@ void handleRequestMisc()
 
 void handleRequestFirm()
 {
-    String request = server.arg(0);
-    String message;
-    if (request == "firmware")
+  String request = server.arg(0);
+  String message;
+  if (request == "firmware")
+  {
+    if (startMDNS)
     {
-        if (startMDNS)
-        {
-            message = nameMDNS;
-            message += " V";
-        }
-        else
-            message = "MQTTDevice4 V ";
-        message += Version;
-        goto SendMessage;
+      message = nameMDNS;
+      message += " V";
     }
+    else
+      message = "MQTTDevice4 V ";
+    message += Version;
+    goto SendMessage;
+  }
 
 SendMessage:
-    server.send(200, "text/plain", message);
+  server.send(200, "text/plain", message);
 }
 
 void handleSetMisc()
@@ -190,6 +231,10 @@ void handleSetMisc()
     {
       startBuzzer = checkBool(server.arg(i));
     }
+    if (server.argName(i) == "display")
+    {
+      useDisplay = checkBool(server.arg(i));
+    }
     if (server.argName(i) == "mdns_name")
     {
       server.arg(i).toCharArray(nameMDNS, sizeof(nameMDNS));
@@ -207,15 +252,6 @@ void handleSetMisc()
       if (isValidInt(server.arg(i)))
       {
         wait_on_error_mqtt = server.arg(i).toInt() * 1000;
-      }
-    if (server.argName(i) == "enable_wlan")
-    {
-      StopOnWLANError = checkBool(server.arg(i));
-    }
-    if (server.argName(i) == "delay_wlan")
-      if (isValidInt(server.arg(i)))
-      {
-        wait_on_error_wlan = server.arg(i).toInt() * 1000;
       }
     if (server.argName(i) == "del_sen_act")
       if (isValidInt(server.arg(i)))

@@ -142,21 +142,20 @@ public:
 
   void handlemqtt(char *payload)
   {
-    StaticJsonDocument<128> doc;
+    StaticJsonDocument<256> doc;
     DeserializationError error = deserializeJson(doc, (const char *)payload);
     if (error)
     {
       DEBUG_MSG("Act: handlemqtt deserialize Json error %s\n", error.c_str());
       return;
     }
-    String state = doc["state"];
-    if (state == "off")
+    if (doc["state"] == "off")
     {
       isOn = false;
       power_actor = 0;
       return;
     }
-    if (state == "on")
+    if (doc["state"] == "on")
     {
       int newpower = doc["power"];
       isOn = true;

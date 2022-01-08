@@ -172,8 +172,7 @@ public:
       DEBUG_MSG("Ind: handlemqtt deserialize Json error %s\n", error.c_str());
       return;
     }
-    String state = doc["state"];
-    if (state == "off")
+    if (doc["state"] == "off")
     {
       newPower = 0;
       return;

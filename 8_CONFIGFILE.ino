@@ -123,35 +123,6 @@ bool loadConfig()
     DEBUG_MSG("Induction: %d\n", inductionStatus);
   }
   DEBUG_MSG("%s\n", "--------------------");
-  JsonArray displayArray = doc["display"];
-  JsonObject displayObj = displayArray[0];
-  useDisplay = false;
-  if (displayObj["ENABLED"] || displayObj["ENABLED"] == "1")
-    useDisplay = true;
-
-  if (useDisplay)
-  {
-    String dispAddress = displayObj["ADDRESS"];
-    dispAddress.remove(0, 2);
-    char copy[4];
-    dispAddress.toCharArray(copy, 4);
-    int address = strtol(copy, 0, 16);
-    if (displayObj.containsKey("updisp"))
-      DISP_UPDATE = displayObj["updisp"];
-
-    oledDisplay.dispEnabled = true;
-    oledDisplay.change(address, oledDisplay.dispEnabled);
-    DEBUG_MSG("OLED display: %d Address: %s Update: %d\n", oledDisplay.dispEnabled, dispAddress.c_str(), (DISP_UPDATE / 1000));
-    TickerDisp.config(DISP_UPDATE, 0);
-    TickerDisp.start();
-  }
-  else
-  {
-    oledDisplay.dispEnabled = false;
-    DEBUG_MSG("OLED Display: %d\n", oledDisplay.dispEnabled);
-    TickerDisp.stop();
-  }
-  DEBUG_MSG("%s\n", "--------------------");
 
   // Misc Settings
   JsonArray miscArray = doc["misc"];
@@ -170,18 +141,15 @@ bool loadConfig()
   if (miscObj.containsKey("delay_mqtt"))
     wait_on_error_mqtt = miscObj["delay_mqtt"];
   DEBUG_MSG("Switch off actors on MQTT error: %d after %d sec\n", StopOnMQTTError, (wait_on_error_mqtt / 1000));
-
-  StopOnWLANError = false;
-  if (miscObj["enable_wlan"] || miscObj["enable_wlan"] == "1")
-    StopOnWLANError = true;
-  if (miscObj.containsKey("delay_wlan"))
-    wait_on_error_wlan = miscObj["delay_wlan"];
-  DEBUG_MSG("Switch off actors on WLAN error: %d after %d sec\n", StopOnWLANError, (wait_on_error_wlan / 1000));
-
+  
   startBuzzer = false;
   if (miscObj["buzzer"] || miscObj["buzzer"] == "1")
     startBuzzer = true;
   DEBUG_MSG("Buzzer: %d\n", startBuzzer);
+  useDisplay = false;
+  if (miscObj["display"] || miscObj["display"] == "1")
+    useDisplay = true;
+  DEBUG_MSG("Display: %d\n", useDisplay);
 
   if (miscObj.containsKey("mdns_name"))
     strlcpy(nameMDNS, miscObj["mdns_name"], sizeof(nameMDNS));
@@ -207,6 +175,8 @@ bool loadConfig()
     TickerAct.start();
   if (inductionCooker.isEnabled)
     TickerInd.start();
+  if (useDisplay)
+    TickerDisp.start();
 
   DEBUG_MSG("Sensors update intervall: %d sec\n", (SEN_UPDATE / 1000));
   DEBUG_MSG("Actors update intervall: %d sec\n", (ACT_UPDATE / 1000));
@@ -312,46 +282,6 @@ bool saveConfig()
   }
   DEBUG_MSG("%s\n", "--------------------");
 
-  // Write Display
-  JsonArray displayArray = doc.createNestedArray("display");
-  if (oledDisplay.dispEnabled)
-  {
-    JsonObject displayObj = displayArray.createNestedObject();
-    displayObj["ENABLED"] = 1;
-    displayObj["ADDRESS"] = String(decToHex(oledDisplay.address, 2));
-    displayObj["updisp"] = DISP_UPDATE;
-
-    if (oledDisplay.address == 0x3C || oledDisplay.address == 0x3D)
-    {
-      // Display mit SDD1306 Chip:
-      // display.ssd1306_command(SSD1306_DISPLAYON);
-
-      // Display mit SH1106 Chip:
-      display.SH1106_command(SH1106_DISPLAYON);
-      cbpiEventSystem(EM_DISPUP);
-    }
-    else
-    {
-      displayObj["ENABLED"] = 0;
-      oledDisplay.dispEnabled = false;
-      useDisplay = false;
-    }
-    DEBUG_MSG("OLED display: %d Address: %s Update: %d\n", oledDisplay.dispEnabled, String(decToHex(oledDisplay.address, 2)).c_str(), (DISP_UPDATE / 1000));
-    TickerDisp.config(DISP_UPDATE, 0);
-    TickerDisp.start();
-  }
-  else
-  {
-    // Display mit SSD1306 Chip:
-    // display.ssd1306_command(SSD1306_DISPLAYOFF);
-
-    // Display mit SH1106 Chip:
-    display.SH1106_command(SH1106_DISPLAYOFF);
-    DEBUG_MSG("OLED display: %d\n", oledDisplay.dispEnabled);
-    TickerDisp.stop();
-  }
-  DEBUG_MSG("%s\n", "--------------------");
-
   // Write Misc Stuff
   JsonArray miscArray = doc.createNestedArray("misc");
   JsonObject miscObj = miscArray.createNestedObject();
@@ -365,11 +295,9 @@ bool saveConfig()
   miscObj["enable_mqtt"] = (int)StopOnMQTTError;
   DEBUG_MSG("Switch off actors on error enabled after %d sec\n", (wait_on_error_mqtt / 1000));
 
-  miscObj["delay_wlan"] = wait_on_error_wlan;
-  miscObj["enable_wlan"] = (int)StopOnWLANError;
-  DEBUG_MSG("Switch off induction on error enabled after %d sec\n", (wait_on_error_wlan / 1000));
 
   miscObj["buzzer"] = (int)startBuzzer;
+  miscObj["display"] = (int)useDisplay;
   miscObj["mdns_name"] = nameMDNS;
   miscObj["mdns"] = (int)startMDNS;
   miscObj["MQTTHOST"] = mqtthost;
@@ -391,6 +319,11 @@ bool saveConfig()
     TickerAct.stop();
   if (inductionCooker.isEnabled)
     TickerInd.start();
+  
+  if (useDisplay)
+    TickerDisp.start();
+  else
+    TickerDisp.stop();
 
   DEBUG_MSG("Sensor update interval %d sec\n", (SEN_UPDATE / 1000));
   DEBUG_MSG("Actors update interval %d sec\n", (ACT_UPDATE / 1000));

@@ -5,19 +5,17 @@ void loop()
   cbpiEventSystem(EM_MQTT); // Überprüfe MQTT
   if (startMDNS)            // MDNS handle
     cbpiEventSystem(EM_MDNS);
-  
-  gEM.processAllEvents();
+    
+  gEM.processAllEvents(); // event queue
 
-  if (numberOfSensors > 0)  // Sensoren Ticker
+  if (numberOfSensors > 0) // Sensoren Ticker
     TickerSen.update();
-  if (numberOfActors > 0)   // Aktoren Ticker
+  if (numberOfActors > 0) // Aktoren Ticker
     TickerAct.update();
-  if (inductionStatus > 0)  // Induktion Ticker
+  if (inductionStatus > 0) // Induktion Ticker
     TickerInd.update();
-  if (useDisplay)           // Display Ticker
+  if (useDisplay)
     TickerDisp.update();
-  // if (startDB && startVis)  // InfluxDB Ticker
-  //   TickerInfluxDB.update();
-
-  TickerNTP.update();       // NTP Ticker
+    
+  TickerNTP.update(); // NTP Ticker
 }

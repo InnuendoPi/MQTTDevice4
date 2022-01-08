@@ -86,18 +86,13 @@
   },
   {
     "Sourcefile": "c:\\Arduino\\git\\MQTTDevice4\\build\\sketch\\MQTTDevice4.ino.cpp",
-    "Include": "Adafruit_SH1106.h",
-    "Includepath": "c:\\Arduino\\libraries\\Adafruit_SH1106"
+    "Include": "SoftwareSerial.h",
+    "Includepath": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\SoftwareSerial\\src"
   },
   {
     "Sourcefile": "c:\\Arduino\\git\\MQTTDevice4\\build\\sketch\\MQTTDevice4.ino.cpp",
-    "Include": "SPI.h",
-    "Includepath": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\SPI"
-  },
-  {
-    "Sourcefile": "c:\\Arduino\\git\\MQTTDevice4\\build\\sketch\\MQTTDevice4.ino.cpp",
-    "Include": "Adafruit_GFX.h",
-    "Includepath": "c:\\Arduino\\libraries\\Adafruit_GFX_Library"
+    "Include": "NextionX2.h",
+    "Includepath": "c:\\Arduino\\libraries\\NextionX2\\src"
   },
   {
     "Sourcefile": "c:\\Arduino\\git\\MQTTDevice4\\build\\sketch\\MQTTDevice4.ino.cpp",
@@ -285,62 +280,7 @@
     "Includepath": null
   },
   {
-    "Sourcefile": "c:\\Arduino\\libraries\\Adafruit_SH1106\\Adafruit_SH1106.cpp",
-    "Include": "Wire.h",
-    "Includepath": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\Wire"
-  },
-  {
-    "Sourcefile": "c:\\Arduino\\libraries\\Adafruit_SH1106\\Adafruit_SH1106.cpp",
-    "Include": "",
-    "Includepath": null
-  },
-  {
-    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\SPI\\SPI.cpp",
-    "Include": "",
-    "Includepath": null
-  },
-  {
-    "Sourcefile": "c:\\Arduino\\libraries\\Adafruit_GFX_Library\\Adafruit_GFX.cpp",
-    "Include": "",
-    "Includepath": null
-  },
-  {
-    "Sourcefile": "c:\\Arduino\\libraries\\Adafruit_GFX_Library\\Adafruit_GrayOLED.cpp",
-    "Include": "Adafruit_I2CDevice.h",
-    "Includepath": "c:\\Arduino\\libraries\\Adafruit_BusIO"
-  },
-  {
-    "Sourcefile": "c:\\Arduino\\libraries\\Adafruit_GFX_Library\\Adafruit_GrayOLED.cpp",
-    "Include": "",
-    "Includepath": null
-  },
-  {
-    "Sourcefile": "c:\\Arduino\\libraries\\Adafruit_GFX_Library\\Adafruit_SPITFT.cpp",
-    "Include": "",
-    "Includepath": null
-  },
-  {
-    "Sourcefile": "c:\\Arduino\\libraries\\Adafruit_GFX_Library\\glcdfont.c",
-    "Include": "",
-    "Includepath": null
-  },
-  {
-    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\Wire\\Wire.cpp",
-    "Include": "",
-    "Includepath": null
-  },
-  {
-    "Sourcefile": "c:\\Arduino\\libraries\\Adafruit_BusIO\\Adafruit_BusIO_Register.cpp",
-    "Include": "",
-    "Includepath": null
-  },
-  {
-    "Sourcefile": "c:\\Arduino\\libraries\\Adafruit_BusIO\\Adafruit_I2CDevice.cpp",
-    "Include": "",
-    "Includepath": null
-  },
-  {
-    "Sourcefile": "c:\\Arduino\\libraries\\Adafruit_BusIO\\Adafruit_SPIDevice.cpp",
+    "Sourcefile": "C:\\Users\\pn010.TEAM\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.2\\libraries\\SoftwareSerial\\src\\SoftwareSerial.cpp",
     "Include": "",
     "Includepath": null
   }

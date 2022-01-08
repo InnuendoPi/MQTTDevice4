@@ -11,33 +11,29 @@ void listenerSystem(int event, int parm) // System event listener
                   //  2. MQTT connected
                   //  Wenn WiFi.status() != WL_CONNECTED (wlan_state false nach maxRetries und Delay) ist, ist ein check mqtt überflüssig
 
-    oledDisplay.wlanOK = false;
     WiFi.reconnect();
     if (WiFi.status() == WL_CONNECTED)
     {
-      wlan_state = true;
-      oledDisplay.wlanOK = true;
+      // wlan_state = true;
       break;
     }
-    DEBUG_MSG("%s", "EM WLAN: WLAN Fehler ... versuche neu zu verbinden\n");
+    DEBUG_MSG("%s", "EM WLAN: WLAN error ... try to reconnectn\n");
     if (millis() - wlanconnectlasttry >= wait_on_error_wlan) // Wait bevor Event handling
     {
-      if (StopOnWLANError && wlan_state)
+      // if (StopOnWLANError && wlan_state)
+      if (StopOnWLANError)
       {
+        mqtt_state = false; // MQTT in error state - required to restore values
         if (startBuzzer)
           sendAlarm(ALARM_ERROR);
-        // if (useDisplay)
-        //   showDispErr("WLAN ERROR")
-        DEBUG_MSG("EM WLAN: WLAN Verbindung verloren! StopOnWLANError: %d WLAN state: %d\n", StopOnWLANError, wlan_state);
-        wlan_state = false;
-        mqtt_state = false; // MQTT in error state - required to restore values
+        DEBUG_MSG("EM WLAN: WLAN connection lost! StopOnWLANError: %d\n", StopOnWLANError);
+        // wlan_state = false;
         cbpiEventActors(EM_ACTER);
         cbpiEventInduction(EM_INDER);
       }
     }
     break;
   case EM_MQTTER: // MQTT Error -> handling
-    oledDisplay.mqttOK = false;
     if (pubsubClient.connect(mqtt_clientid))
     {
       DEBUG_MSG("%s", "MQTT auto reconnect successful. Subscribing..\n");
@@ -49,14 +45,12 @@ void listenerSystem(int event, int parm) // System event listener
     {
       if (StopOnMQTTError && mqtt_state)
       {
+        mqtt_state = false; // MQTT in error state
         if (startBuzzer)
           sendAlarm(ALARM_ERROR);
-        // if (useDisplay)
-        //   showDispErr("MQTT ERROR")
-        DEBUG_MSG("EM MQTTER: MQTT Broker %s nicht erreichbar! StopOnMQTTError: %d mqtt_state: %d\n", mqtthost, StopOnMQTTError, mqtt_state);
+        DEBUG_MSG("EM MQTTER: MQTT Broker %s not availible! StopOnMQTTError: %d mqtt_state: %d\n", mqtthost, StopOnMQTTError, mqtt_state);
         cbpiEventActors(EM_ACTER);
         cbpiEventInduction(EM_INDER);
-        mqtt_state = false; // MQTT in error state
       }
     }
     break;
@@ -64,7 +58,7 @@ void listenerSystem(int event, int parm) // System event listener
   case EM_MQTTRES: // restore saved values after reconnect MQTT (10)
     if (pubsubClient.connected())
     {
-      wlan_state = true;
+      // wlan_state = true;
       mqtt_state = true;
       for (int i = 0; i < numberOfActors; i++)
       {
@@ -102,7 +96,7 @@ void listenerSystem(int event, int parm) // System event listener
   case EM_WLAN: // check WLAN (20) and reconnect on error
     if (WiFi.status() == WL_CONNECTED)
     {
-      oledDisplay.wlanOK = true;
+      // oledDisplay.wlanOK = true;
       if (TickerWLAN.state() == RUNNING)
         TickerWLAN.stop();
     }
@@ -123,7 +117,6 @@ void listenerSystem(int event, int parm) // System event listener
       break;
     if (pubsubClient.connected())
     {
-      oledDisplay.mqttOK = true;
       mqtt_state = true;
       pubsubClient.loop();
       if (TickerMQTT.state() == RUNNING)
@@ -133,7 +126,8 @@ void listenerSystem(int event, int parm) // System event listener
     {
       if (TickerMQTT.state() != RUNNING)
       {
-        DEBUG_MSG("%s\n", "MQTT Error: Starte TickerMQTT");
+        DEBUG_MSG("%s\n", "MQTT Error: TickerMQTT started");
+        mqtt_state = false;
         TickerMQTT.resume();
         mqttconnectlasttry = millis();
       }
@@ -143,7 +137,7 @@ void listenerSystem(int event, int parm) // System event listener
   case EM_MQTTCON:                     // MQTT connect (27)
     if (WiFi.status() == WL_CONNECTED) // kein wlan = kein mqtt
     {
-      DEBUG_MSG("%s\n", "Verbinde MQTT ...");
+      DEBUG_MSG("%s\n", "Connect MQTT ...");
       pubsubClient.setServer(mqtthost, 1883);
       pubsubClient.setCallback(mqttcallback);
       pubsubClient.connect(mqtt_clientid);
@@ -152,7 +146,8 @@ void listenerSystem(int event, int parm) // System event listener
   case EM_MQTTSUB: // MQTT subscribe (28)
     if (pubsubClient.connected())
     {
-      DEBUG_MSG("%s\n", "MQTT verbunden. Subscribing...");
+      DEBUG_MSG("%s\n", "MQTT connected! Subscribing...");
+      mqtt_state = true; // MQTT state ok
       for (int i = 0; i < numberOfActors; i++)
       {
         actors[i].mqtt_subscribe();
@@ -160,9 +155,12 @@ void listenerSystem(int event, int parm) // System event listener
       }
       if (inductionCooker.isEnabled)
         inductionCooker.mqtt_subscribe();
-      oledDisplay.mqttOK = true; // Display MQTT
-      mqtt_state = true;         // MQTT state ok
-      //if (TickerMQTT.state() == RUNNING)
+      if (useDisplay)
+      {
+        cbpi4kettle_subscribe();
+        cbpi4steps_subscribe();
+        cbpi4notification_subscribe();
+      }
       TickerMQTT.stop();
     }
     break;
@@ -181,14 +179,10 @@ void listenerSystem(int event, int parm) // System event listener
     if (startMDNS && nameMDNS[0] != '\0' && WiFi.status() == WL_CONNECTED)
     {
       if (mdns.begin(nameMDNS))
-        Serial.printf("*** SYSINFO: mDNS gestartet als %s verbunden an %s Time: %s RSSI=%d\n", nameMDNS, WiFi.localIP().toString().c_str(), timeClient.getFormattedTime().c_str(), WiFi.RSSI());
+        Serial.printf("*** SYSINFO: mDNS started as %s connected to %s Time: %s RSSI=%d\n", nameMDNS, WiFi.localIP().toString().c_str(), timeClient.getFormattedTime().c_str(), WiFi.RSSI());
       else
-        Serial.printf("*** SYSINFO: Fehler Start mDNS! IP Adresse: %s Time: %s RSSI: %d\n", WiFi.localIP().toString().c_str(), timeClient.getFormattedTime().c_str(), WiFi.RSSI());
+        Serial.printf("*** SYSINFO: error start mDNS! IP Adresse: %s Time: %s RSSI: %d\n", WiFi.localIP().toString().c_str(), timeClient.getFormattedTime().c_str(), WiFi.RSSI());
     }
-    break;
-  case EM_DISPUP: // Display screen output update (30)
-    if (oledDisplay.dispEnabled)
-      oledDisplay.dispUpdate();
     break;
   case EM_LOG:
     if (LittleFS.exists("/log1.txt")) // WebUpdate Zertifikate
@@ -200,7 +194,7 @@ void listenerSystem(int event, int parm) // System event listener
         line = char(fsUploadFile.read());
       }
       fsUploadFile.close();
-      Serial.printf("*** SYSINFO: Update Index Anzahl Versuche %s\n", line.c_str());
+      Serial.printf("*** SYSINFO: Update index retries count %s\n", line.c_str());
       LittleFS.remove("/log1.txt");
     }
     if (LittleFS.exists("/log2.txt")) // WebUpdate Index
@@ -212,7 +206,7 @@ void listenerSystem(int event, int parm) // System event listener
         line = char(fsUploadFile.read());
       }
       fsUploadFile.close();
-      Serial.printf("*** SYSINFO: Update Zertifikate Anzahl Versuche %s\n", line.c_str());
+      Serial.printf("*** SYSINFO: Update certificate retries count %s\n", line.c_str());
       LittleFS.remove("/log2.txt");
     }
     if (LittleFS.exists("/log3.txt")) // WebUpdate Firmware
@@ -224,7 +218,7 @@ void listenerSystem(int event, int parm) // System event listener
         line = char(fsUploadFile.read());
       }
       fsUploadFile.close();
-      Serial.printf("*** SYSINFO: Update Firmware Anzahl Versuche %s\n", line.c_str());
+      Serial.printf("*** SYSINFO: Update firmware retries count %s\n", line.c_str());
       LittleFS.remove("/log3.txt");
       alertState = true;
     }
@@ -244,7 +238,8 @@ void listenerSensors(int event, int parm) // Sensor event listener
     lastSenInd = 0; // Delete induction timestamp after event
     lastSenAct = 0; // Delete actor timestamp after event
 
-    if (WiFi.status() == WL_CONNECTED && pubsubClient.connected() && wlan_state && mqtt_state)
+    // if (WiFi.status() == WL_CONNECTED && pubsubClient.connected() && wlan_state && mqtt_state)
+    if (WiFi.status() == WL_CONNECTED && pubsubClient.connected() && mqtt_state)
     {
       for (int i = 0; i < numberOfActors; i++)
       {
@@ -282,7 +277,8 @@ void listenerSensors(int event, int parm) // Sensor event listener
     // sensor unpluged
   case EM_SENER:
     // all other errors
-    if (WiFi.status() == WL_CONNECTED && pubsubClient.connected() && wlan_state && mqtt_state)
+    // if (WiFi.status() == WL_CONNECTED && pubsubClient.connected() && wlan_state && mqtt_state)
+    if (WiFi.status() == WL_CONNECTED && pubsubClient.connected() && mqtt_state)
     {
       for (int i = 0; i < numberOfSensors; i++)
       {
@@ -312,12 +308,12 @@ void listenerSensors(int event, int parm) // Sensor event listener
           if (lastSenAct == 0)
           {
             lastSenAct = millis(); // Timestamp on error
-            DEBUG_MSG("EM SENER: Erstelle Zeitstempel für Aktoren wegen Sensor Fehler: %l Wait on error actors: %d\n", lastSenAct, wait_on_Sensor_error_actor / 1000);
+            DEBUG_MSG("EM SENER: timestamp actors due to sensor error: %l Wait on error actors: %d\n", lastSenAct, wait_on_Sensor_error_actor / 1000);
           }
           if (lastSenInd == 0)
           {
             lastSenInd = millis(); // Timestamp on error
-            DEBUG_MSG("EM SENER: Erstelle Zeitstempel für Induktion wegen Sensor Fehler: %l Wait on error induction: %d\n", lastSenInd, wait_on_Sensor_error_induction / 1000);
+            DEBUG_MSG("EM SENER: timestamp induction due to sensor error: %l Wait on error induction: %d\n", lastSenInd, wait_on_Sensor_error_induction / 1000);
           }
           if (millis() - lastSenAct >= wait_on_Sensor_error_actor) // Wait bevor Event handling
             cbpiEventActors(EM_ACTER);
@@ -369,7 +365,7 @@ void listenerActors(int event, int parm) // Actor event listener
       {
         actors[i].isOn = false;
         actors[i].Update();
-        DEBUG_MSG("EM ACTER: Aktor: %s  ausgeschaltet\n", actors[i].name_actor.c_str());
+        DEBUG_MSG("EM ACTER: Aktor: %s  switched off\n", actors[i].name_actor.c_str());
       }
       yield();
     }
@@ -394,7 +390,7 @@ void listenerInduction(int event, int parm) // Induction event listener
     if (inductionCooker.isInduon && inductionCooker.powerLevelOnError < 100 && inductionCooker.induction_state) // powerlevelonerror == 100 -> kein event handling
     {
       inductionCooker.powerLevelBeforeError = inductionCooker.power;
-      DEBUG_MSG("EM INDER: Induktion Leistung: %d Setze Leistung Induktion auf: %d\n", inductionCooker.power, inductionCooker.powerLevelOnError);
+      DEBUG_MSG("EM INDER: Induktion powerlevel: %d reduce power to: %d\n", inductionCooker.power, inductionCooker.powerLevelOnError);
       if (inductionCooker.powerLevelOnError == 0)
         inductionCooker.isInduon = false;
       else
@@ -408,7 +404,7 @@ void listenerInduction(int event, int parm) // Induction event listener
   case EM_INDOFF:
     if (inductionCooker.isInduon)
     {
-      DEBUG_MSG("%s\n", "EM INDOFF: Induktion ausgeschaltet");
+      DEBUG_MSG("%s\n", "EM INDOFF: induction switched off");
       inductionCooker.newPower = 0;
       inductionCooker.isInduon = false;
       inductionCooker.Update();

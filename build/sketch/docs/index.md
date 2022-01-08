@@ -20,7 +20,7 @@ MQTTDevice4 is an Arduino sketch for the ESP8266 Wemos D1 mini modules. This mak
   * Power Percentage: Values ​​between 0 and 100% are sent. The ESP8266 "pulses" with a cycle of 1000ms
 * Induction hob
   * the induction hob GGM IDS2 can be controlled directly
-* OLED display integration
+* Nextion Touchdisplay integration
 * WebUpdate firmware
 * mDNS support
 * Update firmware and LittleFS via file upload
@@ -41,11 +41,11 @@ The installation is divided into three steps:
 3. Installation MQTTDevice
 
 The installation and configuration of CraftbeerPi4 is described here: <https://openbrewing.gitbook.io/craftbeerpi4_support/master/server-installation>
-You will need version 4.0.0.57 or above. Earlier versions do not support MQTT actors.
+You will need version 4.0.1a7 or above. Earlier versions do not support MQTT actors.
 
 The installation and configuration of RaspberryPi is available in many good instructions on the internet.
 
-The communication between CraftbeerPi and MQTTDevice takes place via WLAN. Sensors send temperature values ​​to CraftbeerPi and CraftbeerPi sends commands (e.g. switch agitator on / off) to actuators. The MQTT protocol is used for this communication. The MQTT protocol requires a MQTT broker.
+The communication between CraftbeerPi and MQTTDevice takes place via WLAN. Sensors send temperature values ​​to CraftbeerPi and CraftbeerPi sends commands (e.g. switch agitator on / off) to actors. The MQTT protocol is used for this communication. The MQTT protocol requires a MQTT broker.
 
 **MQTT CraftbeerPi4:**
 
@@ -67,7 +67,8 @@ Now you need to configure your MQTT environment in your CraftbeerPi4 config file
 
 `mqtt_username: ''`
 
-Anschließend steht der Typ MQTT für Sensoren und Aktoren zur Verfügung
+After CBPi4 restart MQTT is available for sensors and actors
+
 ![mqttSensor](img/mqttSensor.jpg)
 ![mqttAktor](img/mqttAktor.jpg)
 
@@ -146,7 +147,7 @@ Hardware 09.2020
 | ESP8266 D1 Mini | <https://www.amazon.de/dp/B01N9RXGHY/ref=cm_sw_em_r_mt_dp_0KzyFbK6YG2BE> |
 | Relais Board 4 Kanal | <https://www.amazon.de/dp/B078Q8S9S9/ref=cm_sw_em_r_mt_dp_PHzyFbSR1PKCH> |
 | Relais Board 1 Kanal | <https://www.amazon.de/dp/B07CNR7K9B/ref=cm_sw_em_r_mt_dp_FIzyFbKXXYE0H> |
-| OLED Display 1.3" | <https://www.amazon.de/dp/B078J78R45/ref=cm_sw_em_r_mt_dp_5FzyFbS1ABDDM> |
+| Nextion Display 3.5" | <https://www.amazon.de/dp/B07SSG86VC/ref=cm_sw_em_r_mt_dp_5Q2FNPMRRV25G4TPW68A?_encoding=UTF8&psc=1> |
 | Piezo Buzzer | <https://www.amazon.de/dp/B07DPR4BTN/ref=cm_sw_em_r_mt_dp_aKzyFbJ0ZVK67> |
 
 *The links to amazon are purely informative as a search aid*
@@ -156,7 +157,7 @@ Hardware 09.2020
 
 ## Using the firmware
 
-Most of the functions of the firmware are self-explanatory. The addition or deletion of sensors and actuators is therefore not described here.
+Most of the functions of the firmware are self-explanatory. The addition or deletion of sensors and actors is therefore not described here.
 
 **Main functions:**
 
@@ -165,7 +166,7 @@ Most of the functions of the firmware are self-explanatory. The addition or dele
     * Auto reconnect WiFi
     * Optionally configure the OLED display
     * System settings fully changeable
-    * Firmware and SPIFFS updates via file upload
+    * Firmware and LittleFS updates via file upload
     * Firmware WebUpdate
     * Filebrowser for simple file management (e.g. backup and restore config.json)
     * DS18B20 temperature offset - easy calibration of the sensors
@@ -191,69 +192,51 @@ Most of the functions of the firmware are self-explanatory. The addition or dele
 
     The time intervals that are used for the definition are configured under Intervals
     * how often sensors are queried and the data is sent to the CBPi
-    * how often commands for actuators / induction are picked up by the CBPi
+    * how often commands for actors / induction are picked up by the CBPi
 
-    With these intervals the performance of the Wemos can be improved. The standard setting of 5 seconds is suitable for environments with few sensors and actuators. In environments with many sensors and actuators, an interval of 10 to 30 seconds would be more suitable for the small Wemos. This has to be tried out individually.
+    With these intervals the performance of the Wemos can be improved. The standard setting of 5 seconds is suitable for environments with few sensors and actors. In environments with many sensors and actors, an interval of 10 to 30 seconds would be more suitable for the small Wemos. This has to be tried out individually.
 
 3. Event manager
 
     The event manager handles events and misconduct. Handling of malfunctions (event handling) is deactivated in the standard setting!
 
     What should the MQTT device do, if
-    * the WLAN connection is lost
     * communication with the MQTT server is interrupted
     * Suddenly no temperature data is supplied in the sensor
 
     Without event handling, the Wemos doesn't do anything automatically. The state remains unchanged.
 
-    There are 4 basic types of events that can be handled automatically: for actuators and for the induction hob in the event of sensor errors, as well as for actuators and the induction hob in the case of WLAN and MQTT errors. Delays for event handling are configured for these 4 types. The state remains unchanged during the delay. After the delay, the MQTT device can change the status of the actuators and induction hob.
+    There are 4 basic types of events that can be handled automatically: for actors and for the induction hob in the event of sensor errors, as well as for actors and the induction hob in the case of MQTT connection errors. Delays for event handling are configured for these 4 types. The state remains unchanged during the delay. After the delay, the MQTT device can change the status of the actors and induction hob.
     The delays are configured under Settings -> EventManager:
 
-    1. Delay for actuators before a sensor triggers an event.
+    1. Delay for actors before a sensor triggers an event.
     2. Delay for the induction hob before a sensor triggers an event.
     3. Delay in MQTT errors.
-    4. Delay in case of WLAN errors.
 
-    The standard delay for these 4 events is 120 seconds.
+    The standard delay for these 3 events is 120 seconds.
 
-    The WLAN and MQTT event handling can generally be activated or deactivated for all actuators and induction cooktops. If WLAN and MQTT event handling are activated, event handling must also be activated in the actuator settings and for the induction hob. Each device can be configured individually.
+    MQTT event handling can generally be activated or deactivated for all actors and induction cooktops. If MQTT event handling are activated, event handling must also be activated in the actor settings and for the induction hob. Each device can be configured individually.
 
     Every sensor also has an event handling property. If event handling is activated for a sensor, this sensor can trigger event handling in the event of a sensor fault. A sensor that is deactivated for event handling cannot trigger event handling accordingly.
 
     The order in event handling is:
-    * WLAN error
     * MQTT error
     * Sensor error
 
 ---
 
-**OLED Display:**
+**Touchdisplay:**
 
-This firmware supports OLED display monochrome 128x64 I2C 1.3 "SH1106 and with a small adjustment to the source code the OLED display monochrome 128x64 I2C 0.96" SSD1306.
+This firmware supports Nextion Touchdisplay HMI TFT 3.5" NX4832T035. Two pages are availible:
 
-![Oled](img/oled.jpg)
+![BrewPage](img/Nextion1.jpg)
+![KettlePage](img/Nextion2.jpg)
 
-The display can be configured via the WebIf. When the display is activated, PINS D1 (SDL) and D2 (SDA) are occupied. Sensors, actuators and induction with their current values ​​are shown on the display.
+The display can be configured via the WebIf. While display is activated, GPIO D1 (SDL) and D2 (SDA) are occupied (software serial tx/rx).
 
-"Sen: 0 | Act: 1 | Ind: 0" means
+**Instructions to flash NextionsX2 touchdisplay:**
 
-* Sensor 1 reports a temperature of 0° C
-* Actor 1 has a power level of 100%
-* Induction is switched off (or not configured)
-
-Each time the display is updated, the display moves to the next sensor or actuator. In the example this would be S2 and A3.
-
-Connection of the ESP8266 D1 Mini to an AZ-Delivery 1.3 "i2c 128x64 OLED display (use of all information at your own risk!)
-
-* VCC -> 3.3V
-* GND -> GND
-* SCL -> D1
-* SDA -> D2
-
-Required library for the OLED 1.3 SH1106:
-
-The following library must be downloaded and copied into the libraries directory:
-<https://github.com/InnuendoPi/Adafruit_SH1106>
+Copy the file info/mqttdevice.tft in the root directory of your SD card. Put your SD card into the cardreader of your Nextion display and power on. The MQTTDevice display template will be flashed. When finished power off and remove SD card.
 
 ---
 
@@ -268,14 +251,14 @@ The circuit board was created from a hobby project. A fully assembled board is n
 
 ![Platine-bestückt1](img/platine-best1.jpg) ![Platine-bestückt2](img/platine-best2.jpg)
 
-In this project, a circuit board for the MQTT device was developed in order to offer a simple connection to sensors, actuators and the induction hob GGM IDS2 with clamping screw blocks. The board is equipped with only a few components. The board offers the following advantages:
+In this project, a circuit board for the MQTT device was developed in order to offer a simple connection to sensors, actors and the induction hob GGM IDS2 with clamping screw blocks. The board is equipped with only a few components. The board offers the following advantages:
 
 * the Wemos D1 mini is on a base and can be removed at any time.
 * all GPIOs are led to screw terminals.
 * A LevelShifter provides 5V control voltage to the screw terminals GPIOs (Logic Level Converter).
 * The power supply from the Wemos can be used directly from the induction hob when using a GGM IDS2.
 * Temperature sensors DS18B20 fixed to D3 can be connected directly to the screw terminals.
-* An optional OLED display can be connected using jumpers J1 and J2 via D1 (SDL) and D2 (SDA J2).
+* An optional Touchdisplay HMI TFT can be connected using jumpers J1 and J2 via D1 (SDL) and D2 (SDA J2).
 * PIN D4 can either be routed to the display port via jumper J3 or to D4 via the LevelShifter.
 * PIN D8 is routed to D8 (3V3) without LevelShifter.
 * Power supply 5V via screw terminal
@@ -369,13 +352,13 @@ In addition to a GPIO, relay boards require a 5V power supply. 5V can be tapped 
 
 ---
 
-## Gehäuse
+## Case 3D print
 
 ![Gehäuse1](img/gehäuse1.jpg)
 ![Gehäuse2](img/gehäuse2.jpg)
 ![Grundplatte](img/grundplatte.jpg)
 
-The 3D print files required are located in the Info folder. With the current housing design, the circuit board and the OLED display are glued into the housing.
+3D print files are located in the info folder. With the current housing design, the circuit board and a 3.5" Nextion touchdisplay are glued into the housing.
 
 The housing is equipped with retaining clips between the carrier plate and the housing cover.
 

@@ -39,7 +39,14 @@
         "bitset": "cpp",
         "rope": "cpp",
         "slist": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "deque": "cpp",
+        "list": "cpp",
+        "unordered_map": "cpp",
+        "vector": "cpp",
+        "string_view": "cpp",
+        "ranges": "cpp",
+        "chrono": "cpp"
     },
     "terminal.integrated.windowsEnableConpty": false,
     "arduino.disableTestingOpen": true,

@@ -1,6 +1,9 @@
 void setup()
 {
+  nextion.begin(softSerial);
+  // nextion.debug(Serial);
   Serial.begin(115200);
+
 // Debug Ausgaben prüfen
 #ifdef DEBUG_ESP_PORT
   Serial.setDebugOutput(true);
@@ -70,11 +73,7 @@ void setup()
   setupServer();
   // Pinbelegung
   pins_used[ONE_WIRE_BUS] = true;
-  if (useDisplay)
-  {
-    pins_used[SDL] = true;
-    pins_used[SDA] = true;
-  }
+
   // Starte Sensoren
   DS18B20.begin();
 
@@ -85,8 +84,15 @@ void setup()
   {
     Serial.printf("*** SYSINFO: ESP8266 IP Addresse: %s Time: %s RSSI: %d\n", WiFi.localIP().toString().c_str(), timeClient.getFormattedTime().c_str(), WiFi.RSSI());
   }
-  // Starte OLED Display
-  dispStartScreen();
+
+  if (useDisplay)
+  {
+    pins_used[D1] = true;
+    pins_used[D2] = true;
+    TickerDisp.start();
+    initDisplay();
+  }
+
   if (startBuzzer)
   {
     pins_used[PIN_BUZZER] = true;
@@ -121,9 +127,7 @@ void setupServer()
   server.on("/delSensor", handleDelSensor); // Sensor löschen
   server.on("/delActor", handleDelActor);   // Aktor löschen
   server.on("/reboot", rebootDevice);       // reboots the whole Device
-  server.on("/reqDisplay", handleRequestDisplay);
-  server.on("/reqDisp", handleRequestDisp); // Infos Display für WebConfig
-  server.on("/setDisp", handleSetDisp);     // Display ändern
+  server.on("/reqMisc2", handleRequestMisc2); // Misc Infos für WebConfig
   server.on("/reqMisc", handleRequestMisc); // Misc Infos für WebConfig
   server.on("/reqFirm", handleRequestFirm);
   server.on("/setMisc", handleSetMisc);           // Misc ändern
@@ -140,8 +144,7 @@ void setupServer()
   server.on("/edit", HTTP_PUT, handleFileCreate);    // Datei erstellen
   server.on("/edit", HTTP_DELETE, handleFileDelete); // Datei löschen
   server.on(
-      "/edit", HTTP_POST, []()
-      { server.send(200, "text/plain", ""); },
+      "/edit", HTTP_POST, []() { server.send(200, "text/plain", ""); },
       handleFileUpload);
 
   server.onNotFound(handleWebRequests); // Sonstiges

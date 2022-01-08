@@ -2,10 +2,10 @@
 CLS
 SET SCRIPT_LOCATION=%~dp0
 cd %SCRIPT_LOCATION%
-echo Lösche Flashspeicher
+echo erase flash
 esptool.exe -cp COM3 -cd nodemcu -ce
-echo Flashe Firmware und LittleFS 
+echo Flash firmware and LittleFS 
 esptool.exe -cp COM3 -cd nodemcu -ca 0x000000 -cf MQTTDevice4.ino.bin -ca 0x200000 -cf MQTTDevice4.mklittlefs.bin
-echo Enter zum Beenden
+echo ESC to quit
 pause
 exit

@@ -1,36 +1,38 @@
-//    Erstellt:	2021
+//    Erstellt:	2022
 //    Author:	Innuendo
 
 //    Sketch für ESP8266
-//    Kommunikation via MQTT mit CraftBeerPi v3 und v4
+//    Kommunikation via MQTT mit CraftBeerPi v4
 
 //    Unterstützung für DS18B20 Sensoren
 //    Unterstützung für GPIO Aktoren
 //    Unterstützung für GGM IDS2 Induktionskochfeld
 //    Unterstützung für Web Update
 //    Visulaisierung über Grafana
-//    Unterstützung für OLED Display 126x64 I2C SH1106
+//    Unterstützung für Nextion Touchdisplay
 
-#include <OneWire.h>            // OneWire Bus Kommunikation
-#include <DallasTemperature.h>  // Vereinfachte Benutzung der DS18B20 Sensoren
-#include <ESP8266WiFi.h>        // Generelle WiFi Funktionalität
-#include <ESP8266WebServer.h>   // Unterstützung Webserver
+#include <OneWire.h>           // OneWire Bus Kommunikation
+#include <DallasTemperature.h> // Vereinfachte Benutzung der DS18B20 Sensoren
+#include <ESP8266WiFi.h>       // Generelle WiFi Funktionalität
+#include <ESP8266WebServer.h>  // Unterstützung Webserver
 #include <ESP8266HTTPUpdateServer.h>
-#include <WiFiManager.h>        // WiFiManager zur Einrichtung
-#include <DNSServer.h>          // Benötigt für WiFiManager
+#include <WiFiManager.h> // WiFiManager zur Einrichtung
+#include <DNSServer.h>   // Benötigt für WiFiManager
 #include "LittleFS.h"
-#include <ArduinoJson.h>        // Lesen und schreiben von JSON Dateien 6.18
-#include <ESP8266mDNS.h>        // mDNS
-#include <WiFiUdp.h>            // WiFi
-#include <EventManager.h>       // Eventmanager
+#include <ArduinoJson.h>  // Lesen und schreiben von JSON Dateien 6.18
+#include <ESP8266mDNS.h>  // mDNS
+#include <WiFiUdp.h>      // WiFi
+#include <EventManager.h> // Eventmanager
 #include <ESP8266HTTPClient.h>
 #include <ESP8266httpUpdate.h>
 #include <WiFiClientSecure.h>
 #include <WiFiClientSecureBearSSL.h>
 #include <NTPClient.h>
-#include "InnuTicker.h"         // Bibliothek für Hintergrund Aufgaben (Tasks)
-#include <PubSubClient.h>       // MQTT Kommunikation 2.8.0
-#include <CertStoreBearSSL.h>   // WebUpdate
+#include "InnuTicker.h"       // Bibliothek für Hintergrund Aufgaben (Tasks)
+#include <PubSubClient.h>     // MQTT Kommunikation 2.8.0
+#include <CertStoreBearSSL.h> // WebUpdate
+#include "SoftwareSerial.h"
+#include "NextionX2.h"
 
 extern "C"
 {
@@ -46,7 +48,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "2.60"
+#define Version "4.01"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -131,7 +133,6 @@ EventManager gEM; //  Eventmanager Objekt Queues
 #define EM_MQTTCON 27
 #define EM_MQTTSUB 28
 #define EM_SETNTP 29
-#define EM_DISPUP 30
 #define EM_LOG 35
 
 // Event für Sensoren, Aktor und Induktion
@@ -151,7 +152,7 @@ bool StopOnMQTTError = false;     // Event handling für MQTT Fehler
 unsigned long mqttconnectlasttry; // Zeitstempel bei Fehler MQTT
 unsigned long wlanconnectlasttry; // Zeitstempel bei Fehler WLAN
 bool mqtt_state = true;           // Status MQTT
-bool wlan_state = true;           // Status WLAN
+// bool wlan_state = true;           // Status WLAN
 
 // Event handling Zeitintervall für Reconnects WLAN und MQTT
 #define tickerWLAN 10000 // für Ticker Objekt WLAN in ms
@@ -167,16 +168,16 @@ unsigned long wait_on_Sensor_error_induction = 120000; // How long should induct
 InnuTicker TickerSen;
 InnuTicker TickerAct;
 InnuTicker TickerInd;
-InnuTicker TickerDisp;
 InnuTicker TickerMQTT;
 InnuTicker TickerWLAN;
 InnuTicker TickerNTP;
+InnuTicker TickerDisp;
 
 // Update Intervalle für Ticker Objekte
-int SEN_UPDATE = 5000;  //  sensors update delay loop
-int ACT_UPDATE = 5000;  //  actors update delay loop
-int IND_UPDATE = 5000;  //  induction update delay loop
-int DISP_UPDATE = 5000; //  NTP and display update
+int SEN_UPDATE = 5000; //  sensors update delay loop
+int ACT_UPDATE = 5000; //  actors update delay loop
+int IND_UPDATE = 5000; //  induction update delay loop
+int DISP_UPDATE = 1000;
 
 // Systemstart
 bool startMDNS = true; // Standard mDNS Name ist ESP8266- mit mqtt_chip_key
@@ -193,33 +194,93 @@ int inductionStatus = 0;
 // FSBrowser
 File fsUploadFile; // a File object to temporarily store the received file
 
-// OLED Display (optional)
-#define DISP_DEF_ADDRESS 0x3C  // OLED Display Adresse 3C oder 3D
-#define OLED_RESET LED_BUILTIN // D4
+// #define SDL D1
+// #define SDA D2
+#define maxKettles 4
+#define maxKettleSign 15
+#define maxIdSign 23
+#define maxSensorSign 23
+#define maxStepSign 30
+#define maxRemainSign 10
+#define maxNotifySign 75
+#define maxTempSign 10
+
 bool useDisplay = false;
-#define SDL D1
-#define SDA D2
-#define numberOfAddress 2
-const int address[numberOfAddress] = {0x3C, 0x3D};
+int startPage = 1;  // Kettlepage
+int activePage = 1;
+char cbpi4steps_topic[45] = "cbpi/stepupdate/+";
+char cbpi4kettle_topic[45] = "cbpi/kettleupdate/+";
+char cbpi4sensor_topic[45] = "cbpi/sensordata/";
+char cbpi4actor_topic[45] = "cbpi/actorupdate/+";
+char cbpi4notification_topic[45] = "cbpi/notification";
+bool current_step = false;
+struct Kettles
+{
+    // char id[maxIdSign] = { '\0'};
+    char id[maxIdSign];
+    char name[maxKettleSign];
+    char current_temp[maxTempSign];
+    char target_temp[maxTempSign];
+    char sensor[maxSensorSign];
+};
+struct Kettles structKettles[maxKettles];
 
-#include "icons.h" // Icons CraftbeerPi, WLAN und MQTT
-// Display mit SH1106 Chip:
-//
-// Wichtig: Für Displays mit SH1106 wird folgende lib benötigt
-// https://github.com/kferrari/Adafruit_SH1106
+char currentStepName[maxStepSign] = "no active step";
+char currentStepRemain[maxRemainSign] = "0:00";
+char nextStepName[maxStepSign];
+char nextStepRemain[maxRemainSign];
 
-#include <Adafruit_SH1106.h>
-Adafruit_SH1106 display(OLED_RESET);
+int numberOfSteps = 1;
+#define maxSteps 20
+bool activeBrew = false;
 
-// Display mit SSD1306 Chip
-//
-// #include <SPI.h>
-// #include <Wire.h>
-// #include <Adafruit_GFX.h>
-// #include <Adafruit_SSD1306.h>
-// #define SCREEN_WIDTH 128       // OLED display width, in pixels
-// #define SCREEN_HEIGHT 64       // OLED display height, in pixels
-// Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+struct Steps
+{
+    char id[maxIdSign];
+    // char name[maxStepSign];
+    // char timer[maxRemainSign];
+    char status[2];
+};
+struct Steps structSteps[maxSteps];
+
+
+
+char notify[maxNotifySign] = "Waiting for data - start brewing";
+int sliderval = 0;
+char uhrzeit[6] ="00:00";
+
+SoftwareSerial softSerial(D1, D2);
+NextionComPort nextion;
+NextionComponent brewButton(nextion, 0, 20);
+NextionComponent kettleButton(nextion, 1, 8);
+
+NextionComponent uhrzeit_text(nextion, 0, 10);
+NextionComponent currentStepName_text(nextion, 0, 6);
+NextionComponent currentStepRemain_text(nextion, 0, 5);
+NextionComponent nextStepName_text(nextion, 0, 7);
+NextionComponent nextStepRemain_text(nextion, 0, 8);
+NextionComponent kettleName1_text(nextion, 0, 1);
+NextionComponent kettleIst1_text(nextion, 0, 11);
+NextionComponent kettleSoll1_text(nextion, 0, 15);
+NextionComponent kettleName2_text(nextion, 0, 2);
+NextionComponent kettleIst2_text(nextion, 0, 12);
+NextionComponent kettleSoll2_text(nextion, 0, 16);
+NextionComponent kettleName3_text(nextion, 0, 3);
+NextionComponent kettleIst3_text(nextion, 0, 13);
+NextionComponent kettleSoll3_text(nextion, 0, 17);
+NextionComponent kettleName4_text(nextion, 0, 4);
+NextionComponent kettleIst4_text(nextion, 0, 14);
+NextionComponent kettleSoll4_text(nextion, 0, 18);
+NextionComponent slider(nextion, 0, 9);
+NextionComponent notification(nextion, 0, 19);
+
+NextionComponent p1uhrzeit_text(nextion, 1, 3);
+NextionComponent p1current_text(nextion, 1, 4);
+NextionComponent p1remain_text(nextion, 1, 5);
+NextionComponent p1temp_text(nextion, 1, 1);
+NextionComponent p1target_text(nextion, 1, 2);
+NextionComponent p1slider(nextion, 1, 6);
+NextionComponent p1notification(nextion, 1, 7);
 
 #define ALARM_ON 1
 #define ALARM_OFF 2
