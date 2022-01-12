@@ -50,7 +50,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.01"
+#define Version "4.02"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -179,7 +179,7 @@ InnuTicker TickerDisp;
 int SEN_UPDATE = 5000; //  sensors update delay loop
 int ACT_UPDATE = 5000; //  actors update delay loop
 int IND_UPDATE = 5000; //  induction update delay loop
-int DISP_UPDATE = 1000;
+int DISP_UPDATE = 2000;
 
 // Systemstart
 bool startMDNS = true; // Standard mDNS Name ist ESP8266- mit mqtt_chip_key
@@ -299,31 +299,31 @@ void handleDelSensor();
 void handleRequestSensorAddresses();
 #line 330 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino"
 void handleRequestSensors();
-#line 209 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
+#line 179 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
 void handleActors();
-#line 219 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
+#line 189 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
 void handleRequestActors();
-#line 256 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
+#line 224 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
 void handleSetActor();
-#line 308 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
+#line 271 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
 void handleDelActor();
-#line 329 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
+#line 292 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
 void handlereqPins();
-#line 353 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
+#line 316 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
 unsigned char StringToPin(String pinstring);
-#line 365 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
+#line 328 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
 String PinToString(unsigned char pinbyte);
-#line 377 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
+#line 340 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
 bool isPin(unsigned char pinbyte);
-#line 383 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino"
+#line 381 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino"
 void readInputWrap();
-#line 388 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino"
+#line 386 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino"
 void handleInduction();
-#line 393 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino"
+#line 391 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino"
 void handleRequestInduction();
-#line 423 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino"
+#line 420 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino"
 void handleRequestIndu();
-#line 468 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino"
+#line 465 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino"
 void handleSetIndu();
 #line 1 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino"
 void initDisplay();
@@ -345,11 +345,11 @@ void cbpi4notification_subscribe();
 void cbpi4notification_unsubscribe();
 #line 172 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino"
 void cbpi4kettle_handlemqtt(char *payload);
-#line 246 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino"
+#line 247 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino"
 void cbpi4sensor_handlemqtt(char *payload);
-#line 293 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino"
+#line 294 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino"
 void cbpi4steps_handlemqtt(char *payload);
-#line 512 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino"
+#line 513 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino"
 void cbpi4notification_handlemqtt(char *payload);
 #line 1 "c:\\Arduino\\git\\MQTTDevice4\\7_WEB.ino"
 void handleRoot();
@@ -371,9 +371,9 @@ void handleSetMisc();
 void rebootDevice();
 #line 1 "c:\\Arduino\\git\\MQTTDevice4\\8_CONFIGFILE.ino"
 bool loadConfig();
-#line 208 "c:\\Arduino\\git\\MQTTDevice4\\8_CONFIGFILE.ino"
+#line 202 "c:\\Arduino\\git\\MQTTDevice4\\8_CONFIGFILE.ino"
 void saveConfigCallback();
-#line 222 "c:\\Arduino\\git\\MQTTDevice4\\8_CONFIGFILE.ino"
+#line 216 "c:\\Arduino\\git\\MQTTDevice4\\8_CONFIGFILE.ino"
 bool saveConfig();
 #line 1 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino"
 void brewCallback();
@@ -1049,14 +1049,13 @@ public:
   bool switchable;              // actors switchable on error events?
   bool isOnBeforeError = false; // isOn status before error event
   bool actor_state = true;      // Error state actor
-  bool setGrafana = false;
-
+  
   // MQTT Publish
   char actor_mqtttopic[50]; // Für MQTT Kommunikation
 
-  Actor(String pin, String argument, String aname, bool ainverted, bool aswitchable, bool agrafana)
+  Actor(String pin, String argument, String aname, bool ainverted, bool aswitchable)
   {
-    change(pin, argument, aname, ainverted, aswitchable, agrafana);
+    change(pin, argument, aname, ainverted, aswitchable);
   }
 
   void Update()
@@ -1085,7 +1084,7 @@ public:
     }
   }
 
-  void change(const String &pin, const String &argument, const String &aname, const bool &ainverted, const bool &aswitchable, const bool &agrafana)
+  void change(const String &pin, const String &argument, const String &aname, const bool &ainverted, const bool &aswitchable)
   {
     // Set PIN
     if (isPin(pin_actor))
@@ -1129,7 +1128,6 @@ public:
     switchable = aswitchable;
     actor_state = true;
     isOnBeforeError = false;
-    setGrafana = agrafana;
   }
 
   /* MQTT Publish
@@ -1198,46 +1196,18 @@ public:
       return;
     }
   }
-
-  // bool getOn()
-  // {
-  //   return isOn;
-  // }
-  // bool getOnBefore()
-  // {
-  //   return isOnBeforeError;
-  // }
-  // bool getInverted()
-  // {
-  //   return isInverted;
-  // }
-  // bool getSw()
-  // {
-  //   return switchable;
-
-  // }
-  // bool getGrafana()
-  // {
-  //   return setGrafana;
-
-  // }
-  // bool getState()
-  // {
-  //   return actor_state;
-
-  // }
 };
 
 // Initialisierung des Arrays max 8
 Actor actors[numberOfActorsMax] = {
-    Actor("", "", "", false, false, false),
-    Actor("", "", "", false, false, false),
-    Actor("", "", "", false, false, false),
-    Actor("", "", "", false, false, false),
-    Actor("", "", "", false, false, false),
-    Actor("", "", "", false, false, false),
-    Actor("", "", "", false, false, false),
-    Actor("", "", "", false, false, false)};
+    Actor("", "", "", false, false),
+    Actor("", "", "", false, false),
+    Actor("", "", "", false, false),
+    Actor("", "", "", false, false),
+    Actor("", "", "", false, false),
+    Actor("", "", "", false, false),
+    Actor("", "", "", false, false),
+    Actor("", "", "", false, false)};
 
 // Funktionen für Loop im Timer Objekt
 void handleActors()
@@ -1269,7 +1239,6 @@ void handleRequestActors()
       actorsObj["pin"] = PinToString(actors[i].pin_actor);
       actorsObj["sw"] = actors[i].switchable;
       actorsObj["state"] = actors[i].actor_state;
-      actorsObj["grafana"] = actors[i].setGrafana;
       yield();
     }
   }
@@ -1279,7 +1248,6 @@ void handleRequestActors()
     doc["mqtt"] = actors[id].argument_actor;
     doc["sw"] = actors[id].switchable;
     doc["inv"] = actors[id].isInverted;
-    doc["grafana"] = actors[id].setGrafana;
   }
 
   String response;
@@ -1304,7 +1272,6 @@ void handleSetActor()
   String ac_name = actors[id].name_actor;
   bool ac_isinverted = actors[id].isInverted;
   bool ac_switchable = actors[id].switchable;
-  bool ac_grafana = actors[id].setGrafana;
 
   for (int i = 0; i < server.args(); i++)
   {
@@ -1328,13 +1295,9 @@ void handleSetActor()
     {
       ac_switchable = checkBool(server.arg(i));
     }
-    if (server.argName(i) == "grafana")
-    {
-      ac_grafana = checkBool(server.arg(i));
-    }
     yield();
   }
-  actors[id].change(ac_pin, ac_argument, ac_name, ac_isinverted, ac_switchable, ac_grafana);
+  actors[id].change(ac_pin, ac_argument, ac_name, ac_isinverted, ac_switchable);
   saveConfig();
   server.send(201, "text/plain", "created");
 }
@@ -1346,11 +1309,11 @@ void handleDelActor()
   {
     if (i == (numberOfActorsMax - 1)) // 5 - Array von 0 bis (numberOfActorsMax-1)
     {
-      actors[i].change("", "", "", false, false, false);
+      actors[i].change("", "", "", false, false);
     }
     else
     {
-      actors[i].change(PinToString(actors[i + 1].pin_actor), actors[i + 1].argument_actor, actors[i + 1].name_actor, actors[i + 1].isInverted, actors[i + 1].switchable, actors[i + 1].setGrafana);
+      actors[i].change(PinToString(actors[i + 1].pin_actor), actors[i + 1].argument_actor, actors[i + 1].name_actor, actors[i + 1].isInverted, actors[i + 1].switchable);
     }
     yield();
   }
@@ -1458,7 +1421,6 @@ public:
   int powerLevelOnError = 100;   // 100% schaltet das Event handling für Induktion aus
   int powerLevelBeforeError = 0; // in error event save last power state
   bool induction_state = true;   // Error state induction
-  bool setGrafana = false;
 
   // MQTT Publish
   // char induction_mqtttopic[50];      // Für MQTT Kommunikation
@@ -1468,7 +1430,7 @@ public:
     setupCommands();
   }
 
-  void change(unsigned char pinwhite, unsigned char pinyellow, unsigned char pinblue, String topic, long delayoff, bool is_enabled, int powerLevel, bool new_grafana)
+  void change(unsigned char pinwhite, unsigned char pinyellow, unsigned char pinblue, String topic, long delayoff, bool is_enabled, int powerLevel)
   {
     if (isEnabled)
     {
@@ -1505,7 +1467,6 @@ public:
     delayAfteroff = delayoff;
     powerLevelOnError = powerLevel;
     induction_state = true;
-    setGrafana = new_grafana;
 
     // MQTT Publish
     //mqtttopic.toCharArray(induction_mqtttopic, mqtttopic.length() + 1);
@@ -1839,7 +1800,6 @@ void handleRequestInduction()
   doc["topic"] = inductionCooker.mqtttopic;
   doc["delay"] = inductionCooker.delayAfteroff / 1000;
   doc["pl"] = inductionCooker.powerLevelOnError;
-  doc["grafana"] = inductionCooker.setGrafana;
 
   String response;
   serializeJson(doc, response);
@@ -1900,7 +1860,6 @@ void handleSetIndu()
   bool is_enabled = inductionCooker.isEnabled;
   String topic = inductionCooker.mqtttopic;
   int pl = inductionCooker.powerLevelOnError;
-  bool new_grafana = inductionCooker.setGrafana;
 
   for (int i = 0; i < server.args(); i++)
   {
@@ -1935,14 +1894,10 @@ void handleSetIndu()
       else
         pl = 100;
     }
-    if (server.argName(i) == "grafana")
-    {
-        new_grafana = checkBool(server.arg(i));
-    }
     yield();
   }
 
-  inductionCooker.change(pin_white, pin_yellow, pin_blue, topic, delayoff, is_enabled, pl, new_grafana);
+  inductionCooker.change(pin_white, pin_yellow, pin_blue, topic, delayoff, is_enabled, pl);
   saveConfig();
   server.send(201, "text/plain", "created");
 }
@@ -2140,7 +2095,8 @@ void cbpi4kettle_handlemqtt(char *payload)
       dtostrf(doc["target_temp"], 1, 1, structKettles[i].target_temp);
       strcpy(structKettles[i].sensor, doc["sensor"]);
       char sensorupdate[45];
-      sprintf(sensorupdate, "%s%s", "cbpi/sensordata/", structKettles[i].sensor);
+      // sprintf(sensorupdate, "%s%s", "cbpi/sensordata/", structKettles[i].sensor);
+      sprintf(sensorupdate, "%s%s", cbpi4sensor_topic, structKettles[i].sensor);
       // DEBUG_MSG("Disp: Subscribing to %s\n", sensorupdate);
       pubsubClient.subscribe(sensorupdate);
       switch (i)
@@ -2580,7 +2536,7 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
     const char *kettleupdate = "cbpi/kettleupdate/";
     const char *stepupdate = "cbpi/stepupdate/";
     const char *sensorupdate = "cbpi/sensordata/";
-    const char *notificationupdate = "cbpi/notification";
+    const char *notificationupdate = "cbpi/stepnotification";
 
     p = strstr(topic, kettleupdate);
     if (p)
@@ -2836,17 +2792,14 @@ bool loadConfig()
       String actorName = actorObj["NAME"];
       bool actorInv = false;
       bool actorSwitch = false;
-      bool actorGrafana = false;
 
       if (actorObj["INV"] || actorObj["INV"] == "1")
         actorInv = true;
       if (actorObj["SW"] || actorObj["SW"] == "1")
         actorSwitch = true;
-      if (actorObj["GRAF"] || actorObj["GRAF"] == "1")
-        actorGrafana = true;
 
-      actors[i].change(actorPin, actorScript, actorName, actorInv, actorSwitch, actorGrafana);
-      DEBUG_MSG("Actor #: %d Name: %s MQTT: %s PIN: %s INV: %d SW: %d GRAF: %d\n", (i + 1), actorName.c_str(), actorScript.c_str(), actorPin.c_str(), actorInv, actorSwitch, actorGrafana);
+      actors[i].change(actorPin, actorScript, actorName, actorInv, actorSwitch);
+      DEBUG_MSG("Actor #: %d Name: %s MQTT: %s PIN: %s INV: %d SW: %d\n", (i + 1), actorName.c_str(), actorScript.c_str(), actorPin.c_str(), actorInv, actorSwitch);
       i++;
     }
   }
@@ -2892,7 +2845,6 @@ bool loadConfig()
   {
     inductionStatus = 1;
     bool indEnabled = true;
-    bool indGrafana = false;
     String indPinWhite = indObj["PINWHITE"];
     String indPinYellow = indObj["PINYELLOW"];
     String indPinBlue = indObj["PINBLUE"];
@@ -2900,15 +2852,13 @@ bool loadConfig()
     long indDelayOff = DEF_DELAY_IND; //default delay
     int indPowerLevel = 100;
 
-    if (indObj["GRAF"] || indObj["GRAF"] == "1")
-      indGrafana = true;
     if (indObj.containsKey("PL"))
       indPowerLevel = indObj["PL"];
     if (indObj.containsKey("DELAY"))
       indDelayOff = indObj["DELAY"];
 
-    inductionCooker.change(StringToPin(indPinWhite), StringToPin(indPinYellow), StringToPin(indPinBlue), indScript, indDelayOff, indEnabled, indPowerLevel, indGrafana);
-    DEBUG_MSG("Induction: %d MQTT: %s Relais (WHITE): %s Command channel (YELLOW): %s Backchannel (BLUE): %s Delay after power off %d Power level on error: %d Graf: %d\n", inductionStatus, indScript.c_str(), indPinWhite.c_str(), indPinYellow.c_str(), indPinBlue.c_str(), (indDelayOff / 1000), indPowerLevel, indGrafana);
+    inductionCooker.change(StringToPin(indPinWhite), StringToPin(indPinYellow), StringToPin(indPinBlue), indScript, indDelayOff, indEnabled, indPowerLevel);
+    DEBUG_MSG("Induction: %d MQTT: %s Relais (WHITE): %s Command channel (YELLOW): %s Backchannel (BLUE): %s Delay after power off %d Power level on error: %d\n", inductionStatus, indScript.c_str(), indPinWhite.c_str(), indPinYellow.c_str(), indPinBlue.c_str(), (indDelayOff / 1000), indPowerLevel);
   }
   else
   {
@@ -3027,9 +2977,7 @@ bool saveConfig()
     actorsObj["SCRIPT"] = actors[i].argument_actor;
     actorsObj["INV"] = (int)actors[i].isInverted;
     actorsObj["SW"] = (int)actors[i].switchable;
-    actorsObj["GRAF"] = (int)actors[i].setGrafana;
-
-    DEBUG_MSG("Actor #: %d Name: %s MQTT: %s PIN: %s INV: %d SW: %d GRAF: %d\n", (i + 1), actors[i].name_actor.c_str(), actors[i].argument_actor.c_str(), PinToString(actors[i].pin_actor).c_str(), actors[i].isInverted, actors[i].switchable, actors[i].setGrafana);
+    DEBUG_MSG("Actor #: %d Name: %s MQTT: %s PIN: %s INV: %d SW: %d\n", (i + 1), actors[i].name_actor.c_str(), actors[i].argument_actor.c_str(), PinToString(actors[i].pin_actor).c_str(), actors[i].isInverted, actors[i].switchable);
   }
   if (numberOfActors == 0)
   {
@@ -3065,7 +3013,6 @@ bool saveConfig()
     indObj["DELAY"] = inductionCooker.delayAfteroff;
     indObj["ENABLED"] = (int)inductionCooker.isEnabled;
     indObj["PL"] = inductionCooker.powerLevelOnError;
-    indObj["GRAF"] = (int)inductionCooker.setGrafana;
     DEBUG_MSG("Induction: %d MQTT: %s Relais (WHITE): %s Command channel (YELLOW): %s Backchannel (BLUE): %s Delay after power off %d Power level on error: %d\n", inductionCooker.isEnabled, inductionCooker.mqtttopic.c_str(), PinToString(inductionCooker.PIN_WHITE).c_str(), PinToString(inductionCooker.PIN_YELLOW).c_str(), PinToString(inductionCooker.PIN_INTERRUPT).c_str(), (inductionCooker.delayAfteroff / 1000), inductionCooker.powerLevelOnError);
   }
   else

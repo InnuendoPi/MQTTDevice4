@@ -2,7 +2,7 @@
 # MQTTDevice4
 
 MQTTDevice4 enables sensors, actors and an induction hob to be connected via WLAN to [CraftBeerPi V4](https://github.com/Manuel83/craftbeerpi4).
-According to the current development status in dec 2021, this fork [CraftBeerPi V4](https://github.com/avollkopf/craftbeerpi4) is highly recommended!
+According to the current development status in Jan 2022, this fork [CraftBeerPi V4](https://github.com/avollkopf/craftbeerpi4) version 4.0.1a10 or above is required!
 
 MQTTDevice4 is an Arduino sketch for the ESP8266 Wemos D1 mini modules. This makes it possible to establish communication between the MQTT broker mosquitto and an ESP8266 in order to control sensors and actors with CraftBeerPi V4. MQTTDevice is optimzed for version 4 of craftbeerpi.
 
@@ -28,15 +28,15 @@ There is support in the hobby brewer forum <https://hobbybrauer.de/forum/> and i
 
 ## Sketch Information
 
-Libraries: Version 4.01, 01.2022
+Libraries: Version 4.02, 01.2022
 
 - ESP8266 3.0.2 (LittleFS)
 - Arduino IDE 1.8.16
 - Visual Code + modified ESP8266FS Plugin (VSCode 1.52.1 Aruindo 1.8.16)
-- PubSubClient 2.8.0
+- PubSubClient 2.8.0 (PubSubClient.h: #define MQTT_MAX_PACKET_SIZE 512)
 - ArduinoJSON 6.18.5
 - WiFiManager 2.0.5
-- NextionX2 1.1.2
+- NextionX2 1.1.2 (NextionX2.h: #define ATTRIBUTE_TEXT_LENGTH 90)
 
 Board configuration:
 Flash size 4MB (FS:2MB OTA:~1019kB)

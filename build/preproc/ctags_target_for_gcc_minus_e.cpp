@@ -151,7 +151,7 @@ InnuTicker TickerDisp;
 int SEN_UPDATE = 5000; //  sensors update delay loop
 int ACT_UPDATE = 5000; //  actors update delay loop
 int IND_UPDATE = 5000; //  induction update delay loop
-int DISP_UPDATE = 1000;
+int DISP_UPDATE = 2000;
 
 // Systemstart
 bool startMDNS = true; // Standard mDNS Name ist ESP8266- mit mqtt_chip_key
@@ -852,14 +852,13 @@ public:
   bool switchable; // actors switchable on error events?
   bool isOnBeforeError = false; // isOn status before error event
   bool actor_state = true; // Error state actor
-  bool setGrafana = false;
 
   // MQTT Publish
   char actor_mqtttopic[50]; // Für MQTT Kommunikation
 
-  Actor(String pin, String argument, String aname, bool ainverted, bool aswitchable, bool agrafana)
+  Actor(String pin, String argument, String aname, bool ainverted, bool aswitchable)
   {
-    change(pin, argument, aname, ainverted, aswitchable, agrafana);
+    change(pin, argument, aname, ainverted, aswitchable);
   }
 
   void Update()
@@ -888,7 +887,7 @@ public:
     }
   }
 
-  void change(const String &pin, const String &argument, const String &aname, const bool &ainverted, const bool &aswitchable, const bool &agrafana)
+  void change(const String &pin, const String &argument, const String &aname, const bool &ainverted, const bool &aswitchable)
   {
     // Set PIN
     if (isPin(pin_actor))
@@ -932,7 +931,6 @@ public:
     switchable = aswitchable;
     actor_state = true;
     isOnBeforeError = false;
-    setGrafana = agrafana;
   }
 
   /* MQTT Publish
@@ -974,7 +972,7 @@ public:
   }
 
   */
-# 121 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
+# 119 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
   void mqtt_subscribe()
   {
     if (pubsubClient.connected())
@@ -1021,46 +1019,18 @@ public:
       return;
     }
   }
-
-  // bool getOn()
-  // {
-  //   return isOn;
-  // }
-  // bool getOnBefore()
-  // {
-  //   return isOnBeforeError;
-  // }
-  // bool getInverted()
-  // {
-  //   return isInverted;
-  // }
-  // bool getSw()
-  // {
-  //   return switchable;
-
-  // }
-  // bool getGrafana()
-  // {
-  //   return setGrafana;
-
-  // }
-  // bool getState()
-  // {
-  //   return actor_state;
-
-  // }
 };
 
 // Initialisierung des Arrays max 8
 Actor actors[8 /* Maximale Anzahl an Aktoren*/] = {
-    Actor("", "", "", false, false, false),
-    Actor("", "", "", false, false, false),
-    Actor("", "", "", false, false, false),
-    Actor("", "", "", false, false, false),
-    Actor("", "", "", false, false, false),
-    Actor("", "", "", false, false, false),
-    Actor("", "", "", false, false, false),
-    Actor("", "", "", false, false, false)};
+    Actor("", "", "", false, false),
+    Actor("", "", "", false, false),
+    Actor("", "", "", false, false),
+    Actor("", "", "", false, false),
+    Actor("", "", "", false, false),
+    Actor("", "", "", false, false),
+    Actor("", "", "", false, false),
+    Actor("", "", "", false, false)};
 
 // Funktionen für Loop im Timer Objekt
 void handleActors()
@@ -1092,7 +1062,6 @@ void handleRequestActors()
       actorsObj["pin"] = PinToString(actors[i].pin_actor);
       actorsObj["sw"] = actors[i].switchable;
       actorsObj["state"] = actors[i].actor_state;
-      actorsObj["grafana"] = actors[i].setGrafana;
       yield();
     }
   }
@@ -1102,7 +1071,6 @@ void handleRequestActors()
     doc["mqtt"] = actors[id].argument_actor;
     doc["sw"] = actors[id].switchable;
     doc["inv"] = actors[id].isInverted;
-    doc["grafana"] = actors[id].setGrafana;
   }
 
   String response;
@@ -1127,7 +1095,6 @@ void handleSetActor()
   String ac_name = actors[id].name_actor;
   bool ac_isinverted = actors[id].isInverted;
   bool ac_switchable = actors[id].switchable;
-  bool ac_grafana = actors[id].setGrafana;
 
   for (int i = 0; i < server.args(); i++)
   {
@@ -1151,13 +1118,9 @@ void handleSetActor()
     {
       ac_switchable = checkBool(server.arg(i));
     }
-    if (server.argName(i) == "grafana")
-    {
-      ac_grafana = checkBool(server.arg(i));
-    }
     yield();
   }
-  actors[id].change(ac_pin, ac_argument, ac_name, ac_isinverted, ac_switchable, ac_grafana);
+  actors[id].change(ac_pin, ac_argument, ac_name, ac_isinverted, ac_switchable);
   saveConfig();
   server.send(201, "text/plain", "created");
 }
@@ -1169,11 +1132,11 @@ void handleDelActor()
   {
     if (i == (8 /* Maximale Anzahl an Aktoren*/ - 1)) // 5 - Array von 0 bis (numberOfActorsMax-1)
     {
-      actors[i].change("", "", "", false, false, false);
+      actors[i].change("", "", "", false, false);
     }
     else
     {
-      actors[i].change(PinToString(actors[i + 1].pin_actor), actors[i + 1].argument_actor, actors[i + 1].name_actor, actors[i + 1].isInverted, actors[i + 1].switchable, actors[i + 1].setGrafana);
+      actors[i].change(PinToString(actors[i + 1].pin_actor), actors[i + 1].argument_actor, actors[i + 1].name_actor, actors[i + 1].isInverted, actors[i + 1].switchable);
     }
     yield();
   }
@@ -1191,23 +1154,23 @@ void handlereqPins()
   if (id != -1)
   {
     message += ((reinterpret_cast<const __FlashStringHelper *>(
-# 336 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino" 3
-              (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "3_AKTOREN.ino" "." "336" "." "319" "\", \"aSM\", @progbits, 1 #"))) = (
-# 336 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
+# 299 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino" 3
+              (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "3_AKTOREN.ino" "." "299" "." "319" "\", \"aSM\", @progbits, 1 #"))) = (
+# 299 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
               "<option>"
-# 336 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino" 3
+# 299 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino" 3
               ); &__pstr__[0];}))
-# 336 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
+# 299 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
               )));
     message += PinToString(actors[id].pin_actor);
     message += ((reinterpret_cast<const __FlashStringHelper *>(
-# 338 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino" 3
-              (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "3_AKTOREN.ino" "." "338" "." "320" "\", \"aSM\", @progbits, 1 #"))) = (
-# 338 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
+# 301 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino" 3
+              (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "3_AKTOREN.ino" "." "301" "." "320" "\", \"aSM\", @progbits, 1 #"))) = (
+# 301 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
               "</option><option disabled>──────────</option>"
-# 338 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino" 3
+# 301 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino" 3
               ); &__pstr__[0];}))
-# 338 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
+# 301 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
               )));
   }
   for (int i = 0; i < numberOfPins; i++)
@@ -1215,23 +1178,23 @@ void handlereqPins()
     if (pins_used[pins[i]] == false)
     {
       message += ((reinterpret_cast<const __FlashStringHelper *>(
-# 344 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino" 3
-                (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "3_AKTOREN.ino" "." "344" "." "321" "\", \"aSM\", @progbits, 1 #"))) = (
-# 344 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
+# 307 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino" 3
+                (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "3_AKTOREN.ino" "." "307" "." "321" "\", \"aSM\", @progbits, 1 #"))) = (
+# 307 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
                 "<option>"
-# 344 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino" 3
+# 307 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino" 3
                 ); &__pstr__[0];}))
-# 344 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
+# 307 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
                 )));
       message += pin_names[i];
       message += ((reinterpret_cast<const __FlashStringHelper *>(
-# 346 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino" 3
-                (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "3_AKTOREN.ino" "." "346" "." "322" "\", \"aSM\", @progbits, 1 #"))) = (
-# 346 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
+# 309 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino" 3
+                (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "3_AKTOREN.ino" "." "309" "." "322" "\", \"aSM\", @progbits, 1 #"))) = (
+# 309 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
                 "</option>"
-# 346 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino" 3
+# 309 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino" 3
                 ); &__pstr__[0];}))
-# 346 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
+# 309 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
                 )));
     }
     yield();
@@ -1312,7 +1275,6 @@ public:
   int powerLevelOnError = 100; // 100% schaltet das Event handling für Induktion aus
   int powerLevelBeforeError = 0; // in error event save last power state
   bool induction_state = true; // Error state induction
-  bool setGrafana = false;
 
   // MQTT Publish
   // char induction_mqtttopic[50];      // Für MQTT Kommunikation
@@ -1322,7 +1284,7 @@ public:
     setupCommands();
   }
 
-  void change(unsigned char pinwhite, unsigned char pinyellow, unsigned char pinblue, String topic, long delayoff, bool is_enabled, int powerLevel, bool new_grafana)
+  void change(unsigned char pinwhite, unsigned char pinyellow, unsigned char pinblue, String topic, long delayoff, bool is_enabled, int powerLevel)
   {
     if (isEnabled)
     {
@@ -1359,7 +1321,6 @@ public:
     delayAfteroff = delayoff;
     powerLevelOnError = powerLevel;
     induction_state = true;
-    setGrafana = new_grafana;
 
     // MQTT Publish
     //mqtttopic.toCharArray(induction_mqtttopic, mqtttopic.length() + 1);
@@ -1462,7 +1423,7 @@ public:
           }
 
     */
-# 166 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino"
+# 164 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino"
   void handlemqtt(char *payload)
   {
     StaticJsonDocument<128> doc;
@@ -1680,7 +1641,7 @@ public:
 
 induction inductionCooker = induction();
 
-__attribute__((section("\".iram.text." "4_INDUKTION.ino" "." "383" "." "323" "\""))) __attribute__((deprecated("Use IRAM_ATTR in place of ICACHE_RAM_ATTR to move functions into IRAM"))) void readInputWrap()
+__attribute__((section("\".iram.text." "4_INDUKTION.ino" "." "381" "." "323" "\""))) __attribute__((deprecated("Use IRAM_ATTR in place of ICACHE_RAM_ATTR to move functions into IRAM"))) void readInputWrap()
 {
   inductionCooker.readInput();
 }
@@ -1713,7 +1674,6 @@ void handleRequestInduction()
   doc["topic"] = inductionCooker.mqtttopic;
   doc["delay"] = inductionCooker.delayAfteroff / 1000;
   doc["pl"] = inductionCooker.powerLevelOnError;
-  doc["grafana"] = inductionCooker.setGrafana;
 
   String response;
   serializeJson(doc, response);
@@ -1744,23 +1704,23 @@ void handleRequestIndu()
     if (isPin(pinswitched))
     {
       message += ((reinterpret_cast<const __FlashStringHelper *>(
-# 446 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino" 3
-                (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "4_INDUKTION.ino" "." "446" "." "324" "\", \"aSM\", @progbits, 1 #"))) = (
-# 446 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino"
+# 443 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino" 3
+                (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "4_INDUKTION.ino" "." "443" "." "324" "\", \"aSM\", @progbits, 1 #"))) = (
+# 443 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino"
                 "<option>"
-# 446 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino" 3
+# 443 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino" 3
                 ); &__pstr__[0];}))
-# 446 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino"
+# 443 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino"
                 )));
       message += PinToString(pinswitched);
       message += ((reinterpret_cast<const __FlashStringHelper *>(
-# 448 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino" 3
-                (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "4_INDUKTION.ino" "." "448" "." "325" "\", \"aSM\", @progbits, 1 #"))) = (
-# 448 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino"
+# 445 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino" 3
+                (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "4_INDUKTION.ino" "." "445" "." "325" "\", \"aSM\", @progbits, 1 #"))) = (
+# 445 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino"
                 "</option><option disabled>──────────</option>"
-# 448 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino" 3
+# 445 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino" 3
                 ); &__pstr__[0];}))
-# 448 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino"
+# 445 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino"
                 )));
     }
 
@@ -1769,23 +1729,23 @@ void handleRequestIndu()
       if (pins_used[pins[i]] == false)
       {
         message += ((reinterpret_cast<const __FlashStringHelper *>(
-# 455 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino" 3
-                  (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "4_INDUKTION.ino" "." "455" "." "326" "\", \"aSM\", @progbits, 1 #"))) = (
-# 455 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino"
+# 452 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino" 3
+                  (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "4_INDUKTION.ino" "." "452" "." "326" "\", \"aSM\", @progbits, 1 #"))) = (
+# 452 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino"
                   "<option>"
-# 455 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino" 3
+# 452 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino" 3
                   ); &__pstr__[0];}))
-# 455 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino"
+# 452 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino"
                   )));
         message += pin_names[i];
         message += ((reinterpret_cast<const __FlashStringHelper *>(
-# 457 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino" 3
-                  (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "4_INDUKTION.ino" "." "457" "." "327" "\", \"aSM\", @progbits, 1 #"))) = (
-# 457 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino"
+# 454 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino" 3
+                  (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "4_INDUKTION.ino" "." "454" "." "327" "\", \"aSM\", @progbits, 1 #"))) = (
+# 454 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino"
                   "</option>"
-# 457 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino" 3
+# 454 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino" 3
                   ); &__pstr__[0];}))
-# 457 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino"
+# 454 "c:\\Arduino\\git\\MQTTDevice4\\4_INDUKTION.ino"
                   )));
       }
       yield();
@@ -1806,7 +1766,6 @@ void handleSetIndu()
   bool is_enabled = inductionCooker.isEnabled;
   String topic = inductionCooker.mqtttopic;
   int pl = inductionCooker.powerLevelOnError;
-  bool new_grafana = inductionCooker.setGrafana;
 
   for (int i = 0; i < server.args(); i++)
   {
@@ -1841,14 +1800,10 @@ void handleSetIndu()
       else
         pl = 100;
     }
-    if (server.argName(i) == "grafana")
-    {
-        new_grafana = checkBool(server.arg(i));
-    }
     yield();
   }
 
-  inductionCooker.change(pin_white, pin_yellow, pin_blue, topic, delayoff, is_enabled, pl, new_grafana);
+  inductionCooker.change(pin_white, pin_yellow, pin_blue, topic, delayoff, is_enabled, pl);
   saveConfig();
   server.send(201, "text/plain", "created");
 }
@@ -2079,7 +2034,8 @@ void cbpi4kettle_handlemqtt(char *payload)
       dtostrf(doc["target_temp"], 1, 1, structKettles[i].target_temp);
       strcpy(structKettles[i].sensor, doc["sensor"]);
       char sensorupdate[45];
-      sprintf(sensorupdate, "%s%s", "cbpi/sensordata/", structKettles[i].sensor);
+      // sprintf(sensorupdate, "%s%s", "cbpi/sensordata/", structKettles[i].sensor);
+      sprintf(sensorupdate, "%s%s", cbpi4sensor_topic, structKettles[i].sensor);
       // DEBUG_MSG("Disp: Subscribing to %s\n", sensorupdate);
       pubsubClient.subscribe(sensorupdate);
       switch (i)
@@ -2281,14 +2237,14 @@ void cbpi4steps_handlemqtt(char *payload)
         strcpy(buf, doc["state_text"].as<const char *>());
         char *hours = strtok(buf, delimiter); // Das erste Zeichen muss ein # sein
         char *minutes = strtok(
-# 394 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino" 3 4
-                              __null
-# 394 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino"
-                                  , delimiter);
-        char *seconds = strtok(
 # 395 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino" 3 4
                               __null
 # 395 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino"
+                                  , delimiter);
+        char *seconds = strtok(
+# 396 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino" 3 4
+                              __null
+# 396 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino"
                                   , delimiter);
         // if (props.containsKey("Timer"))
         timer = props["Timer"].as<int>();
@@ -2332,7 +2288,7 @@ void cbpi4steps_handlemqtt(char *payload)
       slider.value(rest);
 
       */
-# 431 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino"
+# 432 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino"
     }
     else
     {
@@ -2395,7 +2351,7 @@ void cbpi4steps_handlemqtt(char *payload)
   }
 
 */
-# 481 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino"
+# 482 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino"
   if (doc["status"] == "I" && current_step)
   {
     current_step = false;
@@ -2556,7 +2512,7 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
     const char *kettleupdate = "cbpi/kettleupdate/";
     const char *stepupdate = "cbpi/stepupdate/";
     const char *sensorupdate = "cbpi/sensordata/";
-    const char *notificationupdate = "cbpi/notification";
+    const char *notificationupdate = "cbpi/stepnotification";
 
     p = strstr(topic, kettleupdate);
     if (p)
@@ -2656,7 +2612,7 @@ void handleRequestFirm()
     }
     else
       message = "MQTTDevice4 V ";
-    message += "4.01";
+    message += "4.02";
     goto SendMessage;
   }
 
@@ -2811,16 +2767,13 @@ bool loadConfig()
       String actorName = actorObj["NAME"];
       bool actorInv = false;
       bool actorSwitch = false;
-      bool actorGrafana = false;
 
       if (actorObj["INV"] || actorObj["INV"] == "1")
         actorInv = true;
       if (actorObj["SW"] || actorObj["SW"] == "1")
         actorSwitch = true;
-      if (actorObj["GRAF"] || actorObj["GRAF"] == "1")
-        actorGrafana = true;
 
-      actors[i].change(actorPin, actorScript, actorName, actorInv, actorSwitch, actorGrafana);
+      actors[i].change(actorPin, actorScript, actorName, actorInv, actorSwitch);
       ;
       i++;
     }
@@ -2867,7 +2820,6 @@ bool loadConfig()
   {
     inductionStatus = 1;
     bool indEnabled = true;
-    bool indGrafana = false;
     String indPinWhite = indObj["PINWHITE"];
     String indPinYellow = indObj["PINYELLOW"];
     String indPinBlue = indObj["PINBLUE"];
@@ -2875,14 +2827,12 @@ bool loadConfig()
     long indDelayOff = 120000 /* Standard Nachlaufzeit nach dem Ausschalten Induktionskochfeld*/; //default delay
     int indPowerLevel = 100;
 
-    if (indObj["GRAF"] || indObj["GRAF"] == "1")
-      indGrafana = true;
     if (indObj.containsKey("PL"))
       indPowerLevel = indObj["PL"];
     if (indObj.containsKey("DELAY"))
       indDelayOff = indObj["DELAY"];
 
-    inductionCooker.change(StringToPin(indPinWhite), StringToPin(indPinYellow), StringToPin(indPinBlue), indScript, indDelayOff, indEnabled, indPowerLevel, indGrafana);
+    inductionCooker.change(StringToPin(indPinWhite), StringToPin(indPinYellow), StringToPin(indPinBlue), indScript, indDelayOff, indEnabled, indPowerLevel);
     ;
   }
   else
@@ -3002,8 +2952,6 @@ bool saveConfig()
     actorsObj["SCRIPT"] = actors[i].argument_actor;
     actorsObj["INV"] = (int)actors[i].isInverted;
     actorsObj["SW"] = (int)actors[i].switchable;
-    actorsObj["GRAF"] = (int)actors[i].setGrafana;
-
     ;
   }
   if (numberOfActors == 0)
@@ -3040,7 +2988,6 @@ bool saveConfig()
     indObj["DELAY"] = inductionCooker.delayAfteroff;
     indObj["ENABLED"] = (int)inductionCooker.isEnabled;
     indObj["PL"] = inductionCooker.powerLevelOnError;
-    indObj["GRAF"] = (int)inductionCooker.setGrafana;
     ;
   }
   else

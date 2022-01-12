@@ -15,14 +15,13 @@ public:
   bool switchable;              // actors switchable on error events?
   bool isOnBeforeError = false; // isOn status before error event
   bool actor_state = true;      // Error state actor
-  bool setGrafana = false;
-
+  
   // MQTT Publish
   char actor_mqtttopic[50]; // Für MQTT Kommunikation
 
-  Actor(String pin, String argument, String aname, bool ainverted, bool aswitchable, bool agrafana)
+  Actor(String pin, String argument, String aname, bool ainverted, bool aswitchable)
   {
-    change(pin, argument, aname, ainverted, aswitchable, agrafana);
+    change(pin, argument, aname, ainverted, aswitchable);
   }
 
   void Update()
@@ -51,7 +50,7 @@ public:
     }
   }
 
-  void change(const String &pin, const String &argument, const String &aname, const bool &ainverted, const bool &aswitchable, const bool &agrafana)
+  void change(const String &pin, const String &argument, const String &aname, const bool &ainverted, const bool &aswitchable)
   {
     // Set PIN
     if (isPin(pin_actor))
@@ -95,7 +94,6 @@ public:
     switchable = aswitchable;
     actor_state = true;
     isOnBeforeError = false;
-    setGrafana = agrafana;
   }
 
   /* MQTT Publish
@@ -164,46 +162,18 @@ public:
       return;
     }
   }
-
-  // bool getOn()
-  // {
-  //   return isOn;
-  // }
-  // bool getOnBefore()
-  // {
-  //   return isOnBeforeError;
-  // }
-  // bool getInverted()
-  // {
-  //   return isInverted;
-  // }
-  // bool getSw()
-  // {
-  //   return switchable;
-
-  // }
-  // bool getGrafana()
-  // {
-  //   return setGrafana;
-
-  // }
-  // bool getState()
-  // {
-  //   return actor_state;
-
-  // }
 };
 
 // Initialisierung des Arrays max 8
 Actor actors[numberOfActorsMax] = {
-    Actor("", "", "", false, false, false),
-    Actor("", "", "", false, false, false),
-    Actor("", "", "", false, false, false),
-    Actor("", "", "", false, false, false),
-    Actor("", "", "", false, false, false),
-    Actor("", "", "", false, false, false),
-    Actor("", "", "", false, false, false),
-    Actor("", "", "", false, false, false)};
+    Actor("", "", "", false, false),
+    Actor("", "", "", false, false),
+    Actor("", "", "", false, false),
+    Actor("", "", "", false, false),
+    Actor("", "", "", false, false),
+    Actor("", "", "", false, false),
+    Actor("", "", "", false, false),
+    Actor("", "", "", false, false)};
 
 // Funktionen für Loop im Timer Objekt
 void handleActors()
@@ -235,7 +205,6 @@ void handleRequestActors()
       actorsObj["pin"] = PinToString(actors[i].pin_actor);
       actorsObj["sw"] = actors[i].switchable;
       actorsObj["state"] = actors[i].actor_state;
-      actorsObj["grafana"] = actors[i].setGrafana;
       yield();
     }
   }
@@ -245,7 +214,6 @@ void handleRequestActors()
     doc["mqtt"] = actors[id].argument_actor;
     doc["sw"] = actors[id].switchable;
     doc["inv"] = actors[id].isInverted;
-    doc["grafana"] = actors[id].setGrafana;
   }
 
   String response;
@@ -270,7 +238,6 @@ void handleSetActor()
   String ac_name = actors[id].name_actor;
   bool ac_isinverted = actors[id].isInverted;
   bool ac_switchable = actors[id].switchable;
-  bool ac_grafana = actors[id].setGrafana;
 
   for (int i = 0; i < server.args(); i++)
   {
@@ -294,13 +261,9 @@ void handleSetActor()
     {
       ac_switchable = checkBool(server.arg(i));
     }
-    if (server.argName(i) == "grafana")
-    {
-      ac_grafana = checkBool(server.arg(i));
-    }
     yield();
   }
-  actors[id].change(ac_pin, ac_argument, ac_name, ac_isinverted, ac_switchable, ac_grafana);
+  actors[id].change(ac_pin, ac_argument, ac_name, ac_isinverted, ac_switchable);
   saveConfig();
   server.send(201, "text/plain", "created");
 }
@@ -312,11 +275,11 @@ void handleDelActor()
   {
     if (i == (numberOfActorsMax - 1)) // 5 - Array von 0 bis (numberOfActorsMax-1)
     {
-      actors[i].change("", "", "", false, false, false);
+      actors[i].change("", "", "", false, false);
     }
     else
     {
-      actors[i].change(PinToString(actors[i + 1].pin_actor), actors[i + 1].argument_actor, actors[i + 1].name_actor, actors[i + 1].isInverted, actors[i + 1].switchable, actors[i + 1].setGrafana);
+      actors[i].change(PinToString(actors[i + 1].pin_actor), actors[i + 1].argument_actor, actors[i + 1].name_actor, actors[i + 1].isInverted, actors[i + 1].switchable);
     }
     yield();
   }

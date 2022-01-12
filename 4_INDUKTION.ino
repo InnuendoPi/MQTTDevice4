@@ -32,7 +32,6 @@ public:
   int powerLevelOnError = 100;   // 100% schaltet das Event handling für Induktion aus
   int powerLevelBeforeError = 0; // in error event save last power state
   bool induction_state = true;   // Error state induction
-  bool setGrafana = false;
 
   // MQTT Publish
   // char induction_mqtttopic[50];      // Für MQTT Kommunikation
@@ -42,7 +41,7 @@ public:
     setupCommands();
   }
 
-  void change(unsigned char pinwhite, unsigned char pinyellow, unsigned char pinblue, String topic, long delayoff, bool is_enabled, int powerLevel, bool new_grafana)
+  void change(unsigned char pinwhite, unsigned char pinyellow, unsigned char pinblue, String topic, long delayoff, bool is_enabled, int powerLevel)
   {
     if (isEnabled)
     {
@@ -79,7 +78,6 @@ public:
     delayAfteroff = delayoff;
     powerLevelOnError = powerLevel;
     induction_state = true;
-    setGrafana = new_grafana;
 
     // MQTT Publish
     //mqtttopic.toCharArray(induction_mqtttopic, mqtttopic.length() + 1);
@@ -413,7 +411,6 @@ void handleRequestInduction()
   doc["topic"] = inductionCooker.mqtttopic;
   doc["delay"] = inductionCooker.delayAfteroff / 1000;
   doc["pl"] = inductionCooker.powerLevelOnError;
-  doc["grafana"] = inductionCooker.setGrafana;
 
   String response;
   serializeJson(doc, response);
@@ -474,7 +471,6 @@ void handleSetIndu()
   bool is_enabled = inductionCooker.isEnabled;
   String topic = inductionCooker.mqtttopic;
   int pl = inductionCooker.powerLevelOnError;
-  bool new_grafana = inductionCooker.setGrafana;
 
   for (int i = 0; i < server.args(); i++)
   {
@@ -509,14 +505,10 @@ void handleSetIndu()
       else
         pl = 100;
     }
-    if (server.argName(i) == "grafana")
-    {
-        new_grafana = checkBool(server.arg(i));
-    }
     yield();
   }
 
-  inductionCooker.change(pin_white, pin_yellow, pin_blue, topic, delayoff, is_enabled, pl, new_grafana);
+  inductionCooker.change(pin_white, pin_yellow, pin_blue, topic, delayoff, is_enabled, pl);
   saveConfig();
   server.send(201, "text/plain", "created");
 }

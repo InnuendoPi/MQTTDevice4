@@ -256,12 +256,6 @@
                 <input type="checkbox" class="custom-control-input" id="modal_misc_display">
                 <label class="custom-control-label" for="modal_misc_display">Enable Nextion HMI Display (D1,D2)</label>
               </div>
-              
-              <!-- <div class="form-check">
-                <input class="form-check-input" type="checkbox" value="" id="modal_misc_display" />
-                <label class="form-check-label" for="modal_misc_display">Enable Nextion HMI Display (D1,D2)</label>
-              </div> -->
-              
               <div class="custom-control custom-switch">
                 <input type="checkbox" class="custom-control-input" id="modal_misc_mdns" />
                 <label class="custom-control-label" for="modal_misc_mdns">Enable mDNS</label>
@@ -375,7 +369,6 @@
           else {
             sensor += " badge-light'>"
             var result = parseFloat(element.value);
-            // result += parseFloat(element.offset);
             sensor += result.toFixed(1) + "°C";
           }
           sensor += "</span> "
@@ -507,8 +500,6 @@
         }
         $('#inductionCooker').html(inductionRender);
       });
-      
-      //$.get("/reqMiscSet", function (data) {
       $.get("/reqMisc2", function (data) {
         let miscRender = "<li class='list-group-item d-flex justify-content-between align-items-center'> ";
         miscRender += " MQTT broker IP <span class='badge'>";
@@ -736,9 +727,6 @@
       var upsen = modal.find('#modal_misc_upsen').val();
       var upact = modal.find('#modal_misc_upact').val();
       var upind = modal.find('#modal_misc_upind').val();
-      //var dburl = modal.find('#modal_misc_db_url').val()
-      // Alle & durch ! ersetzen - senden an ESP funktioniert sonst nicht 
-      //var dburl2 = dburl.replace(/&/g, "!");
 
       var mdns = modal.find('#modal_misc_mdns').prop("checked");
       var buzzer = modal.find('#modal_misc_buzzer').prop("checked");

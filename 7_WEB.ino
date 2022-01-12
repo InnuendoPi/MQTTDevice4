@@ -93,7 +93,7 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
     const char *kettleupdate = "cbpi/kettleupdate/";
     const char *stepupdate = "cbpi/stepupdate/";
     const char *sensorupdate = "cbpi/sensordata/";
-    const char *notificationupdate = "cbpi/notification";
+    const char *notificationupdate = "cbpi/stepnotification";
 
     p = strstr(topic, kettleupdate);
     if (p)

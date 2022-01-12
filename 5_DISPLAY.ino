@@ -190,7 +190,8 @@ void cbpi4kettle_handlemqtt(char *payload)
       dtostrf(doc["target_temp"], 1, 1, structKettles[i].target_temp);
       strcpy(structKettles[i].sensor, doc["sensor"]);
       char sensorupdate[45];
-      sprintf(sensorupdate, "%s%s", "cbpi/sensordata/", structKettles[i].sensor);
+      // sprintf(sensorupdate, "%s%s", "cbpi/sensordata/", structKettles[i].sensor);
+      sprintf(sensorupdate, "%s%s", cbpi4sensor_topic, structKettles[i].sensor);
       // DEBUG_MSG("Disp: Subscribing to %s\n", sensorupdate);
       pubsubClient.subscribe(sensorupdate);
       switch (i)
