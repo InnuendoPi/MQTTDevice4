@@ -227,7 +227,7 @@ Most of the functions of the firmware are self-explanatory. The addition or dele
 
 ## Touchdisplay
 
-This firmware supports Nextion Touchdisplay HMI TFT 3.5" NX4832T035. Two pages are availible:
+This firmware supports Nextion Touchdisplay HMI TFT 3.5" NX4832T035 (basic series) and NX4832K035 (enhanced series). Two pages are availible:
 
 Mode BrewPage: max 4 kettle overview
 ![BrewPage](img/Nextion1.jpg)
@@ -240,7 +240,7 @@ The display can be configured via the WebIf. While display is activated, GPIO D1
 
 **Instructions to flash NextionsX2 touchdisplay:**
 
-Copy the file info/mqttdevice.tft in the root directory of your SD card. Put your SD card into the cardreader of your Nextion display and power on. The MQTTDevice display template will be flashed. When finished power off and remove SD card.
+Copy the file info/mqttdevice4-\<displaytype>.tft in the root directory of your SD card. Put your SD card into the cardreader of your Nextion display and power on. The MQTTDevice display template will be flashed. When finished power off and remove SD card.
 
 ---
 

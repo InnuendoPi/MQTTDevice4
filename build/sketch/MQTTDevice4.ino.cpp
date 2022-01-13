@@ -50,7 +50,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.02"
+#define Version "4.03"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -2536,7 +2536,7 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
     const char *kettleupdate = "cbpi/kettleupdate/";
     const char *stepupdate = "cbpi/stepupdate/";
     const char *sensorupdate = "cbpi/sensordata/";
-    const char *notificationupdate = "cbpi/stepnotification";
+    const char *notificationupdate = "cbpi/notification";
 
     p = strstr(topic, kettleupdate);
     if (p)

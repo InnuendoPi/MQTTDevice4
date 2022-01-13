@@ -2512,7 +2512,7 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
     const char *kettleupdate = "cbpi/kettleupdate/";
     const char *stepupdate = "cbpi/stepupdate/";
     const char *sensorupdate = "cbpi/sensordata/";
-    const char *notificationupdate = "cbpi/stepnotification";
+    const char *notificationupdate = "cbpi/notification";
 
     p = strstr(topic, kettleupdate);
     if (p)
@@ -2612,7 +2612,7 @@ void handleRequestFirm()
     }
     else
       message = "MQTTDevice4 V ";
-    message += "4.02";
+    message += "4.03";
     goto SendMessage;
   }
 
