@@ -48,7 +48,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.03"
+#define Version "4.04"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -101,8 +101,9 @@ unsigned char addressesFound[numberOfSensorsMax][8];
 unsigned char numberOfSensorsFound = 0;
 unsigned char numberOfActors = 0; // Gesamtzahl der Aktoren
 #define numberOfActorsMax 8       // Maximale Anzahl an Aktoren
-char mqtthost[16];                // MQTT Server
-char mqtt_clientid[16];           // AP-Mode und Gerätename
+#define maxHostSign 16
+char mqtthost[maxHostSign];                // MQTT Server
+char mqtt_clientid[maxHostSign];           // AP-Mode und Gerätename
 bool alertState = false;          // WebUpdate Status
 
 // Zeitserver Einstellungen

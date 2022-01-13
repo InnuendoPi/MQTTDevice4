@@ -7,6 +7,13 @@ void millis2wait(const int &value)
   }
 }
 
+float formatOneDec(float val)
+{
+  val += 0.05;
+  val *= 10.0;
+  return ( (int)val ) / 10.0;
+}
+
 // Prüfe WebIf Eingaben
 float formatDOT(String str)
 {

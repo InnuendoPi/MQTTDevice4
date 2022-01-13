@@ -19,7 +19,6 @@ void tickerDispCallback()
   }
   else if (activePage == 0 && activeBrew == false)
   {
-    // strcpy(notify, "Waiting for data - start brewing");
     notification.attribute("txt", "Waiting for data - start brewing");
   }
   else if (activePage == 1 && strlen(structKettles[0].id) == 0)

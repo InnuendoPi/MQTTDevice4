@@ -25,7 +25,7 @@ void BrewPage()
 {
   uhrzeit_text.attribute("txt", uhrzeit);
   // DEBUG_MSG("+BrewPage ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
-  if (strlen(structKettles[0].id) == 0 && !activeBrew)
+  if (strlen(structKettles[0].id) == 0 || !activeBrew)
   {
     // DEBUG_MSG("Disp: BrewPage kettle#ID0 not init %s\n", structKettles[0].id);
     currentStepName_text.attribute("txt", "BrewPage");
@@ -59,7 +59,7 @@ void KettlePage()
   p1uhrzeit_text.attribute("txt", uhrzeit);
   // DEBUG_MSG("-KettlePage ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
   // DEBUG_MSG("--- Calling KettlePage ID: %s strlen: %d \n", structKettles[0].id, strlen(structKettles[0].name));
-  if (strlen(structKettles[0].id) == 0 && !activeBrew)
+  if (strlen(structKettles[0].id) == 0 || !activeBrew)
   {
     p1temp_text.attribute("txt", sensors[0].getTotalValueString());
     p1target_text.attribute("txt", structKettles[0].target_temp);
@@ -185,14 +185,12 @@ void cbpi4kettle_handlemqtt(char *payload)
     if (strlen(structKettles[i].id) == 0) //structKettle unbelegt
     {
       // DEBUG_MSG("New Kettle setup start %d ID: %s Name: %s Current: %s Target: %s Sensor: %s activepage %d\n", i, structKettles[i].id, structKettles[i].name, structKettles[i].current_temp, structKettles[i].target_temp, structKettles[i].sensor, activePage);
-      strcpy(structKettles[i].id, doc["id"]);
-      strcpy(structKettles[i].name, doc["name"]);
+      strlcpy(structKettles[i].id, doc["id"], maxIdSign);
+      strlcpy(structKettles[i].name, doc["name"], maxKettleSign);
       dtostrf(doc["target_temp"], 1, 1, structKettles[i].target_temp);
-      strcpy(structKettles[i].sensor, doc["sensor"]);
+      strlcpy(structKettles[i].sensor, doc["sensor"], maxSensorSign);
       char sensorupdate[45];
-      // sprintf(sensorupdate, "%s%s", "cbpi/sensordata/", structKettles[i].sensor);
       sprintf(sensorupdate, "%s%s", cbpi4sensor_topic, structKettles[i].sensor);
-      // DEBUG_MSG("Disp: Subscribing to %s\n", sensorupdate);
       pubsubClient.subscribe(sensorupdate);
       switch (i)
       {
@@ -259,9 +257,6 @@ void cbpi4sensor_handlemqtt(char *payload)
   {
     if (structKettles[i].sensor == doc["id"])
     {
-      
-      // structKettles[i].current_temp = doc["value"].as<const char *>());
-
       // DEBUG_MSG("Sensor value PRE %d Sensor-ID: %s Kettle-Sensor: %s value: %s activepage: %d\n", i, structKettles[i].id, structKettles[i].sensor, structKettles[i].current_temp, activePage);
       if (activePage == 0)
       {
@@ -283,7 +278,7 @@ void cbpi4sensor_handlemqtt(char *payload)
         }
       }
       else
-        p1temp_text.attribute("txt", sensors[0].getTotalValueString() );
+        p1temp_text.attribute("txt", sensors[0].getTotalValueString());
       // DEBUG_MSG("Sensor value POST %d Sensor-ID: %s Kettle-Sensor: %s value: %s activepage %d\n", i, structKettles[i].id, structKettles[i].sensor, structKettles[i].current_temp, activePage);
       break;
     }
@@ -305,61 +300,56 @@ void cbpi4steps_handlemqtt(char *payload)
   if (doc["status"] == "A")
   {
     current_step = true;
-    // const char *payload_remaining = doc["state_text"];
-    // const char *payload_timer;
-    int timer = 0;
+    int valTimer = 0;
     int min = 0;
     int sec = 0;
     JsonObject props = doc["props"];
-    // if (props.containsKey("Timer"))
-    // payload_timer = props["Timer"];
 
     if (currentStepName != doc["name"]) // New active step
     {
       if (doc["type"] == "MashStep")
       {
-        strcpy(notify, "Waiting for Target Temp");
+        strlcpy(notify, "Waiting for Target Temp", maxNotifySign);
       }
       else if (doc["type"] == "ToggleStep")
       {
-        strcpy(notify, "");
+        strlcpy(notify, "", maxNotifySign);
       }
       else if (doc["type"] == "NotificationStep")
       {
-        strcpy(notify, props["Notification"] | "");
+        strlcpy(notify, props["Notification"] | "", maxNotifySign);
       }
       else if (doc["type"] == "WaitStep")
       {
-        strcpy(notify, "WaitStep");
+        strlcpy(notify, "WaitStep", maxNotifySign);
       }
       else if (doc["type"] == "TargetStep")
       {
-        strcpy(notify, "");
+        strlcpy(notify, "", maxNotifySign);
       }
       else if (doc["type"] == "BoilStep")
       {
-        strcpy(notify, "BoilStep");
+        strlcpy(notify, "BoilStep", maxNotifySign);
       }
-      // else if (strcmp(payload_type, "MashInStep") == 0)
       else if (doc["type"] == "MashInStep")
       {
-        strcpy(notify, "Waiting for Target Temp");
+        strlcpy(notify, "Waiting for Target Temp", maxNotifySign);
       }
       else if (doc["type"] == "CoolDownStep")
       {
-        strcpy(notify, "CoolDownStep");
+        strlcpy(notify, "CoolDownStep", maxNotifySign);
       }
       else if (doc["type"] == "ActorStep")
       {
-        strcpy(notify, "ActorStep");
+        strlcpy(notify, "ActorStep", maxNotifySign);
       }
       else if (doc["type"] == "ClearLogStep")
       {
-        strcpy(notify, "");
+        strlcpy(notify, "", maxNotifySign);
       }
       else
       {
-        strcpy(notify, "");
+        strlcpy(notify, "", maxNotifySign);
       }
 
       if (activePage == 0)
@@ -368,7 +358,7 @@ void cbpi4steps_handlemqtt(char *payload)
         p1notification.attribute("txt", notify);
     }
 
-    strcpy(currentStepName, doc["name"] | "");
+    strlcpy(currentStepName, doc["name"] | "", maxStepSign);
     // DEBUG_MSG("DISP stephandle 1 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
     if (activePage == 0)
       currentStepName_text.attribute("txt", currentStepName);
@@ -376,10 +366,9 @@ void cbpi4steps_handlemqtt(char *payload)
       p1current_text.attribute("txt", currentStepName);
 
     // DEBUG_MSG("DISP stephandle 2 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
-    // if ((strcmp(payload_remaining, "\0") != 0) && (strcmp(payload_remaining, "Waiting for Target Temp") != 0))
     if (doc["state_text"] != 0 && doc["state_text"] != "Waiting for Target Temp")
     {
-      strcpy(currentStepRemain, doc["state_text"] | "");
+      strlcpy(currentStepRemain, doc["state_text"] | "", maxRemainSign);
       if (activePage == 0)
         currentStepRemain_text.attribute("txt", currentStepRemain);
       else
@@ -391,22 +380,17 @@ void cbpi4steps_handlemqtt(char *payload)
         char delimiter[] = ":";
         char buf[10];
         strcpy(buf, doc["state_text"].as<const char *>());
-        char *hours = strtok(buf, delimiter); // Das erste Zeichen muss ein # sein
+        char *hours = strtok(buf, delimiter);
         char *minutes = strtok(NULL, delimiter);
         char *seconds = strtok(NULL, delimiter);
-        // if (props.containsKey("Timer"))
-        timer = props["Timer"].as<int>();
-        // else
-        //   timer = 0;
-
+        valTimer = props["Timer"].as<int>() | 0;
         min = atoi(minutes);
         sec = atoi(seconds);
       }
       // DEBUG_MSG("DISP stephandle 4 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
-      if (timer > 0 && min > 0)
+      if (valTimer > 0 && min > 0)
       {
-        sliderval = (timer * 60 - (min * 60 + sec)) * 100 / (timer * 60);
-        // slider.value((timer * 60 - (min * 60 + sec)) * 100 / (timer * 60));
+        sliderval = (valTimer * 60 - (min * 60 + sec)) * 100 / (valTimer * 60);
         if (activePage == 0)
           slider.value(sliderval);
         else
@@ -424,9 +408,9 @@ void cbpi4steps_handlemqtt(char *payload)
       /*
       min = min * 60;
       int akt = min + sec;
-      timer = timer * 60;
-      int rest = timer - akt;
-      rest = rest * 100 / timer;
+      valTimer = valTimer * 60;
+      int rest = valTimer - akt;
+      rest = rest * 100 / valTimer;
       slider.value(rest);
       */
     }
@@ -435,7 +419,6 @@ void cbpi4steps_handlemqtt(char *payload)
       // DEBUG_MSG("DISP stephandle 6 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
       if (props.containsKey("Timer"))
       {
-        // int minutes = atoi(props["Timer"]);
         int minutes = props["Timer"].as<int>();
         sprintf(currentStepRemain, "%02d:%02d", minutes, 0);
         if (activePage == 0)
@@ -446,7 +429,6 @@ void cbpi4steps_handlemqtt(char *payload)
       }
       else
       {
-        // strncpy(currentStepRemain, "0:00", 10);
         strcpy(currentStepRemain, "0:00");
         if (activePage == 0)
           currentStepRemain_text.attribute("txt", currentStepRemain);
@@ -464,35 +446,11 @@ void cbpi4steps_handlemqtt(char *payload)
     return;
   }
 
-  /*
-{
-  "id": "cgsR5F5VHGwwPv98aU6Nnf", 
-  "name": "Nachguss off", 
-  "state_text": "",
-   "type": "ToggleStep", 
-   "status": "D", 
-   "props": 
-   {
-     "Actor": "h8aWHihm4vMQxk43tpF8x8", 
-     "toggle_type": "Off"
-     }
-  }
-*/
-
   if (doc["status"] == "I" && current_step)
   {
     current_step = false;
-    // const char *payload_name_next = doc["name"];
-    // DEBUG_MSG("DISP stephandle NEXT 1 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
     JsonObject props = doc["props"];
-    // if (props.containsKey("Timer"))
-    // payload_timer_next = props["Timer"];
-    // if (strcmp(nextStepName, payload_name_next) == 0)
-    //   return;
-    // strcpy(nextStepName, payload_name_next);
-    // int laenge = max(maxStepSign, (int)strlen(payload_name_next));
-    // strncpy(nextStepName, payload_name_next, laenge);
-    strcpy(nextStepName, doc["name"] | "");
+    strlcpy(nextStepName, doc["name"] | "", maxStepSign);
     // DEBUG_MSG("DISP stephandle NEXT 2 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
     if (activePage == 0)
       nextStepName_text.attribute("txt", nextStepName);
@@ -520,14 +478,25 @@ void cbpi4notification_handlemqtt(char *payload)
     DEBUG_MSG("Disp: handlemqtt notification deserialize Json error %s MemoryUsage %d\n", error.c_str(), memoryUsed);
     return;
   }
-  if (doc["title"] == "Stop" || doc["title"] == "Brewing completed")
+  if (doc["title"] == "Stop")
   {
     activeBrew = false;
+    if (activePage == 0)
+      currentStepName_text.attribute("txt", "BrewPage");
+    
+    strlcpy(notify,"Waiting for data - start brewing", maxNotifySign);
+    return;
+  }
+  if (doc["title"] == "Brewing completed")
+  {
+    activeBrew = false;
+    strlcpy(notify,"Brewing completed", maxNotifySign);
+    return;
   }
   if (doc["title"] == "Start" || doc["title"] == "Resume")
     activeBrew = true;
 
-  strcpy(notify, doc["message"] | "");
+  strlcpy(notify, doc["message"] | "", maxNotifySign);
   if (activePage == 0)
     notification.attribute("txt", notify);
   else

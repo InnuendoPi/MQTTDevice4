@@ -94,6 +94,7 @@ unsigned char addressesFound[6 /* Maximale Anzahl an Sensoren*/][8];
 unsigned char numberOfSensorsFound = 0;
 unsigned char numberOfActors = 0; // Gesamtzahl der Aktoren
 
+
 char mqtthost[16]; // MQTT Server
 char mqtt_clientid[16]; // AP-Mode und Gerätename
 bool alertState = false; // WebUpdate Status
@@ -117,9 +118,9 @@ EventManager gEM; //  Eventmanager Objekt Queues
 
 
 // Loop Events
-# 138 "c:\\Arduino\\git\\MQTTDevice4\\MQTTDevice4.ino"
+# 139 "c:\\Arduino\\git\\MQTTDevice4\\MQTTDevice4.ino"
 // Event für Sensoren, Aktor und Induktion
-# 149 "c:\\Arduino\\git\\MQTTDevice4\\MQTTDevice4.ino"
+# 150 "c:\\Arduino\\git\\MQTTDevice4\\MQTTDevice4.ino"
 // Event handling Status Variablen
 bool StopOnWLANError = false; // Event handling für WLAN Fehler
 bool StopOnMQTTError = false; // Event handling für MQTT Fehler
@@ -170,7 +171,7 @@ File fsUploadFile; // a File object to temporarily store the received file
 
 // #define SDL D1
 // #define SDA D2
-# 208 "c:\\Arduino\\git\\MQTTDevice4\\MQTTDevice4.ino"
+# 209 "c:\\Arduino\\git\\MQTTDevice4\\MQTTDevice4.ino"
 bool useDisplay = false;
 int startPage = 1; // Kettlepage
 int activePage = 1;
@@ -302,7 +303,7 @@ void setup()
 
     if (shouldSaveConfig) // WiFiManager
     {
-      strcpy(mqtthost, cstm_mqtthost.getValue());
+      strlcpy(mqtthost, cstm_mqtthost.getValue(), 16);
       saveConfig();
     }
 
@@ -546,7 +547,8 @@ public:
       sensorsObj["Name"] = sens_name;
       if (sensorsStatus == 0)
       {
-        sensorsObj["Value"] = ((int)((sens_value + sens_offset) * 10)) / 10.0;
+        // sensorsObj["Value"] = ((int)((sens_value + sens_offset) * 10)) / 10.0;
+        sensorsObj["Value"] = formatOneDec(sens_value + sens_offset);
       }
       else
       {
@@ -741,46 +743,46 @@ void handleRequestSensorAddresses()
   if (id != -1)
   {
     message += ((reinterpret_cast<const __FlashStringHelper *>(
-# 315 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino" 3
-              (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "2_SENSOREN.ino" "." "315" "." "315" "\", \"aSM\", @progbits, 1 #"))) = (
-# 315 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino"
+# 316 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino" 3
+              (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "2_SENSOREN.ino" "." "316" "." "315" "\", \"aSM\", @progbits, 1 #"))) = (
+# 316 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino"
               "<option>"
-# 315 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino" 3
+# 316 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino" 3
               ); &__pstr__[0];}))
-# 315 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino"
+# 316 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino"
               )));
     // message += SensorAddressToString(sensors[id].sens_address);
     message += sensors[id].getSens_adress_string();
     message += ((reinterpret_cast<const __FlashStringHelper *>(
-# 318 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino" 3
-              (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "2_SENSOREN.ino" "." "318" "." "316" "\", \"aSM\", @progbits, 1 #"))) = (
-# 318 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino"
+# 319 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino" 3
+              (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "2_SENSOREN.ino" "." "319" "." "316" "\", \"aSM\", @progbits, 1 #"))) = (
+# 319 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino"
               "</option><option disabled>──────────</option>"
-# 318 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino" 3
+# 319 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino" 3
               ); &__pstr__[0];}))
-# 318 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino"
+# 319 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino"
               )));
   }
   for (int i = 0; i < numberOfSensorsFound; i++)
   {
     message += ((reinterpret_cast<const __FlashStringHelper *>(
-# 322 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino" 3
-              (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "2_SENSOREN.ino" "." "322" "." "317" "\", \"aSM\", @progbits, 1 #"))) = (
-# 322 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino"
+# 323 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino" 3
+              (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "2_SENSOREN.ino" "." "323" "." "317" "\", \"aSM\", @progbits, 1 #"))) = (
+# 323 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino"
               "<option>"
-# 322 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino" 3
+# 323 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino" 3
               ); &__pstr__[0];}))
-# 322 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino"
+# 323 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino"
               )));
     message += SensorAddressToString(addressesFound[i]);
     message += ((reinterpret_cast<const __FlashStringHelper *>(
-# 324 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino" 3
-              (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "2_SENSOREN.ino" "." "324" "." "318" "\", \"aSM\", @progbits, 1 #"))) = (
-# 324 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino"
+# 325 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino" 3
+              (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "2_SENSOREN.ino" "." "325" "." "318" "\", \"aSM\", @progbits, 1 #"))) = (
+# 325 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino"
               "</option>"
-# 324 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino" 3
+# 325 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino" 3
               ); &__pstr__[0];}))
-# 324 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino"
+# 325 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino"
               )));
     yield();
   }
@@ -1835,7 +1837,7 @@ void BrewPage()
 {
   uhrzeit_text.attribute("txt", uhrzeit);
   // DEBUG_MSG("+BrewPage ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
-  if (strlen(structKettles[0].id) == 0 && !activeBrew)
+  if (strlen(structKettles[0].id) == 0 || !activeBrew)
   {
     // DEBUG_MSG("Disp: BrewPage kettle#ID0 not init %s\n", structKettles[0].id);
     currentStepName_text.attribute("txt", "BrewPage");
@@ -1869,7 +1871,7 @@ void KettlePage()
   p1uhrzeit_text.attribute("txt", uhrzeit);
   // DEBUG_MSG("-KettlePage ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
   // DEBUG_MSG("--- Calling KettlePage ID: %s strlen: %d \n", structKettles[0].id, strlen(structKettles[0].name));
-  if (strlen(structKettles[0].id) == 0 && !activeBrew)
+  if (strlen(structKettles[0].id) == 0 || !activeBrew)
   {
     p1temp_text.attribute("txt", sensors[0].getTotalValueString());
     p1target_text.attribute("txt", structKettles[0].target_temp);
@@ -2029,14 +2031,12 @@ void cbpi4kettle_handlemqtt(char *payload)
     if (strlen(structKettles[i].id) == 0) //structKettle unbelegt
     {
       // DEBUG_MSG("New Kettle setup start %d ID: %s Name: %s Current: %s Target: %s Sensor: %s activepage %d\n", i, structKettles[i].id, structKettles[i].name, structKettles[i].current_temp, structKettles[i].target_temp, structKettles[i].sensor, activePage);
-      strcpy(structKettles[i].id, doc["id"]);
-      strcpy(structKettles[i].name, doc["name"]);
+      strlcpy(structKettles[i].id, doc["id"], 23);
+      strlcpy(structKettles[i].name, doc["name"], 15);
       dtostrf(doc["target_temp"], 1, 1, structKettles[i].target_temp);
-      strcpy(structKettles[i].sensor, doc["sensor"]);
+      strlcpy(structKettles[i].sensor, doc["sensor"], 23);
       char sensorupdate[45];
-      // sprintf(sensorupdate, "%s%s", "cbpi/sensordata/", structKettles[i].sensor);
       sprintf(sensorupdate, "%s%s", cbpi4sensor_topic, structKettles[i].sensor);
-      // DEBUG_MSG("Disp: Subscribing to %s\n", sensorupdate);
       pubsubClient.subscribe(sensorupdate);
       switch (i)
       {
@@ -2103,9 +2103,6 @@ void cbpi4sensor_handlemqtt(char *payload)
   {
     if (structKettles[i].sensor == doc["id"])
     {
-
-      // structKettles[i].current_temp = doc["value"].as<const char *>());
-
       // DEBUG_MSG("Sensor value PRE %d Sensor-ID: %s Kettle-Sensor: %s value: %s activepage: %d\n", i, structKettles[i].id, structKettles[i].sensor, structKettles[i].current_temp, activePage);
       if (activePage == 0)
       {
@@ -2127,7 +2124,7 @@ void cbpi4sensor_handlemqtt(char *payload)
         }
       }
       else
-        p1temp_text.attribute("txt", sensors[0].getTotalValueString() );
+        p1temp_text.attribute("txt", sensors[0].getTotalValueString());
       // DEBUG_MSG("Sensor value POST %d Sensor-ID: %s Kettle-Sensor: %s value: %s activepage %d\n", i, structKettles[i].id, structKettles[i].sensor, structKettles[i].current_temp, activePage);
       break;
     }
@@ -2149,61 +2146,56 @@ void cbpi4steps_handlemqtt(char *payload)
   if (doc["status"] == "A")
   {
     current_step = true;
-    // const char *payload_remaining = doc["state_text"];
-    // const char *payload_timer;
-    int timer = 0;
+    int valTimer = 0;
     int min = 0;
     int sec = 0;
     JsonObject props = doc["props"];
-    // if (props.containsKey("Timer"))
-    // payload_timer = props["Timer"];
 
     if (currentStepName != doc["name"]) // New active step
     {
       if (doc["type"] == "MashStep")
       {
-        strcpy(notify, "Waiting for Target Temp");
+        strlcpy(notify, "Waiting for Target Temp", 75);
       }
       else if (doc["type"] == "ToggleStep")
       {
-        strcpy(notify, "");
+        strlcpy(notify, "", 75);
       }
       else if (doc["type"] == "NotificationStep")
       {
-        strcpy(notify, props["Notification"] | "");
+        strlcpy(notify, props["Notification"] | "", 75);
       }
       else if (doc["type"] == "WaitStep")
       {
-        strcpy(notify, "WaitStep");
+        strlcpy(notify, "WaitStep", 75);
       }
       else if (doc["type"] == "TargetStep")
       {
-        strcpy(notify, "");
+        strlcpy(notify, "", 75);
       }
       else if (doc["type"] == "BoilStep")
       {
-        strcpy(notify, "BoilStep");
+        strlcpy(notify, "BoilStep", 75);
       }
-      // else if (strcmp(payload_type, "MashInStep") == 0)
       else if (doc["type"] == "MashInStep")
       {
-        strcpy(notify, "Waiting for Target Temp");
+        strlcpy(notify, "Waiting for Target Temp", 75);
       }
       else if (doc["type"] == "CoolDownStep")
       {
-        strcpy(notify, "CoolDownStep");
+        strlcpy(notify, "CoolDownStep", 75);
       }
       else if (doc["type"] == "ActorStep")
       {
-        strcpy(notify, "ActorStep");
+        strlcpy(notify, "ActorStep", 75);
       }
       else if (doc["type"] == "ClearLogStep")
       {
-        strcpy(notify, "");
+        strlcpy(notify, "", 75);
       }
       else
       {
-        strcpy(notify, "");
+        strlcpy(notify, "", 75);
       }
 
       if (activePage == 0)
@@ -2212,7 +2204,7 @@ void cbpi4steps_handlemqtt(char *payload)
         p1notification.attribute("txt", notify);
     }
 
-    strcpy(currentStepName, doc["name"] | "");
+    strlcpy(currentStepName, doc["name"] | "", 30);
     // DEBUG_MSG("DISP stephandle 1 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
     if (activePage == 0)
       currentStepName_text.attribute("txt", currentStepName);
@@ -2220,10 +2212,9 @@ void cbpi4steps_handlemqtt(char *payload)
       p1current_text.attribute("txt", currentStepName);
 
     // DEBUG_MSG("DISP stephandle 2 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
-    // if ((strcmp(payload_remaining, "\0") != 0) && (strcmp(payload_remaining, "Waiting for Target Temp") != 0))
     if (doc["state_text"] != 0 && doc["state_text"] != "Waiting for Target Temp")
     {
-      strcpy(currentStepRemain, doc["state_text"] | "");
+      strlcpy(currentStepRemain, doc["state_text"] | "", 10);
       if (activePage == 0)
         currentStepRemain_text.attribute("txt", currentStepRemain);
       else
@@ -2235,30 +2226,25 @@ void cbpi4steps_handlemqtt(char *payload)
         char delimiter[] = ":";
         char buf[10];
         strcpy(buf, doc["state_text"].as<const char *>());
-        char *hours = strtok(buf, delimiter); // Das erste Zeichen muss ein # sein
+        char *hours = strtok(buf, delimiter);
         char *minutes = strtok(
-# 395 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino" 3 4
+# 384 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino" 3 4
                               __null
-# 395 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino"
+# 384 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino"
                                   , delimiter);
         char *seconds = strtok(
-# 396 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino" 3 4
+# 385 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino" 3 4
                               __null
-# 396 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino"
+# 385 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino"
                                   , delimiter);
-        // if (props.containsKey("Timer"))
-        timer = props["Timer"].as<int>();
-        // else
-        //   timer = 0;
-
+        valTimer = props["Timer"].as<int>() | 0;
         min = atoi(minutes);
         sec = atoi(seconds);
       }
       // DEBUG_MSG("DISP stephandle 4 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
-      if (timer > 0 && min > 0)
+      if (valTimer > 0 && min > 0)
       {
-        sliderval = (timer * 60 - (min * 60 + sec)) * 100 / (timer * 60);
-        // slider.value((timer * 60 - (min * 60 + sec)) * 100 / (timer * 60));
+        sliderval = (valTimer * 60 - (min * 60 + sec)) * 100 / (valTimer * 60);
         if (activePage == 0)
           slider.value(sliderval);
         else
@@ -2279,23 +2265,22 @@ void cbpi4steps_handlemqtt(char *payload)
 
       int akt = min + sec;
 
-      timer = timer * 60;
+      valTimer = valTimer * 60;
 
-      int rest = timer - akt;
+      int rest = valTimer - akt;
 
-      rest = rest * 100 / timer;
+      rest = rest * 100 / valTimer;
 
       slider.value(rest);
 
       */
-# 432 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino"
+# 416 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino"
     }
     else
     {
       // DEBUG_MSG("DISP stephandle 6 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
       if (props.containsKey("Timer"))
       {
-        // int minutes = atoi(props["Timer"]);
         int minutes = props["Timer"].as<int>();
         sprintf(currentStepRemain, "%02d:%02d", minutes, 0);
         if (activePage == 0)
@@ -2306,7 +2291,6 @@ void cbpi4steps_handlemqtt(char *payload)
       }
       else
       {
-        // strncpy(currentStepRemain, "0:00", 10);
         strcpy(currentStepRemain, "0:00");
         if (activePage == 0)
           currentStepRemain_text.attribute("txt", currentStepRemain);
@@ -2324,48 +2308,11 @@ void cbpi4steps_handlemqtt(char *payload)
     return;
   }
 
-  /*
-
-{
-
-  "id": "cgsR5F5VHGwwPv98aU6Nnf", 
-
-  "name": "Nachguss off", 
-
-  "state_text": "",
-
-   "type": "ToggleStep", 
-
-   "status": "D", 
-
-   "props": 
-
-   {
-
-     "Actor": "h8aWHihm4vMQxk43tpF8x8", 
-
-     "toggle_type": "Off"
-
-     }
-
-  }
-
-*/
-# 482 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino"
   if (doc["status"] == "I" && current_step)
   {
     current_step = false;
-    // const char *payload_name_next = doc["name"];
-    // DEBUG_MSG("DISP stephandle NEXT 1 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
     JsonObject props = doc["props"];
-    // if (props.containsKey("Timer"))
-    // payload_timer_next = props["Timer"];
-    // if (strcmp(nextStepName, payload_name_next) == 0)
-    //   return;
-    // strcpy(nextStepName, payload_name_next);
-    // int laenge = max(maxStepSign, (int)strlen(payload_name_next));
-    // strncpy(nextStepName, payload_name_next, laenge);
-    strcpy(nextStepName, doc["name"] | "");
+    strlcpy(nextStepName, doc["name"] | "", 30);
     // DEBUG_MSG("DISP stephandle NEXT 2 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
     if (activePage == 0)
       nextStepName_text.attribute("txt", nextStepName);
@@ -2393,14 +2340,25 @@ void cbpi4notification_handlemqtt(char *payload)
     ;
     return;
   }
-  if (doc["title"] == "Stop" || doc["title"] == "Brewing completed")
+  if (doc["title"] == "Stop")
   {
     activeBrew = false;
+    if (activePage == 0)
+      currentStepName_text.attribute("txt", "BrewPage");
+
+    strlcpy(notify,"Waiting for data - start brewing", 75);
+    return;
+  }
+  if (doc["title"] == "Brewing completed")
+  {
+    activeBrew = false;
+    strlcpy(notify,"Brewing completed", 75);
+    return;
   }
   if (doc["title"] == "Start" || doc["title"] == "Resume")
     activeBrew = true;
 
-  strcpy(notify, doc["message"] | "");
+  strlcpy(notify, doc["message"] | "", 75);
   if (activePage == 0)
     notification.attribute("txt", notify);
   else
@@ -2612,7 +2570,7 @@ void handleRequestFirm()
     }
     else
       message = "MQTTDevice4 V ";
-    message += "4.03";
+    message += "4.04";
     goto SendMessage;
   }
 
@@ -3113,7 +3071,6 @@ void tickerDispCallback()
   }
   else if (activePage == 0 && activeBrew == false)
   {
-    // strcpy(notify, "Waiting for data - start brewing");
     notification.attribute("txt", "Waiting for data - start brewing");
   }
   else if (activePage == 1 && strlen(structKettles[0].id) == 0)
@@ -3621,6 +3578,13 @@ void millis2wait(const int &value)
   {
     yield(); //wait approx. [period] ms
   }
+}
+
+float formatOneDec(float val)
+{
+  val += 0.05;
+  val *= 10.0;
+  return ( (int)val ) / 10.0;
 }
 
 // Prüfe WebIf Eingaben

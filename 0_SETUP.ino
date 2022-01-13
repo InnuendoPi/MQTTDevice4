@@ -12,7 +12,7 @@ void setup()
   Serial.println();
   Serial.println();
   // Setze Namen für das MQTTDevice
-  snprintf(mqtt_clientid, 16, "ESP8266-%08X", ESP.getChipId());
+  snprintf(mqtt_clientid, maxHostSign, "ESP8266-%08X", ESP.getChipId());
   Serial.printf("*** SYSINFO: Starte MQTTDevice %s\n", mqtt_clientid);
 
   wifiManager.setDebugOutput(false);
@@ -21,7 +21,7 @@ void setup()
   wifiManager.setAPCallback(configModeCallback);
   wifiManager.setSaveConfigCallback(saveConfigCallback);
 
-  WiFiManagerParameter cstm_mqtthost("host", "MQTT Server IP (CBPi)", mqtthost, 16);
+  WiFiManagerParameter cstm_mqtthost("host", "MQTT Server IP (CBPi)", mqtthost, maxHostSign);
   WiFiManagerParameter p_hint("<small>*Sobald das MQTTDevice mit deinem WLAN verbunden ist, öffne im Browser http://mqttdevice </small>");
   wifiManager.addParameter(&cstm_mqtthost);
   wifiManager.addParameter(&p_hint);
@@ -51,7 +51,7 @@ void setup()
 
     if (shouldSaveConfig) // WiFiManager
     {
-      strcpy(mqtthost, cstm_mqtthost.getValue());
+      strlcpy(mqtthost, cstm_mqtthost.getValue(), maxHostSign);
       saveConfig();
     }
 

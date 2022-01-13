@@ -50,7 +50,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.03"
+#define Version "4.04"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -103,8 +103,9 @@ unsigned char addressesFound[numberOfSensorsMax][8];
 unsigned char numberOfSensorsFound = 0;
 unsigned char numberOfActors = 0; // Gesamtzahl der Aktoren
 #define numberOfActorsMax 8       // Maximale Anzahl an Aktoren
-char mqtthost[16];                // MQTT Server
-char mqtt_clientid[16];           // AP-Mode und Gerätename
+#define maxHostSign 16
+char mqtthost[maxHostSign];                // MQTT Server
+char mqtt_clientid[maxHostSign];           // AP-Mode und Gerätename
 bool alertState = false;          // WebUpdate Status
 
 // Zeitserver Einstellungen
@@ -277,7 +278,7 @@ NextionComponent p1notification(nextion, 1, 7);
 const int PIN_BUZZER = D8; // Buzzer
 bool startBuzzer = false;  // Aktiviere Buzzer
 
-#line 278 "c:\\Arduino\\git\\MQTTDevice4\\MQTTDevice4.ino"
+#line 279 "c:\\Arduino\\git\\MQTTDevice4\\MQTTDevice4.ino"
 void configModeCallback(WiFiManager *myWiFiManager);
 #line 1 "c:\\Arduino\\git\\MQTTDevice4\\0_SETUP.ino"
 void setup();
@@ -285,19 +286,19 @@ void setup();
 void setupServer();
 #line 1 "c:\\Arduino\\git\\MQTTDevice4\\1_LOOP.ino"
 void loop();
-#line 190 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino"
+#line 191 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino"
 void handleSensors();
-#line 206 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino"
+#line 207 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino"
 unsigned char searchSensors();
-#line 229 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino"
+#line 230 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino"
 String SensorAddressToString(unsigned char addr[8]);
-#line 237 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino"
+#line 238 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino"
 void handleSetSensor();
-#line 285 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino"
+#line 286 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino"
 void handleDelSensor();
-#line 308 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino"
+#line 309 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino"
 void handleRequestSensorAddresses();
-#line 330 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino"
+#line 331 "c:\\Arduino\\git\\MQTTDevice4\\2_SENSOREN.ino"
 void handleRequestSensors();
 #line 179 "c:\\Arduino\\git\\MQTTDevice4\\3_AKTOREN.ino"
 void handleActors();
@@ -345,11 +346,11 @@ void cbpi4notification_subscribe();
 void cbpi4notification_unsubscribe();
 #line 172 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino"
 void cbpi4kettle_handlemqtt(char *payload);
-#line 247 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino"
+#line 245 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino"
 void cbpi4sensor_handlemqtt(char *payload);
-#line 294 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino"
+#line 289 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino"
 void cbpi4steps_handlemqtt(char *payload);
-#line 513 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino"
+#line 471 "c:\\Arduino\\git\\MQTTDevice4\\5_DISPLAY.ino"
 void cbpi4notification_handlemqtt(char *payload);
 #line 1 "c:\\Arduino\\git\\MQTTDevice4\\7_WEB.ino"
 void handleRoot();
@@ -381,17 +382,17 @@ void brewCallback();
 void kettleCallback();
 #line 13 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino"
 void tickerDispCallback();
-#line 32 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino"
+#line 31 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino"
 void tickerSenCallback();
-#line 36 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino"
+#line 35 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino"
 void tickerActCallback();
-#line 40 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino"
+#line 39 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino"
 void tickerIndCallback();
-#line 45 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino"
+#line 44 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino"
 void tickerMQTTCallback();
-#line 88 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino"
+#line 87 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino"
 void tickerWLANCallback();
-#line 126 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino"
+#line 125 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino"
 void tickerNTPCallback();
 #line 1 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
 void upIn();
@@ -413,27 +414,29 @@ void update_finished();
 void update_error(int err);
 #line 1 "c:\\Arduino\\git\\MQTTDevice4\\9_SYSTEM.ino"
 void millis2wait(const int &value);
-#line 11 "c:\\Arduino\\git\\MQTTDevice4\\9_SYSTEM.ino"
+#line 10 "c:\\Arduino\\git\\MQTTDevice4\\9_SYSTEM.ino"
+float formatOneDec(float val);
+#line 18 "c:\\Arduino\\git\\MQTTDevice4\\9_SYSTEM.ino"
 float formatDOT(String str);
-#line 20 "c:\\Arduino\\git\\MQTTDevice4\\9_SYSTEM.ino"
+#line 27 "c:\\Arduino\\git\\MQTTDevice4\\9_SYSTEM.ino"
 bool isValidInt(const String &str);
-#line 33 "c:\\Arduino\\git\\MQTTDevice4\\9_SYSTEM.ino"
+#line 40 "c:\\Arduino\\git\\MQTTDevice4\\9_SYSTEM.ino"
 bool isValidFloat(const String &str);
-#line 51 "c:\\Arduino\\git\\MQTTDevice4\\9_SYSTEM.ino"
+#line 58 "c:\\Arduino\\git\\MQTTDevice4\\9_SYSTEM.ino"
 bool isValidDigit(const String &str);
-#line 64 "c:\\Arduino\\git\\MQTTDevice4\\9_SYSTEM.ino"
+#line 71 "c:\\Arduino\\git\\MQTTDevice4\\9_SYSTEM.ino"
 bool checkBool(const String &value);
-#line 72 "c:\\Arduino\\git\\MQTTDevice4\\9_SYSTEM.ino"
+#line 79 "c:\\Arduino\\git\\MQTTDevice4\\9_SYSTEM.ino"
 void checkChars(char *input);
-#line 90 "c:\\Arduino\\git\\MQTTDevice4\\9_SYSTEM.ino"
+#line 97 "c:\\Arduino\\git\\MQTTDevice4\\9_SYSTEM.ino"
 void setTicker();
-#line 104 "c:\\Arduino\\git\\MQTTDevice4\\9_SYSTEM.ino"
+#line 111 "c:\\Arduino\\git\\MQTTDevice4\\9_SYSTEM.ino"
 void checkSummerTime();
-#line 146 "c:\\Arduino\\git\\MQTTDevice4\\9_SYSTEM.ino"
+#line 153 "c:\\Arduino\\git\\MQTTDevice4\\9_SYSTEM.ino"
 String decToHex(unsigned char decValue, unsigned char desiredStringLength);
-#line 155 "c:\\Arduino\\git\\MQTTDevice4\\9_SYSTEM.ino"
+#line 162 "c:\\Arduino\\git\\MQTTDevice4\\9_SYSTEM.ino"
 unsigned char convertCharToHex(char ch);
-#line 215 "c:\\Arduino\\git\\MQTTDevice4\\9_SYSTEM.ino"
+#line 222 "c:\\Arduino\\git\\MQTTDevice4\\9_SYSTEM.ino"
 void sendAlarm(const uint8_t &setAlarm);
 #line 1 "c:\\Arduino\\git\\MQTTDevice4\\EventManager.ino"
 void listenerSystem(int event, int parm);
@@ -465,7 +468,7 @@ void handleFileDelete();
 void handleFileCreate();
 #line 129 "c:\\Arduino\\git\\MQTTDevice4\\FSBrowser.ino"
 void handleFileList();
-#line 278 "c:\\Arduino\\git\\MQTTDevice4\\MQTTDevice4.ino"
+#line 279 "c:\\Arduino\\git\\MQTTDevice4\\MQTTDevice4.ino"
 void configModeCallback(WiFiManager *myWiFiManager)
 {
     Serial.print("*** SYSINFO: MQTTDevice in AP mode ");
@@ -489,7 +492,7 @@ void setup()
   Serial.println();
   Serial.println();
   // Setze Namen für das MQTTDevice
-  snprintf(mqtt_clientid, 16, "ESP8266-%08X", ESP.getChipId());
+  snprintf(mqtt_clientid, maxHostSign, "ESP8266-%08X", ESP.getChipId());
   Serial.printf("*** SYSINFO: Starte MQTTDevice %s\n", mqtt_clientid);
 
   wifiManager.setDebugOutput(false);
@@ -498,7 +501,7 @@ void setup()
   wifiManager.setAPCallback(configModeCallback);
   wifiManager.setSaveConfigCallback(saveConfigCallback);
 
-  WiFiManagerParameter cstm_mqtthost("host", "MQTT Server IP (CBPi)", mqtthost, 16);
+  WiFiManagerParameter cstm_mqtthost("host", "MQTT Server IP (CBPi)", mqtthost, maxHostSign);
   WiFiManagerParameter p_hint("<small>*Sobald das MQTTDevice mit deinem WLAN verbunden ist, öffne im Browser http://mqttdevice </small>");
   wifiManager.addParameter(&cstm_mqtthost);
   wifiManager.addParameter(&p_hint);
@@ -528,7 +531,7 @@ void setup()
 
     if (shouldSaveConfig) // WiFiManager
     {
-      strcpy(mqtthost, cstm_mqtthost.getValue());
+      strlcpy(mqtthost, cstm_mqtthost.getValue(), maxHostSign);
       saveConfig();
     }
 
@@ -774,7 +777,8 @@ public:
       sensorsObj["Name"] = sens_name;
       if (sensorsStatus == 0)
       {
-        sensorsObj["Value"] = ((int)((sens_value + sens_offset) * 10)) / 10.0;
+        // sensorsObj["Value"] = ((int)((sens_value + sens_offset) * 10)) / 10.0;
+        sensorsObj["Value"] = formatOneDec(sens_value + sens_offset);
       }
       else
       {
@@ -1930,7 +1934,7 @@ void BrewPage()
 {
   uhrzeit_text.attribute("txt", uhrzeit);
   // DEBUG_MSG("+BrewPage ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
-  if (strlen(structKettles[0].id) == 0 && !activeBrew)
+  if (strlen(structKettles[0].id) == 0 || !activeBrew)
   {
     // DEBUG_MSG("Disp: BrewPage kettle#ID0 not init %s\n", structKettles[0].id);
     currentStepName_text.attribute("txt", "BrewPage");
@@ -1964,7 +1968,7 @@ void KettlePage()
   p1uhrzeit_text.attribute("txt", uhrzeit);
   // DEBUG_MSG("-KettlePage ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
   // DEBUG_MSG("--- Calling KettlePage ID: %s strlen: %d \n", structKettles[0].id, strlen(structKettles[0].name));
-  if (strlen(structKettles[0].id) == 0 && !activeBrew)
+  if (strlen(structKettles[0].id) == 0 || !activeBrew)
   {
     p1temp_text.attribute("txt", sensors[0].getTotalValueString());
     p1target_text.attribute("txt", structKettles[0].target_temp);
@@ -2090,14 +2094,12 @@ void cbpi4kettle_handlemqtt(char *payload)
     if (strlen(structKettles[i].id) == 0) //structKettle unbelegt
     {
       // DEBUG_MSG("New Kettle setup start %d ID: %s Name: %s Current: %s Target: %s Sensor: %s activepage %d\n", i, structKettles[i].id, structKettles[i].name, structKettles[i].current_temp, structKettles[i].target_temp, structKettles[i].sensor, activePage);
-      strcpy(structKettles[i].id, doc["id"]);
-      strcpy(structKettles[i].name, doc["name"]);
+      strlcpy(structKettles[i].id, doc["id"], maxIdSign);
+      strlcpy(structKettles[i].name, doc["name"], maxKettleSign);
       dtostrf(doc["target_temp"], 1, 1, structKettles[i].target_temp);
-      strcpy(structKettles[i].sensor, doc["sensor"]);
+      strlcpy(structKettles[i].sensor, doc["sensor"], maxSensorSign);
       char sensorupdate[45];
-      // sprintf(sensorupdate, "%s%s", "cbpi/sensordata/", structKettles[i].sensor);
       sprintf(sensorupdate, "%s%s", cbpi4sensor_topic, structKettles[i].sensor);
-      // DEBUG_MSG("Disp: Subscribing to %s\n", sensorupdate);
       pubsubClient.subscribe(sensorupdate);
       switch (i)
       {
@@ -2164,9 +2166,6 @@ void cbpi4sensor_handlemqtt(char *payload)
   {
     if (structKettles[i].sensor == doc["id"])
     {
-      
-      // structKettles[i].current_temp = doc["value"].as<const char *>());
-
       // DEBUG_MSG("Sensor value PRE %d Sensor-ID: %s Kettle-Sensor: %s value: %s activepage: %d\n", i, structKettles[i].id, structKettles[i].sensor, structKettles[i].current_temp, activePage);
       if (activePage == 0)
       {
@@ -2188,7 +2187,7 @@ void cbpi4sensor_handlemqtt(char *payload)
         }
       }
       else
-        p1temp_text.attribute("txt", sensors[0].getTotalValueString() );
+        p1temp_text.attribute("txt", sensors[0].getTotalValueString());
       // DEBUG_MSG("Sensor value POST %d Sensor-ID: %s Kettle-Sensor: %s value: %s activepage %d\n", i, structKettles[i].id, structKettles[i].sensor, structKettles[i].current_temp, activePage);
       break;
     }
@@ -2210,61 +2209,56 @@ void cbpi4steps_handlemqtt(char *payload)
   if (doc["status"] == "A")
   {
     current_step = true;
-    // const char *payload_remaining = doc["state_text"];
-    // const char *payload_timer;
-    int timer = 0;
+    int valTimer = 0;
     int min = 0;
     int sec = 0;
     JsonObject props = doc["props"];
-    // if (props.containsKey("Timer"))
-    // payload_timer = props["Timer"];
 
     if (currentStepName != doc["name"]) // New active step
     {
       if (doc["type"] == "MashStep")
       {
-        strcpy(notify, "Waiting for Target Temp");
+        strlcpy(notify, "Waiting for Target Temp", maxNotifySign);
       }
       else if (doc["type"] == "ToggleStep")
       {
-        strcpy(notify, "");
+        strlcpy(notify, "", maxNotifySign);
       }
       else if (doc["type"] == "NotificationStep")
       {
-        strcpy(notify, props["Notification"] | "");
+        strlcpy(notify, props["Notification"] | "", maxNotifySign);
       }
       else if (doc["type"] == "WaitStep")
       {
-        strcpy(notify, "WaitStep");
+        strlcpy(notify, "WaitStep", maxNotifySign);
       }
       else if (doc["type"] == "TargetStep")
       {
-        strcpy(notify, "");
+        strlcpy(notify, "", maxNotifySign);
       }
       else if (doc["type"] == "BoilStep")
       {
-        strcpy(notify, "BoilStep");
+        strlcpy(notify, "BoilStep", maxNotifySign);
       }
-      // else if (strcmp(payload_type, "MashInStep") == 0)
       else if (doc["type"] == "MashInStep")
       {
-        strcpy(notify, "Waiting for Target Temp");
+        strlcpy(notify, "Waiting for Target Temp", maxNotifySign);
       }
       else if (doc["type"] == "CoolDownStep")
       {
-        strcpy(notify, "CoolDownStep");
+        strlcpy(notify, "CoolDownStep", maxNotifySign);
       }
       else if (doc["type"] == "ActorStep")
       {
-        strcpy(notify, "ActorStep");
+        strlcpy(notify, "ActorStep", maxNotifySign);
       }
       else if (doc["type"] == "ClearLogStep")
       {
-        strcpy(notify, "");
+        strlcpy(notify, "", maxNotifySign);
       }
       else
       {
-        strcpy(notify, "");
+        strlcpy(notify, "", maxNotifySign);
       }
 
       if (activePage == 0)
@@ -2273,7 +2267,7 @@ void cbpi4steps_handlemqtt(char *payload)
         p1notification.attribute("txt", notify);
     }
 
-    strcpy(currentStepName, doc["name"] | "");
+    strlcpy(currentStepName, doc["name"] | "", maxStepSign);
     // DEBUG_MSG("DISP stephandle 1 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
     if (activePage == 0)
       currentStepName_text.attribute("txt", currentStepName);
@@ -2281,10 +2275,9 @@ void cbpi4steps_handlemqtt(char *payload)
       p1current_text.attribute("txt", currentStepName);
 
     // DEBUG_MSG("DISP stephandle 2 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
-    // if ((strcmp(payload_remaining, "\0") != 0) && (strcmp(payload_remaining, "Waiting for Target Temp") != 0))
     if (doc["state_text"] != 0 && doc["state_text"] != "Waiting for Target Temp")
     {
-      strcpy(currentStepRemain, doc["state_text"] | "");
+      strlcpy(currentStepRemain, doc["state_text"] | "", maxRemainSign);
       if (activePage == 0)
         currentStepRemain_text.attribute("txt", currentStepRemain);
       else
@@ -2296,22 +2289,17 @@ void cbpi4steps_handlemqtt(char *payload)
         char delimiter[] = ":";
         char buf[10];
         strcpy(buf, doc["state_text"].as<const char *>());
-        char *hours = strtok(buf, delimiter); // Das erste Zeichen muss ein # sein
+        char *hours = strtok(buf, delimiter);
         char *minutes = strtok(NULL, delimiter);
         char *seconds = strtok(NULL, delimiter);
-        // if (props.containsKey("Timer"))
-        timer = props["Timer"].as<int>();
-        // else
-        //   timer = 0;
-
+        valTimer = props["Timer"].as<int>() | 0;
         min = atoi(minutes);
         sec = atoi(seconds);
       }
       // DEBUG_MSG("DISP stephandle 4 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
-      if (timer > 0 && min > 0)
+      if (valTimer > 0 && min > 0)
       {
-        sliderval = (timer * 60 - (min * 60 + sec)) * 100 / (timer * 60);
-        // slider.value((timer * 60 - (min * 60 + sec)) * 100 / (timer * 60));
+        sliderval = (valTimer * 60 - (min * 60 + sec)) * 100 / (valTimer * 60);
         if (activePage == 0)
           slider.value(sliderval);
         else
@@ -2329,9 +2317,9 @@ void cbpi4steps_handlemqtt(char *payload)
       /*
       min = min * 60;
       int akt = min + sec;
-      timer = timer * 60;
-      int rest = timer - akt;
-      rest = rest * 100 / timer;
+      valTimer = valTimer * 60;
+      int rest = valTimer - akt;
+      rest = rest * 100 / valTimer;
       slider.value(rest);
       */
     }
@@ -2340,7 +2328,6 @@ void cbpi4steps_handlemqtt(char *payload)
       // DEBUG_MSG("DISP stephandle 6 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
       if (props.containsKey("Timer"))
       {
-        // int minutes = atoi(props["Timer"]);
         int minutes = props["Timer"].as<int>();
         sprintf(currentStepRemain, "%02d:%02d", minutes, 0);
         if (activePage == 0)
@@ -2351,7 +2338,6 @@ void cbpi4steps_handlemqtt(char *payload)
       }
       else
       {
-        // strncpy(currentStepRemain, "0:00", 10);
         strcpy(currentStepRemain, "0:00");
         if (activePage == 0)
           currentStepRemain_text.attribute("txt", currentStepRemain);
@@ -2369,35 +2355,11 @@ void cbpi4steps_handlemqtt(char *payload)
     return;
   }
 
-  /*
-{
-  "id": "cgsR5F5VHGwwPv98aU6Nnf", 
-  "name": "Nachguss off", 
-  "state_text": "",
-   "type": "ToggleStep", 
-   "status": "D", 
-   "props": 
-   {
-     "Actor": "h8aWHihm4vMQxk43tpF8x8", 
-     "toggle_type": "Off"
-     }
-  }
-*/
-
   if (doc["status"] == "I" && current_step)
   {
     current_step = false;
-    // const char *payload_name_next = doc["name"];
-    // DEBUG_MSG("DISP stephandle NEXT 1 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
     JsonObject props = doc["props"];
-    // if (props.containsKey("Timer"))
-    // payload_timer_next = props["Timer"];
-    // if (strcmp(nextStepName, payload_name_next) == 0)
-    //   return;
-    // strcpy(nextStepName, payload_name_next);
-    // int laenge = max(maxStepSign, (int)strlen(payload_name_next));
-    // strncpy(nextStepName, payload_name_next, laenge);
-    strcpy(nextStepName, doc["name"] | "");
+    strlcpy(nextStepName, doc["name"] | "", maxStepSign);
     // DEBUG_MSG("DISP stephandle NEXT 2 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
     if (activePage == 0)
       nextStepName_text.attribute("txt", nextStepName);
@@ -2425,14 +2387,25 @@ void cbpi4notification_handlemqtt(char *payload)
     DEBUG_MSG("Disp: handlemqtt notification deserialize Json error %s MemoryUsage %d\n", error.c_str(), memoryUsed);
     return;
   }
-  if (doc["title"] == "Stop" || doc["title"] == "Brewing completed")
+  if (doc["title"] == "Stop")
   {
     activeBrew = false;
+    if (activePage == 0)
+      currentStepName_text.attribute("txt", "BrewPage");
+    
+    strlcpy(notify,"Waiting for data - start brewing", maxNotifySign);
+    return;
+  }
+  if (doc["title"] == "Brewing completed")
+  {
+    activeBrew = false;
+    strlcpy(notify,"Brewing completed", maxNotifySign);
+    return;
   }
   if (doc["title"] == "Start" || doc["title"] == "Resume")
     activeBrew = true;
 
-  strcpy(notify, doc["message"] | "");
+  strlcpy(notify, doc["message"] | "", maxNotifySign);
   if (activePage == 0)
     notification.attribute("txt", notify);
   else
@@ -3127,7 +3100,6 @@ void tickerDispCallback()
   }
   else if (activePage == 0 && activeBrew == false)
   {
-    // strcpy(notify, "Waiting for data - start brewing");
     notification.attribute("txt", "Waiting for data - start brewing");
   }
   else if (activePage == 1 && strlen(structKettles[0].id) == 0)
@@ -3588,6 +3560,13 @@ void millis2wait(const int &value)
   {
     yield(); //wait approx. [period] ms
   }
+}
+
+float formatOneDec(float val)
+{
+  val += 0.05;
+  val *= 10.0;
+  return ( (int)val ) / 10.0;
 }
 
 // Prüfe WebIf Eingaben
