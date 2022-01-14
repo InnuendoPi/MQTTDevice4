@@ -12,7 +12,6 @@ MQTTDevice4 is an Arduino sketch for the ESP8266 Wemos D1 mini modules. This mak
 * A web interface (WebIf) for the configuration
 * Sensors (max 6)
   * Search for connected sensors based on OneWire addresses
-  * The reading interval of the sensor data and the offset are configurable (in seconds)
 * Actors (max 8)
   * PIN selection (GPIO)
   * PINs in use are hidden
@@ -55,7 +54,25 @@ Preparation on the RaspberryPi: Installation of the MQTT Broker
 
 This instruction installs the MQTT broker mosquitto on the RaspberryPi. The MQTT Broker serves as the central switching point between CraftbeerPi4 and MQTTDevices. CraftbeerPi4 can receive data from sensors via the MQTT protocol and send instructions to actors.
 
-Now you need to configure your MQTT environment in your CraftbeerPi4 config files: config/config.yaml
+Allow anonymous access to MQTT broker:
+
+`sudo nano /etc/mosquitto/mosquitto.conf`
+
+Add these two line at the top of the configuration file:
+
+`allow_anonymous true`
+`port 1883`
+
+You need to restart the broker service
+
+`sudo systemctl stop mosquitto`
+`sudo systemctl start mosquitto`
+
+Now you need to configure your MQTT environment in your CraftbeerPi4 config files:
+
+`nano config/config.yaml`
+
+and check all MQTT parameters:
 
 `mqtt: true`
 
@@ -140,7 +157,7 @@ The file explorer can be reached via the web browser <http://mqttdevice/edit>
 
 **Supported and tested hardware:**
 
-Hardware 09.2020
+Hardware (01.2022)
 
 | Anzahl | Link |
 | ------------ | ---- |
@@ -148,6 +165,7 @@ Hardware 09.2020
 | Relais Board 4 Kanal | <https://www.amazon.de/dp/B078Q8S9S9/ref=cm_sw_em_r_mt_dp_PHzyFbSR1PKCH> |
 | Relais Board 1 Kanal | <https://www.amazon.de/dp/B07CNR7K9B/ref=cm_sw_em_r_mt_dp_FIzyFbKXXYE0H> |
 | Nextion Display 3.5" | <https://www.amazon.de/dp/B07SSG86VC/ref=cm_sw_em_r_mt_dp_5Q2FNPMRRV25G4TPW68A> |
+| Nextion Display 3.5" | <https://www.amazon.de/dp/B091YL88ZL/ref=cm_sw_em_r_mt_dp_R158FR0XZSWVWAKMZD62> |
 | Piezo Buzzer | <https://www.amazon.de/dp/B07DPR4BTN/ref=cm_sw_em_r_mt_dp_aKzyFbJ0ZVK67> |
 
 *The links to amazon are purely informative as a search aid*
@@ -164,7 +182,7 @@ Most of the functions of the firmware are self-explanatory. The addition or dele
     * Adding, editing and deleting sensors
     * Auto reconnect MQTT
     * Auto reconnect WiFi
-    * Optionally configure the OLED display
+    * Optionally configure HMI touchdisplay
     * System settings fully changeable
     * Firmware and LittleFS updates via file upload
     * Firmware WebUpdate
@@ -188,15 +206,7 @@ Most of the functions of the firmware are self-explanatory. The addition or dele
 
     A mDNS name can be used instead of the IP address of the ESP8266 in the web browser (<http://mDNSname>). The name is freely selectable. The mDNS name must be unique in the network and must not contain any spaces or special characters.
 
-2. Intervals
-
-    The time intervals that are used for the definition are configured under Intervals
-    * how often sensors are queried and the data is sent to the CBPi
-    * how often commands for actors / induction are picked up by the CBPi
-
-    With these intervals the performance of the Wemos can be improved. The standard setting of 5 seconds is suitable for environments with few sensors and actors. In environments with many sensors and actors, an interval of 10 to 30 seconds would be more suitable for the small Wemos. This has to be tried out individually.
-
-3. Event manager
+2. Event manager
 
     The event manager handles events and misconduct. Handling of malfunctions (event handling) is deactivated in the standard setting!
 
@@ -218,10 +228,6 @@ Most of the functions of the firmware are self-explanatory. The addition or dele
     MQTT event handling can generally be activated or deactivated for all actors and induction cooktops. If MQTT event handling are activated, event handling must also be activated in the actor settings and for the induction hob. Each device can be configured individually.
 
     Every sensor also has an event handling property. If event handling is activated for a sensor, this sensor can trigger event handling in the event of a sensor fault. A sensor that is deactivated for event handling cannot trigger event handling accordingly.
-
-    The order in event handling is:
-    * MQTT error
-    * Sensor error
 
 ---
 
@@ -306,23 +312,23 @@ The following components are required:
 
 | Anzahl | Artikel | ArtikelNr |
 | ------ | ------- | --------- |
-| 1 | Schraubklemmblock 2pol Rastermaß 2,54 | (Bsp voelkner S84366) |
-| 3 | Schraubklemmblock 3pol Rastermaß 2,54 | (Bsp voelkner S84893) |
-| 2 | Schraubklemmblock 5pol Rastermaß 2,54 | (Bsp voelkner S84806) |
-| 2 | Schraubklemmblock 8pol Rastermaß 2,54 | (Bsp voelkner S84611) |
-| 1 | JST-HX Buchse gewinkelt Rastermaß 2,54 | (Bsp voelkner D17526) |
-| 1 | Stiftleiste einreihig Rastermaß 2,54 | (Bsp voelkner D19990) |
-| 4 | Steckbrücken (Jumper) Rastermaß 2,54 | (Bsp voelkner S655251) |
-| 1 | Widerstand 4,7kOhm | (Bsp voelkner S620751) |
-| 1 | D1 mini NodeMcu ESP8266-12E mit Sockel | (Bsp amazon ASIN B01N9RXGHY) |
-| 1 | LevelShifter 8 Kanal 5V 3.3V | (Bsp amazon ASIN B01MZ76GN5) |
+| 1 | screw terminal block 2pol 2,54 | (eg voelkner S84366) |
+| 3 | screw terminal block 3pol 2,54 | (eg voelkner S84893) |
+| 2 | screw terminal block 5pol 2,54 | (eg voelkner S84806) |
+| 2 | screw terminal block 8pol 2,54 | (eg voelkner S84611) |
+| 1 | JST-HX connector 90° 2,54 | (eg voelkner D17526) |
+| 1 | Header single row 2,54 | (eg voelkner D19990) |
+| 4 | Jumper 2,54 | (eg voelkner S655251) |
+| 1 | Resistor 4,7kOhm | (eg voelkner S620751) |
+| 1 | D1 mini NodeMcu ESP8266-12E | (eg amazon ASIN B01N9RXGHY) |
+| 1 | LevelShifter 8 Channel 5V 3.3V | (eg amazon ASIN B01MZ76GN5) |
 
 *amazon and voelkner are purely informative as a search aid*
 *to be understood by well-known providers (in germany)*
 
 ![LevelShifter](img/platine_levelshifter.jpg)
 
-When selecting LevelShifter (Logic Level Converter), the assignment must be observed. The LevelShifter must have this order in the Low Voltage (LV) input:
+When selecting LevelShifter (Logic Level Converter), the assignment must be observed! The LevelShifter must have this order in the Low Voltage (LV) input:
 
 `LV1 - LV2 - LV3 - LV4 - LV (3V3) - Ground - LV5 - LV6 - LV7 - LV8`
 
@@ -358,12 +364,10 @@ In addition to a GPIO, relay boards require a 5V power supply. 5V can be tapped 
 
 ## Case 3D print
 
-![Gehäuse1](img/gehäuse1.jpg)
-![Gehäuse2](img/gehäuse2.jpg)
-![Grundplatte](img/grundplatte.jpg)
+![case1](img/case1.png)
+![case2](img/case2.png)
+![plate](img/groundplate.png)
 
 3D print files are located in the info folder. With the current housing design, the circuit board and a 3.5" Nextion touchdisplay are glued into the housing.
-
-The housing is equipped with retaining clips between the carrier plate and the housing cover.
 
 ---

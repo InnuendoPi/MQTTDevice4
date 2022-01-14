@@ -48,7 +48,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.04"
+#define Version "4.05"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -126,7 +126,7 @@ EventManager gEM; //  Eventmanager Objekt Queues
 
 // Loop Events
 #define EM_WLAN 20
-#define EM_OTA 21
+#define EM_WEB 21
 #define EM_MQTT 22
 #define EM_MDNS 24
 #define EM_NTP 25
@@ -148,37 +148,30 @@ EventManager gEM; //  Eventmanager Objekt Queues
 #define EM_INDOFF 11 // Induktion ausschalten
 
 // Event handling Status Variablen
-bool StopOnWLANError = false;     // Event handling für WLAN Fehler
 bool StopOnMQTTError = false;     // Event handling für MQTT Fehler
 unsigned long mqttconnectlasttry; // Zeitstempel bei Fehler MQTT
 unsigned long wlanconnectlasttry; // Zeitstempel bei Fehler WLAN
 bool mqtt_state = true;           // Status MQTT
-// bool wlan_state = true;           // Status WLAN
 
 // Event handling Zeitintervall für Reconnects WLAN und MQTT
 #define tickerWLAN 10000 // für Ticker Objekt WLAN in ms
-#define tickerMQTT 30000 // für Ticker Objekt MQTT in ms
+#define tickerMQTT 10000 // für Ticker Objekt MQTT in ms
 
 // Event handling Standard Verzögerungen
 unsigned long wait_on_error_mqtt = 120000;             // How long should device wait between tries to reconnect WLAN      - approx in ms
-unsigned long wait_on_error_wlan = 120000;             // How long should device wait between tries to reconnect WLAN      - approx in ms
 unsigned long wait_on_Sensor_error_actor = 120000;     // How long should actors wait between tries to reconnect sensor    - approx in ms
 unsigned long wait_on_Sensor_error_induction = 120000; // How long should induction wait between tries to reconnect sensor - approx in ms
 
 // Ticker Objekte
 InnuTicker TickerSen;
-InnuTicker TickerAct;
-InnuTicker TickerInd;
 InnuTicker TickerMQTT;
 InnuTicker TickerWLAN;
 InnuTicker TickerNTP;
 InnuTicker TickerDisp;
 
 // Update Intervalle für Ticker Objekte
-int SEN_UPDATE = 5000; //  sensors update delay loop
-int ACT_UPDATE = 5000; //  actors update delay loop
-int IND_UPDATE = 5000; //  induction update delay loop
-int DISP_UPDATE = 2000;
+int SEN_UPDATE = 2000; //  sensors update delay loop
+int DISP_UPDATE = 1000;
 
 // Systemstart
 bool startMDNS = true; // Standard mDNS Name ist ESP8266- mit mqtt_chip_key
@@ -195,8 +188,6 @@ int inductionStatus = 0;
 // FSBrowser
 File fsUploadFile; // a File object to temporarily store the received file
 
-// #define SDL D1
-// #define SDA D2
 #define maxKettles 4
 #define maxKettleSign 15
 #define maxIdSign 23
@@ -207,8 +198,9 @@ File fsUploadFile; // a File object to temporarily store the received file
 #define maxTempSign 10
 
 bool useDisplay = false;
-int startPage = 1;  // Kettlepage
-int activePage = 1;
+int startPage = 1;      // Startseite: BrewPage = 0 Kettlepage = 1 // not yet ready ActorPage = 2 SensorPage = 3 FermenterPage = 4
+int activePage = 1;     // die aktuell angeziegte Seite
+
 char cbpi4steps_topic[45] = "cbpi/stepupdate/+";
 char cbpi4kettle_topic[45] = "cbpi/kettleupdate/+";
 char cbpi4sensor_topic[45] = "cbpi/sensordata/";
@@ -225,8 +217,8 @@ struct Kettles
 };
 struct Kettles structKettles[maxKettles];
 
-char currentStepName[maxStepSign] = "no active step";
-char currentStepRemain[maxRemainSign] = "0:00";
+char currentStepName[maxStepSign];      //= "no active step";
+char currentStepRemain[maxRemainSign];  //= "0:00";
 char nextStepName[maxStepSign];
 char nextStepRemain[maxRemainSign];
 bool activeBrew = false;

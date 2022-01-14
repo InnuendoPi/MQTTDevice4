@@ -4,6 +4,8 @@ MQTTDevice4 enables sensors, actors and an induction hob to be connected via WLA
 
 MQTTDevice4 is an Arduino sketch for the ESP8266 Wemos D1 mini modules. This makes it possible to establish communication between the MQTT broker (eg mosquitto) and an ESP8266 in order to control sensors and actors with CraftBeerPi V4.
 
+![Startseite](img/startseite.jpg)
+
 ## MQTTDevice2 or MQTTDevice4?
 
 There are only a few differences between MQTTDevice 2 and 4. MQTTDevice2 (with firmware versions 2.5x and earlier) was developed using CraftbeerPi version 3. MQTTDevice4 (firmware version 4.x and above) is CraftbeerPi 4 optimzed.

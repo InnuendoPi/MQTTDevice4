@@ -1,21 +1,20 @@
 void loop()
 {
-  server.handleClient();    // Webserver handle
-  cbpiEventSystem(EM_WLAN); // Überprüfe WLAN
-  cbpiEventSystem(EM_MQTT); // Überprüfe MQTT
+  cbpiEventSystem(EM_WEB); // Webserver handle
+  cbpiEventSystem(EM_WLAN); // Check WLAN
+  cbpiEventSystem(EM_MQTT); // Check MQTT
   if (startMDNS)            // MDNS handle
     cbpiEventSystem(EM_MDNS);
     
-  gEM.processAllEvents(); // event queue
-
-  if (numberOfSensors > 0) // Sensoren Ticker
+  if (numberOfSensors > 0) // Sensoren
     TickerSen.update();
-  if (numberOfActors > 0) // Aktoren Ticker
-    TickerAct.update();
-  if (inductionStatus > 0) // Induktion Ticker
-    TickerInd.update();
-  if (useDisplay)
+  if (numberOfActors > 0)  // Aktoren
+    cbpiEventActors(actorsStatus);
+  if (inductionStatus > 0) // Induktion
+    cbpiEventInduction(inductionStatus);
+  if (useDisplay)          // Display 
     TickerDisp.update();
     
   TickerNTP.update(); // NTP Ticker
+  gEM.processAllEvents();  // event queue
 }

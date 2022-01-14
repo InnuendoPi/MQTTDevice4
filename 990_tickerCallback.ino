@@ -1,44 +1,50 @@
 void brewCallback()
 {
-  activePage = 0;
-  // DEBUG_MSG("Ticker: brewCallback touch activepage %d\n", activePage);
-  BrewPage();
+  if (activePage == 1)
+  {
+    activePage = 0;
+    BrewPage();
+  }
+  else
+  {
+    activePage = 1;
+    KettlePage();
+  }
 }
-void kettleCallback()
-{
-  activePage = 1;
-  // DEBUG_MSG("Ticker: kettleCallback touch activepage %d\n", activePage);
-  KettlePage();
-}
+
 void tickerDispCallback()
 {
   sprintf_P(uhrzeit, (PGM_P)F("%02d:%02d"), timeClient.getHours(), timeClient.getMinutes());
-  if (activePage == 0 && strlen(structKettles[0].id) == 0)
+  switch (activePage)
   {
+  case 0: //BrewPage
+    if (!activeBrew) // aktiver Step vorhanden?
+    {
+      strlcpy(currentStepName, "BrewPage", maxStepSign);
+      strlcpy(notify, "Waiting for data - start brewing", maxNotifySign);
+    }
     uhrzeit_text.attribute("txt", uhrzeit);
-  }
-  else if (activePage == 0 && activeBrew == false)
-  {
-    notification.attribute("txt", "Waiting for data - start brewing");
-  }
-  else if (activePage == 1 && strlen(structKettles[0].id) == 0)
-  {
-    p1uhrzeit_text.attribute("txt", uhrzeit);
-    p1temp_text.attribute("txt", sensors[0].getTotalValueString());
+    BrewPage();
+    break;
+  case 1: // KettlePage
+    if (!activeBrew)  // aktiver Step vorhanden?
+    {
+      strlcpy(structKettles[0].current_temp, sensors[0].getTotalValueString(), maxTempSign);
+      strlcpy(structKettles[0].target_temp, "0", maxTempSign);
+      strlcpy(currentStepName, sensors[0].getName().c_str(), maxStepSign);
+    }
+    uhrzeit_text.attribute("txt", uhrzeit);
+    KettlePage();
+    break;
+  default:
+    break;
   }
   nextion.update();
 }
+
 void tickerSenCallback() // Timer Objekt Sensoren
 {
   cbpiEventSensors(sensorsStatus);
-}
-void tickerActCallback() // Timer Objekt Aktoren
-{
-  cbpiEventActors(actorsStatus);
-}
-void tickerIndCallback() // Timer Objekt Induktion
-{
-  cbpiEventInduction(inductionStatus);
 }
 
 void tickerMQTTCallback() // Ticker helper function calling Event MQTT Error

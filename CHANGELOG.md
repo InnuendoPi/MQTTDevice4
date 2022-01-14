@@ -1,7 +1,14 @@
 # Changelog
 
-Version 4.04
+Version 4.05
 
+- Reworked: WebIf
+- Reworked: actorshandle
+- Reworked: inductionhandle
+- Removed:  Inervall configuration
+- Fixed:    pulse cycle actors
+- Optimize: memory usage
+- Optimize: CPU usage
 - Optimize: Display information
 - Fixed:    Crash null pointer
 - Optimize: Deserialize JSON

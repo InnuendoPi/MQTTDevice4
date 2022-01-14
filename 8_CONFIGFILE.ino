@@ -135,7 +135,7 @@ bool loadConfig()
   if (miscObj.containsKey("delay_mqtt"))
     wait_on_error_mqtt = miscObj["delay_mqtt"];
   DEBUG_MSG("Switch off actors on MQTT error: %d after %d sec\n", StopOnMQTTError, (wait_on_error_mqtt / 1000));
-  
+
   startBuzzer = false;
   if (miscObj["buzzer"] || miscObj["buzzer"] == "1")
     startBuzzer = true;
@@ -152,30 +152,6 @@ bool loadConfig()
     startMDNS = true;
   DEBUG_MSG("mDNS: %d name: %s\n", startMDNS, nameMDNS);
 
-  if (miscObj.containsKey("upsen"))
-    SEN_UPDATE = miscObj["upsen"];
-  if (miscObj.containsKey("upact"))
-    ACT_UPDATE = miscObj["upact"];
-  if (miscObj.containsKey("upind"))
-    IND_UPDATE = miscObj["upind"];
-
-  TickerSen.config(SEN_UPDATE, 0);
-  TickerAct.config(ACT_UPDATE, 0);
-  TickerInd.config(IND_UPDATE, 0);
-
-  if (numberOfSensors > 0)
-    TickerSen.start();
-  if (numberOfActors > 0)
-    TickerAct.start();
-  if (inductionCooker.isEnabled)
-    TickerInd.start();
-  if (useDisplay)
-    TickerDisp.start();
-
-  DEBUG_MSG("Sensors update intervall: %d sec\n", (SEN_UPDATE / 1000));
-  DEBUG_MSG("Actors update intervall: %d sec\n", (ACT_UPDATE / 1000));
-  DEBUG_MSG("Induction update intervall: %d sec\n", (IND_UPDATE / 1000));
-
   if (miscObj.containsKey("MQTTHOST"))
   {
     strlcpy(mqtthost, miscObj["MQTTHOST"], sizeof(mqtthost));
@@ -187,6 +163,11 @@ bool loadConfig()
   }
   DEBUG_MSG("%s\n", "------ loadConfig finished ------");
   configFile.close();
+  if (numberOfSensors > 0)
+    TickerSen.start();
+  if (useDisplay)
+    TickerDisp.start();
+
   DEBUG_MSG("Config file size %d\n", size);
   size_t len = measureJson(doc);
   DEBUG_MSG("JSON config length: %d\n", len);
@@ -286,39 +267,11 @@ bool saveConfig()
   miscObj["enable_mqtt"] = (int)StopOnMQTTError;
   DEBUG_MSG("Switch off actors on error enabled after %d sec\n", (wait_on_error_mqtt / 1000));
 
-
   miscObj["buzzer"] = (int)startBuzzer;
   miscObj["display"] = (int)useDisplay;
   miscObj["mdns_name"] = nameMDNS;
   miscObj["mdns"] = (int)startMDNS;
   miscObj["MQTTHOST"] = mqtthost;
-  miscObj["upsen"] = SEN_UPDATE;
-  miscObj["upact"] = ACT_UPDATE;
-  miscObj["upind"] = IND_UPDATE;
-
-  TickerSen.config(SEN_UPDATE, 0);
-  TickerAct.config(ACT_UPDATE, 0);
-  TickerInd.config(IND_UPDATE, 0);
-
-  if (numberOfSensors > 0)
-    TickerSen.start();
-  else
-    TickerSen.stop();
-  if (numberOfActors > 0)
-    TickerAct.start();
-  else
-    TickerAct.stop();
-  if (inductionCooker.isEnabled)
-    TickerInd.start();
-  
-  if (useDisplay)
-    TickerDisp.start();
-  else
-    TickerDisp.stop();
-
-  DEBUG_MSG("Sensor update interval %d sec\n", (SEN_UPDATE / 1000));
-  DEBUG_MSG("Actors update interval %d sec\n", (ACT_UPDATE / 1000));
-  DEBUG_MSG("Induction update interval %d sec\n", (IND_UPDATE / 1000));
   DEBUG_MSG("MQTT broker IP: %s\n", mqtthost);
 
   size_t len = measureJson(doc);
@@ -347,6 +300,17 @@ bool saveConfig()
   serializeJson(doc, configFile);
   configFile.close();
   DEBUG_MSG("%s\n", "------ saveConfig finished ------");
+  
+  if (numberOfSensors > 0)
+    TickerSen.start();
+  else
+    TickerSen.stop();
+
+  if (useDisplay)
+    TickerDisp.start();
+  else
+    TickerDisp.stop();
+
   String Network = WiFi.SSID();
   DEBUG_MSG("ESP8266 device IP Address: %s\n", WiFi.localIP().toString().c_str());
   DEBUG_MSG("Configured WLAN SSID: %s\n", Network.c_str());

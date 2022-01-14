@@ -87,6 +87,24 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
     payload_msg[i] = payload[i];
   }
 
+  if (inductionCooker.mqtttopic == topic)
+  {
+    inductionCooker.handlemqtt(payload_msg);
+    return;
+  }
+
+  if (numberOfActors > 0)
+  {
+    for (int i = 0; i < numberOfActors; i++)
+    {
+      if (actors[i].argument_actor == topic)
+      {
+        actors[i].handlemqtt(payload_msg);
+        return;
+      }
+    }
+  }
+
   if (useDisplay)
   {
     char *p;
@@ -98,45 +116,26 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
     p = strstr(topic, kettleupdate);
     if (p)
     {
-      // DEBUG_MSG("Web kettlehandle1 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
       cbpi4kettle_handlemqtt(payload_msg);
+      return;
     }
     p = strstr(topic, stepupdate);
     if (p)
     {
-      // DEBUG_MSG("Web: Received stepupdate topic %s\n", topic);
-      // DEBUG_MSG("Web stephandle1 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
       cbpi4steps_handlemqtt(payload_msg);
+      return;
     }
     p = strstr(topic, notificationupdate);
     if (p)
     {
-      // DEBUG_MSG("Web: Received MQTT Topic with char payload: %s\n", topic);
-
-      // DEBUG_MSG("Web: Received notificationupdate topic %s\n", topic);
-      // DEBUG_MSG("Web notifyhandle1 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
       cbpi4notification_handlemqtt(payload_msg);
+      return;
     }
     p = strstr(topic, sensorupdate);
     if (p)
     {
-      // DEBUG_MSG("Web: Received sensortopic %s\n", topic);
-      // DEBUG_MSG("Web sensorhandle1 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
       cbpi4sensor_handlemqtt(payload_msg);
-    }
-  }
-  if (inductionCooker.mqtttopic == topic)
-  {
-    inductionCooker.handlemqtt(payload_msg);
-    // DEBUG_MSG("%s\n", "*** Handle MQTT Induktion");
-  }
-
-  for (int i = 0; i < numberOfActors; i++)
-  {
-    if (actors[i].argument_actor == topic)
-    {
-      actors[i].handlemqtt(payload_msg);
-      yield();
+      return;
     }
   }
 }
@@ -157,7 +156,7 @@ void handleRequestMisc2()
 
 void handleRequestMisc()
 {
-  StaticJsonDocument<512> doc;
+  StaticJsonDocument<384> doc;
   doc["mqtthost"] = mqtthost;
   doc["mdns_name"] = nameMDNS;
   doc["mdns"] = startMDNS;
@@ -167,9 +166,6 @@ void handleRequestMisc()
   doc["delay_mqtt"] = wait_on_error_mqtt / 1000;
   doc["del_sen_act"] = wait_on_Sensor_error_actor / 1000;
   doc["del_sen_ind"] = wait_on_Sensor_error_induction / 1000;
-  doc["upsen"] = SEN_UPDATE / 1000;
-  doc["upact"] = ACT_UPDATE / 1000;
-  doc["upind"] = IND_UPDATE / 1000;
   doc["mqtt_state"] = mqtt_state; // Anzeige MQTT Status -> mqtt_state verzögerter Status!
   // doc["alertstate"] = alertState;
   // if (alertState)
@@ -263,33 +259,6 @@ void handleSetMisc()
       {
         wait_on_Sensor_error_induction = server.arg(i).toInt() * 1000;
       }
-    if (server.argName(i) == "upsen")
-    {
-      if (isValidInt(server.arg(i)))
-      {
-        int newsup = server.arg(i).toInt();
-        if (newsup > 0)
-          SEN_UPDATE = newsup * 1000;
-      }
-    }
-    if (server.argName(i) == "upact")
-    {
-      if (isValidInt(server.arg(i)))
-      {
-        int newaup = server.arg(i).toInt();
-        if (newaup > 0)
-          ACT_UPDATE = newaup * 1000;
-      }
-    }
-    if (server.argName(i) == "upind")
-    {
-      if (isValidInt(server.arg(i)))
-      {
-        int newiup = server.arg(i).toInt();
-        if (newiup > 0)
-          IND_UPDATE = newiup * 1000;
-      }
-    }
     yield();
   }
   saveConfig();

@@ -98,8 +98,6 @@ void setTicker()
 {
   // Ticker Objekte
   TickerSen.config(tickerSenCallback, SEN_UPDATE, 0);
-  TickerAct.config(tickerActCallback, ACT_UPDATE, 0);
-  TickerInd.config(tickerIndCallback, IND_UPDATE, 0);
   TickerMQTT.config(tickerMQTTCallback, tickerMQTT, 0);
   TickerWLAN.config(tickerWLANCallback, tickerWLAN, 0);
   TickerNTP.config(tickerNTPCallback, NTP_INTERVAL, 0);

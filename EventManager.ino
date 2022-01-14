@@ -5,33 +5,12 @@ void listenerSystem(int event, int parm) // System event listener
   case EM_OK: // Normal mode
     break;
   // 1 - 9 Error events
-  case EM_WLANER: // WLAN error -> handling
-                  //  Error Reihenfolge
-                  //  1. WLAN connected?
-                  //  2. MQTT connected
-                  //  Wenn WiFi.status() != WL_CONNECTED (wlan_state false nach maxRetries und Delay) ist, ist ein check mqtt überflüssig
-
+  case EM_WLANER: 
     WiFi.reconnect();
     if (WiFi.status() == WL_CONNECTED)
-    {
-      // wlan_state = true;
       break;
-    }
+
     DEBUG_MSG("%s", "EM WLAN: WLAN error ... try to reconnectn\n");
-    if (millis() - wlanconnectlasttry >= wait_on_error_wlan) // Wait bevor Event handling
-    {
-      // if (StopOnWLANError && wlan_state)
-      if (StopOnWLANError)
-      {
-        mqtt_state = false; // MQTT in error state - required to restore values
-        if (startBuzzer)
-          sendAlarm(ALARM_ERROR);
-        DEBUG_MSG("EM WLAN: WLAN connection lost! StopOnWLANError: %d\n", StopOnWLANError);
-        // wlan_state = false;
-        cbpiEventActors(EM_ACTER);
-        cbpiEventInduction(EM_INDER);
-      }
-    }
     break;
   case EM_MQTTER: // MQTT Error -> handling
     if (pubsubClient.connect(mqtt_clientid))
@@ -96,7 +75,6 @@ void listenerSystem(int event, int parm) // System event listener
   case EM_WLAN: // check WLAN (20) and reconnect on error
     if (WiFi.status() == WL_CONNECTED)
     {
-      // oledDisplay.wlanOK = true;
       if (TickerWLAN.state() == RUNNING)
         TickerWLAN.stop();
     }
@@ -111,6 +89,9 @@ void listenerSystem(int event, int parm) // System event listener
       }
       TickerWLAN.update();
     }
+    break;
+  case EM_WEB: // (21)
+    server.handleClient();    // Webserver handle
     break;
   case EM_MQTT: // check MQTT (22)
     if (!WiFi.status() == WL_CONNECTED)
@@ -237,8 +218,6 @@ void listenerSensors(int event, int parm) // Sensor event listener
     // all sensors ok
     lastSenInd = 0; // Delete induction timestamp after event
     lastSenAct = 0; // Delete actor timestamp after event
-
-    // if (WiFi.status() == WL_CONNECTED && pubsubClient.connected() && wlan_state && mqtt_state)
     if (WiFi.status() == WL_CONNECTED && pubsubClient.connected() && mqtt_state)
     {
       for (int i = 0; i < numberOfActors; i++)
@@ -277,7 +256,6 @@ void listenerSensors(int event, int parm) // Sensor event listener
     // sensor unpluged
   case EM_SENER:
     // all other errors
-    // if (WiFi.status() == WL_CONNECTED && pubsubClient.connected() && wlan_state && mqtt_state)
     if (WiFi.status() == WL_CONNECTED && pubsubClient.connected() && mqtt_state)
     {
       for (int i = 0; i < numberOfSensors; i++)

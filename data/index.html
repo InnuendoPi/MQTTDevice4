@@ -29,7 +29,7 @@
       <div class="row">
         <div class="col-md-12">
           <div class="card">
-            <div class="card-header">Sensors <a href="" class="badge badge-warning" data-target="#sensor_modal"
+            <div class="card-header">Sensors <a href="" class="badge badge-primary" data-target="#sensor_modal"
                 data-toggle="modal" data-value="-1" style="float:right">new</a>
             </div>
             <div class="card-body">
@@ -45,7 +45,7 @@
       <div class="row">
         <div class="col-md-12">
           <div class="card">
-            <div class="card-header">Actors <a href="" class="badge badge-warning" data-target="#actor_modal"
+            <div class="card-header">Actors <a href="" class="badge badge-primary" data-target="#actor_modal"
                 data-toggle="modal" data-value="-1" style="float:right">new</a></div>
             <div class="card-body">
               <ul class="list-group" id="listActors">
@@ -61,7 +61,7 @@
       <div class="row">
         <div class="col-md-12">
           <div class="card">
-            <div class="card-header">Induction GGM IDS2 <a href="" class="badge badge-warning"
+            <div class="card-header">Induction GGM IDS2 <a href="" class="badge badge-primary"
                 data-target="#induction_modal" data-toggle="modal" data-value="-1" style="float:right">edit</a>
             </div>
             <div class="card-body">
@@ -78,7 +78,7 @@
       <div class="row">
         <div class="col-md-12">
           <div class="card">
-            <div class="card-header">Misc <a href="" class="badge badge-warning" data-target="#misc_modal"
+            <div class="card-header">Misc <a href="" class="badge badge-primary" data-target="#misc_modal"
                 data-toggle="modal" data-value="-1" style="float:right">edit</a></div>
             <div class="card-body">
               <ul class="list-group" id="miscSettings">
@@ -228,10 +228,10 @@
               <a class="nav-link active" id="misc1-tab" data-toggle="tab" href="#misc1" role="tab" aria-controls="misc1"
                 aria-selected="true">System</a>
             </li>
-            <li class="nav-item">
+            <!-- <li class="nav-item">
               <a class="nav-link" id="misc2-tab" data-toggle="tab" href="#misc2" role="tab" aria-controls="misc2"
                 aria-selected="true">Intervals</a>
-            </li>
+            </li> -->
             <li class="nav-item">
               <a class="nav-link" id="misc3-tab" data-toggle="tab" href="#misc3" role="tab" aria-controls="misc3"
                 aria-selected="true">EventManager</a>
@@ -245,7 +245,7 @@
             <div class="tab-pane fade show active" id="misc1" role="tabpanel" aria-labelledby="misc1-tab">
               <br />
               <div class="form-group">
-                <label for="modal_misc_address">IP address MQTT Server (CBPi)</label>
+                <label for="modal_misc_address">IP address MQTT Broker (CBPi)</label>
                 <input type="text" class="form-control" placeholder="" id="modal_misc_address" />
               </div>
               <div class="custom-control custom-switch">
@@ -265,7 +265,7 @@
                 <input type="text" class="form-control" placeholder="" id="modal_misc_mdns_name" />
               </div>
             </div>
-            <div class="tab-pane fade" id="misc2" role="tabpanel" aria-labelledby="misc2-tab">
+            <!-- <div class="tab-pane fade" id="misc2" role="tabpanel" aria-labelledby="misc2-tab">
               <br />
               <label class="form-check-label">Data update intervals (send and recieve)</label>
               <div class="form-group">
@@ -280,17 +280,8 @@
                 <label for="modal_misc_upind">Induction update interval (sec)</label>
                 <input type="text" class="form-control" placeholder="" id="modal_misc_upind" />
               </div>
-            </div>
+            </div> -->
             <div class="tab-pane fade" id="misc3" role="tabpanel" aria-labelledby="misc3-tab">
-              <br />
-              <div class="form-group">
-                <label for="modal_misc_del_sen_act">Event handling delay actors (sec)</label>
-                <input type="text" class="form-control" placeholder="" id="modal_misc_del_sen_act" />
-              </div>
-              <div class="form-group">
-                <label for="modal_misc_del_sen_ind">Event handling delay induction (sec)</label>
-                <input type="text" class="form-control" placeholder="" id="modal_misc_del_sen_ind" />
-              </div>
               <br />
               <div class="custom-control custom-switch">
                 <input type="checkbox" class="custom-control-input" value="" id="modal_misc_onErrorMQTT" />
@@ -300,6 +291,17 @@
                 <label for="modal_misc_delay_mqtt">Delay on MQTT error (sec)</label>
                 <input type="text" class="form-control" placeholder="" id="modal_misc_delay_mqtt" />
               </div>
+              <br />
+              <label class="form-check-label">Delays if MQTT event handling is enabled:</label>
+              <div class="form-group">
+                <label for="modal_misc_del_sen_act">Event handling delay actors (sec)</label>
+                <input type="text" class="form-control" placeholder="" id="modal_misc_del_sen_act" />
+              </div>
+              <div class="form-group">
+                <label for="modal_misc_del_sen_ind">Event handling delay induction (sec)</label>
+                <input type="text" class="form-control" placeholder="" id="modal_misc_del_sen_ind" />
+              </div>
+              <br />
             </div>
             <div class="tab-pane fade" id="misc4" role="tabpanel" aria-labelledby="misc4-tab">
               <br />
@@ -382,12 +384,13 @@
             }
           }
           else {
-            sensor += " badge-dark'>Events disabled";
+            sensor += " badge-light'>Events disabled";
           }
           sensor += "</span> ";
-          sensor += "<span class='badge badge-info'> "
+          // sensor += "<span class='badge badge-info'> "
           sensor += element.mqtt;
-          sensor += " </span> <a href='' class='badge badge-warning' data-toggle='modal' data-target='#sensor_modal' data-value='";
+          sensor += " <a href='' class='badge badge-light' data-toggle='modal' data-target='#sensor_modal' data-value='";
+          // sensor += " </span> <a href='' class='badge badge-light' data-toggle='modal' data-target='#sensor_modal' data-value='";
           sensor += index;
           sensor += "'> edit </a> </li>";
           content += sensor;
@@ -425,12 +428,12 @@
             }
           }
           else {
-            actor += " badge-dark'>Events disabled";
+            actor += " badge-light'>Events disabled";
           }
           actor += "</span> ";
-          actor += "<span class='badge badge-info'>";
+          actor += "<span class='badge badge-light'>";
           actor += element.mqtt;
-          actor += "</span><a href='' class='badge badge-warning' data-toggle='modal' data-target='#actor_modal' data-value='";
+          actor += "</span><a href='' class='badge badge-light' data-toggle='modal' data-target='#actor_modal' data-value='";
           actor += index;
           actor += "'>edit</a></li>";
           content += actor;
@@ -443,51 +446,51 @@
           inductionRender += "Relais state<span class='badge";
           if (data.state != true && data.relayOn) {
             inductionRender += " badge-danger'> ON";
-            inductionRender += "</span> </li> <li class='list-group-item d-flex justify-content-between align-items-center'>Requested powerlevel by CBPi<span class='badge badge-danger'>";
+            inductionRender += "</span> </li> <li class='list-group-item d-flex justify-content-between align-items-center'>Requested powerlevel by CBPi4<span class='badge badge-danger'>";
             inductionRender += data.power;
-            inductionRender += "%</span> </li> <li class='list-group-item d-flex justify-content-between align-items-center'>Powerlevel GGM<span class='badge badge-danger'> P";
+            inductionRender += "%</span> </li> <li class='list-group-item d-flex justify-content-between align-items-center'>Powerstate GGM IDS2<span class='badge badge-danger'> P";
             inductionRender += data.powerLevel;
             if (data.pl != "100") {
               inductionRender += "%</span> </li> <li class='list-group-item d-flex justify-content-between align-items-center'>Event handling powerlevel<span class='badge badge-success'> P";
               inductionRender += data.pl;
-              inductionRender += "%</span> </li>";
+              inductionRender += "</span> </li>";
             }
             else {
-              inductionRender += "%</span> </li> <li class='list-group-item d-flex justify-content-between align-items-center'>Events<span class='badge badge-dark'> ";
+              inductionRender += "%</span> </li> <li class='list-group-item d-flex justify-content-between align-items-center'>Events<span class='badge badge-light'> ";
               inductionRender += "disabled";
               inductionRender += "</span> </li>";
             }
           }
           else if (data.relayOn && data.state == true) {
             inductionRender += " badge-success'> ON";
-            inductionRender += "</span> </li> <li class='list-group-item d-flex justify-content-between align-items-center'>Requested powerlevel by CBPi<span class='badge badge-success'>";
+            inductionRender += "</span> </li> <li class='list-group-item d-flex justify-content-between align-items-center'>Requested powerlevel by CBPi4<span class='badge badge-success'>";
             inductionRender += data.power;
-            inductionRender += "%</span> </li> <li class='list-group-item d-flex justify-content-between align-items-center'>Powerlevel GGM<span class='badge badge-success'> P";
+            inductionRender += "%</span> </li> <li class='list-group-item d-flex justify-content-between align-items-center'>Powerstate GGM IDS2<span class='badge badge-success'> P";
             inductionRender += data.powerLevel;
             if (data.pl != "100") {
               inductionRender += "%</span> </li> <li class='list-group-item d-flex justify-content-between align-items-center'>Event handling powerlevel<span class='badge badge-success'> P";
               inductionRender += data.pl;
-              inductionRender += "%</span> </li>";
+              inductionRender += "</span> </li>";
             }
             else {
-              inductionRender += "%</span> </li> <li class='list-group-item d-flex justify-content-between align-items-center'>Events<span class='badge badge-dark'> ";
+              inductionRender += "%</span> </li> <li class='list-group-item d-flex justify-content-between align-items-center'>Events<span class='badge badge-light'> ";
               inductionRender += "disabled";
               inductionRender += "</span> </li>";
             }
           }
           else {
             inductionRender += " badge-dark'> OFF";
-            inductionRender += "</span> </li> <li class='list-group-item d-flex justify-content-between align-items-center'>Requested powerlevel by CBPi<span class='badge badge-dark'>";
+            inductionRender += "</span> </li> <li class='list-group-item d-flex justify-content-between align-items-center'>Requested powerlevel by CBPi4<span class='badge badge-dark'>";
             inductionRender += data.power;
-            inductionRender += "%</span> </li> <li class='list-group-item d-flex justify-content-between align-items-center'>Powerlevel GGM<span class='badge badge-dark'> P";
+            inductionRender += "</span> </li> <li class='list-group-item d-flex justify-content-between align-items-center'>Powerstate GGM IDS2<span class='badge badge-dark'> P";
             inductionRender += data.powerLevel;
             if (data.pl != "100") {
               inductionRender += "%</span> </li> <li class='list-group-item d-flex justify-content-between align-items-center'>Event handling powerlevel<span class='badge badge-success'> P";
               inductionRender += data.pl;
-              inductionRender += "%</span> </li>";
+              inductionRender += "</span> </li>";
             }
             else {
-              inductionRender += "%</span> </li> <li class='list-group-item d-flex justify-content-between align-items-center'>Events<span class='badge badge-dark'> ";
+              inductionRender += "%</span> </li> <li class='list-group-item d-flex justify-content-between align-items-center'>Events<span class='badge badge-light'> ";
               inductionRender += "disabled";
               inductionRender += "</span> </li>";
             }
@@ -495,7 +498,7 @@
         }
         else {
           inductionRender += "Induction<span class='badge";
-          inductionRender += " badge-dark'> disabled";
+          inductionRender += " badge-light'> disabled";
           inductionRender += " </span> </li>";
         }
         $('#inductionCooker').html(inductionRender);
@@ -504,12 +507,12 @@
         let miscRender = "<li class='list-group-item d-flex justify-content-between align-items-center'> ";
         miscRender += " MQTT broker IP <span class='badge'>";
         miscRender += data.mqtthost;
-        miscRender += "</span></li> <li class='list-group-item d-flex justify-content-between align-items-center'> MQTT Verbindung <span class='badge";
+        miscRender += "</span></li> <li class='list-group-item d-flex justify-content-between align-items-center'> MQTT connection <span class='badge";
         if (data.enable_mqtt) {
           miscRender += " badge-success'> Events enabled";
         }
         else {
-          miscRender += " badge-dark'> Events disabled";
+          miscRender += " badge-light'> Events disabled";
         }
         miscRender += "</span><span class='badge";
         if (data.mqtt_state) {
@@ -711,9 +714,9 @@
         modal.find('#modal_misc_delay_mqtt').val(data.delay_mqtt);
         modal.find('#modal_misc_del_sen_act').val(data.del_sen_act);
         modal.find('#modal_misc_del_sen_ind').val(data.del_sen_ind);
-        modal.find('#modal_misc_upsen').val(data.upsen);
-        modal.find('#modal_misc_upact').val(data.upact);
-        modal.find('#modal_misc_upind').val(data.upind);
+        // modal.find('#modal_misc_upsen').val(data.upsen);
+        // modal.find('#modal_misc_upact').val(data.upact);
+        // modal.find('#modal_misc_upind').val(data.upind);
       });
     });
 
@@ -724,9 +727,9 @@
       var delay_mqtt = modal.find('#modal_misc_delay_mqtt').val();
       var del_sen_act = modal.find('#modal_misc_del_sen_act').val();
       var del_sen_ind = modal.find('#modal_misc_del_sen_ind').val();
-      var upsen = modal.find('#modal_misc_upsen').val();
-      var upact = modal.find('#modal_misc_upact').val();
-      var upind = modal.find('#modal_misc_upind').val();
+      // var upsen = modal.find('#modal_misc_upsen').val();
+      // var upact = modal.find('#modal_misc_upact').val();
+      // var upind = modal.find('#modal_misc_upind').val();
 
       var mdns = modal.find('#modal_misc_mdns').prop("checked");
       var buzzer = modal.find('#modal_misc_buzzer').prop("checked");
@@ -736,7 +739,7 @@
       var reset = modal.find('#modal_misc_reset').prop("checked");
 
       $.ajax({
-        url: '/setMisc?reset=' + reset + '&clear=' + clear + '&MQTTHOST=' + mqttaddress + '&enable_mqtt=' + enable_mqtt + '&delay_mqtt=' + delay_mqtt + '&del_sen_act=' + del_sen_act + '&del_sen_ind=' + del_sen_ind + '&mdns=' + mdns + '&mdns_name=' + mdns_name + '&buzzer=' + buzzer + '&display=' + display +'&upsen=' + upsen + '&upact=' + upact + '&upind=' + upind,
+        url: '/setMisc?reset=' + reset + '&clear=' + clear + '&MQTTHOST=' + mqttaddress + '&enable_mqtt=' + enable_mqtt + '&delay_mqtt=' + delay_mqtt + '&del_sen_act=' + del_sen_act + '&del_sen_ind=' + del_sen_ind + '&mdns=' + mdns + '&mdns_name=' + mdns_name + '&buzzer=' + buzzer + '&display=' + display, // +'&upsen=' + upsen + '&upact=' + upact + '&upind=' + upind,
         type: 'POST',
         dataType: 'html',
         async: false,

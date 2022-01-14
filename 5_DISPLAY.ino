@@ -2,116 +2,55 @@ void initDisplay()
 {
   nextion.command("rest");
   // nextion.command("doevents");
-  millis2wait(2000); // wait short delay after reset befor passing new commands to display
-  sprintf(structKettles[0].target_temp, "%s", "0");
-  sprintf(structKettles[0].current_temp, "%s", "0.0");
-  brewButton.touch(kettleCallback);
+  // millis2wait(2000); // wait short delay after reset befor passing new commands to display
+
+  brewButton.touch(brewCallback);
   kettleButton.touch(brewCallback);
-  if (startPage == 0)
-  {
-    activePage = 0;
-    nextion.command("page brewpage");
-    BrewPage();
-  }
-  else
-  {
-    activePage = 1;
-    nextion.command("page kettlepage");
-    KettlePage();
-  }
 }
 
 void BrewPage()
 {
-  uhrzeit_text.attribute("txt", uhrzeit);
-  // DEBUG_MSG("+BrewPage ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
-  if (strlen(structKettles[0].id) == 0 || !activeBrew)
+  // DEBUG_MSG("Disp: BrewPage3 activeBrew: %d kettleID0: %s\n", activeBrew, structKettles[0].id);
+
+  currentStepName_text.attribute("txt", currentStepName);
+  currentStepRemain_text.attribute("txt", currentStepRemain);
+  nextStepRemain_text.attribute("txt", nextStepRemain);
+  nextStepName_text.attribute("txt", nextStepName);
+  kettleName1_text.attribute("txt", structKettles[0].name);
+  kettleSoll1_text.attribute("txt", structKettles[0].target_temp);
+  kettleIst1_text.attribute("txt", structKettles[0].current_temp);
+  if (strlen(structKettles[1].id) > 0)
   {
-    // DEBUG_MSG("Disp: BrewPage kettle#ID0 not init %s\n", structKettles[0].id);
-    currentStepName_text.attribute("txt", "BrewPage");
-    notification.attribute("txt", notify);
-  }
-  else
-  {
-    currentStepName_text.attribute("txt", currentStepName);
-    currentStepRemain_text.attribute("txt", currentStepRemain);
-    nextStepRemain_text.attribute("txt", nextStepRemain);
-    nextStepName_text.attribute("txt", nextStepName);
-    kettleName1_text.attribute("txt", structKettles[0].name);
-    kettleSoll1_text.attribute("txt", structKettles[0].target_temp);
-    kettleIst1_text.attribute("txt", structKettles[0].current_temp);
     kettleName2_text.attribute("txt", structKettles[1].name);
     kettleSoll2_text.attribute("txt", structKettles[1].target_temp);
     kettleIst2_text.attribute("txt", structKettles[1].current_temp);
+  }
+  if (strlen(structKettles[2].id) > 0)
+  {
     kettleName3_text.attribute("txt", structKettles[2].name);
     kettleSoll3_text.attribute("txt", structKettles[2].target_temp);
     kettleIst3_text.attribute("txt", structKettles[2].current_temp);
+  }
+  if (strlen(structKettles[3].id) > 0)
+  {
     kettleName4_text.attribute("txt", structKettles[3].name);
     kettleSoll4_text.attribute("txt", structKettles[3].target_temp);
     kettleIst4_text.attribute("txt", structKettles[3].current_temp);
-    slider.value(sliderval);
-    notification.attribute("txt", notify);
   }
+  slider.value(sliderval);
+  notification.attribute("txt", notify);
 }
 
 void KettlePage()
 {
-  p1uhrzeit_text.attribute("txt", uhrzeit);
-  // DEBUG_MSG("-KettlePage ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
-  // DEBUG_MSG("--- Calling KettlePage ID: %s strlen: %d \n", structKettles[0].id, strlen(structKettles[0].name));
-  if (strlen(structKettles[0].id) == 0 || !activeBrew)
-  {
-    p1temp_text.attribute("txt", sensors[0].getTotalValueString());
-    p1target_text.attribute("txt", structKettles[0].target_temp);
-    p1current_text.attribute("txt", sensors[0].getName().c_str());
-    // p1notification.attribute("txt", notify);
-  }
-  else
-  {
-    p1current_text.attribute("txt", currentStepName);
-    p1remain_text.attribute("txt", currentStepRemain);
-    p1temp_text.attribute("txt", structKettles[0].current_temp);
-    p1target_text.attribute("txt", structKettles[0].target_temp);
-    p1slider.value(sliderval);
-    p1notification.attribute("txt", notify);
-  }
+  // DEBUG_MSG("Disp: KettlePage3 activeBrew: %d kettleID0: %s\n", activeBrew, structKettles[0].id);
+  p1current_text.attribute("txt", currentStepName);
+  p1remain_text.attribute("txt", currentStepRemain);
+  p1temp_text.attribute("txt", structKettles[0].current_temp);
+  p1target_text.attribute("txt", structKettles[0].target_temp);
+  p1slider.value(sliderval);
+  p1notification.attribute("txt", notify);
 }
-
-/*
-void cbpi4sensor_subscribe()
-{
-  return;
-  if (pubsubClient.connected())
-  {
-
-    for (int i = 0; i < maxKettles; i++)
-    {
-      // char *p;
-      // p = strstr(topic, structKettles[i].sensor);
-      char sensorupdate[45];
-      // = "cbpi/sensordata/" + structKettles[i].sensor;
-      sprintf(sensorupdate, "%s%s", "cbpi/sensordata/", structKettles[i].sensor);
-      DEBUG_MSG("Disp: Subscribing to %s\n", sensorupdate);
-      pubsubClient.subscribe(sensorupdate);
-
-      // if (strstr(cbpi4sensor_topic, structKettles[i].sensor))
-      // {
-      //   DEBUG_MSG("Disp: Subscribing to %s\n", cbpi4sensor_topic);
-      //   pubsubClient.subscribe(cbpi4sensor_topic);
-      // }
-    }
-  }
-}
-
-void cbpi4sensor_unsubscribe()
-{
-  if (pubsubClient.connected())
-  {
-    DEBUG_MSG("Disp: Unsubscribing from %s\n", cbpi4sensor_topic);
-    pubsubClient.unsubscribe(cbpi4sensor_topic);
-  }
-}
-*/
 
 void cbpi4kettle_subscribe()
 {
@@ -482,15 +421,25 @@ void cbpi4notification_handlemqtt(char *payload)
   {
     activeBrew = false;
     if (activePage == 0)
-      currentStepName_text.attribute("txt", "BrewPage");
-    
-    strlcpy(notify,"Waiting for data - start brewing", maxNotifySign);
+    {
+      strlcpy(currentStepName, "BrewPage", maxStepSign);
+      strlcpy(currentStepRemain, "", maxRemainSign);
+      strlcpy(nextStepName, "", maxStepSign);
+      strlcpy(nextStepRemain, "", maxRemainSign);
+      // currentStepName_text.attribute("txt", "BrewPage");
+    }
+    else
+    {
+      strlcpy(currentStepName, sensors[0].getName().c_str(), maxStepSign);
+      // currentStepName_text.attribute("txt", sensors[0].getName().c_str());
+    }
+    strlcpy(notify, "Waiting for data - start brewing", maxNotifySign);
     return;
   }
   if (doc["title"] == "Brewing completed")
   {
     activeBrew = false;
-    strlcpy(notify,"Brewing completed", maxNotifySign);
+    strlcpy(notify, "Brewing completed", maxNotifySign);
     return;
   }
   if (doc["title"] == "Start" || doc["title"] == "Resume")

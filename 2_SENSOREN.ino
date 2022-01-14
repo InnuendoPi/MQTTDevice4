@@ -1,11 +1,11 @@
 class TemperatureSensor
 {
   int sens_err = 0;
-  bool sens_sw = false;          // Events aktivieren
-  bool sens_state = true;        // Fehlerstatus ensor
-  bool sens_isConnected;         // ist der Sensor verbunden
-  float sens_offset = 0.0;       // Offset - Temp kalibrieren
-  float sens_value = -127.0;     // Aktueller Wert
+  bool sens_sw = false;      // Events aktivieren
+  bool sens_state = true;    // Fehlerstatus ensor
+  bool sens_isConnected;     // ist der Sensor verbunden
+  float sens_offset = 0.0;   // Offset - Temp kalibrieren
+  float sens_value = -127.0; // Aktueller Wert
   String sens_name;              // Name für Anzeige auf Website
   unsigned char sens_address[8]; // 1-Wire Adresse
   char sens_mqtttopic[50];       // Für MQTT Kommunikation
@@ -172,7 +172,7 @@ public:
     sprintf(buf, "%s", "0.0");
     if (sens_value == -127.0)
       return buf;
-    
+
     dtostrf((sens_value + sens_offset), 2, 1, buf);
     return buf;
   }
