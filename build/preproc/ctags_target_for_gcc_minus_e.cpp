@@ -3518,7 +3518,7 @@ void setTicker()
   TickerMQTT.config(tickerMQTTCallback, 10000 /* für Ticker Objekt MQTT in ms*/, 0);
   TickerWLAN.config(tickerWLANCallback, 10000 /* für Ticker Objekt WLAN in ms*/, 0);
   TickerNTP.config(tickerNTPCallback, 60 * 60 * 1000 /* Aktualisierung NTP in ms*/, 0);
-  TickerNTP.config(tickerDispCallback, DISP_UPDATE, 0);
+  TickerDisp.config(tickerDispCallback, DISP_UPDATE, 0);
   TickerMQTT.stop();
   TickerWLAN.stop();
 }
