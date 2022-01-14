@@ -50,7 +50,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.05"
+#define Version "4.06"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -466,8 +466,6 @@ void configModeCallback(WiFiManager *myWiFiManager)
 #line 1 "c:\\Arduino\\git\\MQTTDevice4\\0_SETUP.ino"
 void setup()
 {
-  nextion.begin(softSerial);
-  // nextion.debug(Serial);
   Serial.begin(115200);
 
 // Debug Ausgaben prüfen
@@ -553,6 +551,8 @@ void setup()
 
   if (useDisplay)
   {
+    nextion.begin(softSerial);
+    // nextion.debug(Serial);
     pins_used[D1] = true;
     pins_used[D2] = true;
     TickerDisp.start();
@@ -586,15 +586,15 @@ void setupServer()
   server.on("/reqInduction", handleRequestInduction);
   server.on("/reqSearchSensorAdresses", handleRequestSensorAddresses);
   server.on("/reqPins", handlereqPins);
-  server.on("/reqIndu", handleRequestIndu); // Infos der Indu für WebConfig
-  server.on("/setSensor", handleSetSensor); // Sensor ändern
-  server.on("/setActor", handleSetActor);   // Aktor ändern
-  server.on("/setIndu", handleSetIndu);     // Indu ändern
-  server.on("/delSensor", handleDelSensor); // Sensor löschen
-  server.on("/delActor", handleDelActor);   // Aktor löschen
-  server.on("/reboot", rebootDevice);       // reboots the whole Device
+  server.on("/reqIndu", handleRequestIndu);   // Infos der Indu für WebConfig
+  server.on("/setSensor", handleSetSensor);   // Sensor ändern
+  server.on("/setActor", handleSetActor);     // Aktor ändern
+  server.on("/setIndu", handleSetIndu);       // Indu ändern
+  server.on("/delSensor", handleDelSensor);   // Sensor löschen
+  server.on("/delActor", handleDelActor);     // Aktor löschen
+  server.on("/reboot", rebootDevice);         // reboots the whole Device
   server.on("/reqMisc2", handleRequestMisc2); // Misc Infos für WebConfig
-  server.on("/reqMisc", handleRequestMisc); // Misc Infos für WebConfig
+  server.on("/reqMisc", handleRequestMisc);   // Misc Infos für WebConfig
   server.on("/reqFirm", handleRequestFirm);
   server.on("/setMisc", handleSetMisc);           // Misc ändern
   server.on("/startHTTPUpdate", startHTTPUpdate); // Firmware WebUpdate

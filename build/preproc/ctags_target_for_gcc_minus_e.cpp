@@ -243,8 +243,6 @@ void configModeCallback(WiFiManager *myWiFiManager)
 # 1 "c:\\Arduino\\git\\MQTTDevice4\\0_SETUP.ino"
 void setup()
 {
-  nextion.begin(softSerial);
-  // nextion.debug(Serial);
   Serial.begin(115200);
 
 // Debug Ausgaben prüfen
@@ -330,6 +328,8 @@ void setup()
 
   if (useDisplay)
   {
+    nextion.begin(softSerial);
+    // nextion.debug(Serial);
     pins_used[D1] = true;
     pins_used[D2] = true;
     TickerDisp.start();
@@ -2471,7 +2471,7 @@ void handleRequestFirm()
     }
     else
       message = "MQTTDevice4 V ";
-    message += "4.05";
+    message += "4.06";
     goto SendMessage;
   }
 
