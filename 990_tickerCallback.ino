@@ -14,7 +14,9 @@ void brewCallback()
 
 void tickerDispCallback()
 {
+  char ipMQTT[50];
   sprintf_P(uhrzeit, (PGM_P)F("%02d:%02d"), timeClient.getHours(), timeClient.getMinutes());
+  sprintf_P(ipMQTT, (PGM_P)F("%s %s"), nameMDNS, WiFi.localIP().toString().c_str());
   switch (activePage)
   {
   case 0: //BrewPage
@@ -24,6 +26,7 @@ void tickerDispCallback()
       strlcpy(notify, "Waiting for data - start brewing", maxNotifySign);
     }
     uhrzeit_text.attribute("txt", uhrzeit);
+    mqttDevice.attribute("txt", ipMQTT);
     BrewPage();
     break;
   case 1: // KettlePage
@@ -33,7 +36,9 @@ void tickerDispCallback()
       strlcpy(structKettles[0].target_temp, "0", maxTempSign);
       strlcpy(currentStepName, sensors[0].getName().c_str(), maxStepSign);
     }
-    uhrzeit_text.attribute("txt", uhrzeit);
+
+    p1mqttDevice.attribute("txt", ipMQTT);
+    p1uhrzeit_text.attribute("txt", uhrzeit);
     KettlePage();
     break;
   default:

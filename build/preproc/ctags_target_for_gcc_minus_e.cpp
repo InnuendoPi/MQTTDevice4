@@ -216,6 +216,7 @@ NextionComponent kettleIst4_text(nextion, 0, 14);
 NextionComponent kettleSoll4_text(nextion, 0, 18);
 NextionComponent slider(nextion, 0, 9);
 NextionComponent notification(nextion, 0, 19);
+NextionComponent mqttDevice(nextion, 0, 21);
 
 NextionComponent p1uhrzeit_text(nextion, 1, 3);
 NextionComponent p1current_text(nextion, 1, 4);
@@ -224,6 +225,7 @@ NextionComponent p1temp_text(nextion, 1, 1);
 NextionComponent p1target_text(nextion, 1, 2);
 NextionComponent p1slider(nextion, 1, 6);
 NextionComponent p1notification(nextion, 1, 7);
+NextionComponent p1mqttDevice(nextion, 1, 9);
 
 
 
@@ -2471,7 +2473,7 @@ void handleRequestFirm()
     }
     else
       message = "MQTTDevice4 V ";
-    message += "4.06";
+    message += "4.07";
     goto SendMessage;
   }
 
@@ -2892,19 +2894,33 @@ void brewCallback()
 
 void tickerDispCallback()
 {
+  char ipMQTT[50];
   sprintf_P(uhrzeit, (
-# 17 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino" 3
+# 18 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino" 3
                      const char *
-# 17 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino"
+# 18 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino"
                           )((reinterpret_cast<const __FlashStringHelper *>(
-# 17 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino" 3
-                           (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "990_tickerCallback.ino" "." "17" "." "328" "\", \"aSM\", @progbits, 1 #"))) = (
-# 17 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino"
+# 18 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino" 3
+                           (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "990_tickerCallback.ino" "." "18" "." "328" "\", \"aSM\", @progbits, 1 #"))) = (
+# 18 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino"
                            "%02d:%02d"
-# 17 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino" 3
+# 18 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino" 3
                            ); &__pstr__[0];}))
-# 17 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino"
+# 18 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino"
                            ))), timeClient.getHours(), timeClient.getMinutes());
+  sprintf_P(ipMQTT, (
+# 19 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino" 3
+                    const char *
+# 19 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino"
+                         )((reinterpret_cast<const __FlashStringHelper *>(
+# 19 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino" 3
+                          (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "990_tickerCallback.ino" "." "19" "." "329" "\", \"aSM\", @progbits, 1 #"))) = (
+# 19 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino"
+                          "%s %s"
+# 19 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino" 3
+                          ); &__pstr__[0];}))
+# 19 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino"
+                          ))), nameMDNS, WiFi.localIP().toString().c_str());
   switch (activePage)
   {
   case 0: //BrewPage
@@ -2914,6 +2930,7 @@ void tickerDispCallback()
       strlcpy(notify, "Waiting for data - start brewing", 75);
     }
     uhrzeit_text.attribute("txt", uhrzeit);
+    mqttDevice.attribute("txt", ipMQTT);
     BrewPage();
     break;
   case 1: // KettlePage
@@ -2923,7 +2940,9 @@ void tickerDispCallback()
       strlcpy(structKettles[0].target_temp, "0", 10);
       strlcpy(currentStepName, sensors[0].getName().c_str(), 30);
     }
-    uhrzeit_text.attribute("txt", uhrzeit);
+
+    p1mqttDevice.attribute("txt", ipMQTT);
+    p1uhrzeit_text.attribute("txt", uhrzeit);
     KettlePage();
     break;
   default:
@@ -3181,7 +3200,7 @@ void upFirm()
     BearSSL::CertStore certStore;
     int numCerts = certStore.initCertStore(LittleFS, 
 # 156 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino" 3
-                                                    (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "991_HTTPUpdate.ino" "." "156" "." "329" "\", \"aSM\", @progbits, 1 #"))) = (
+                                                    (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "991_HTTPUpdate.ino" "." "156" "." "330" "\", \"aSM\", @progbits, 1 #"))) = (
 # 156 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
                                                     "/certs.idx"
 # 156 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino" 3
@@ -3189,7 +3208,7 @@ void upFirm()
 # 156 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
                                                                       , 
 # 156 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino" 3
-                                                                        (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "991_HTTPUpdate.ino" "." "156" "." "330" "\", \"aSM\", @progbits, 1 #"))) = (
+                                                                        (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "991_HTTPUpdate.ino" "." "156" "." "331" "\", \"aSM\", @progbits, 1 #"))) = (
 # 156 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
                                                                         "/certs.ar"
 # 156 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino" 3
@@ -3198,7 +3217,7 @@ void upFirm()
                                                                                          );
     Serial.print(((reinterpret_cast<const __FlashStringHelper *>(
 # 157 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino" 3
-                (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "991_HTTPUpdate.ino" "." "157" "." "331" "\", \"aSM\", @progbits, 1 #"))) = (
+                (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "991_HTTPUpdate.ino" "." "157" "." "332" "\", \"aSM\", @progbits, 1 #"))) = (
 # 157 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
                 "Number of CA certs read: "
 # 157 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino" 3
@@ -3210,7 +3229,7 @@ void upFirm()
     {
         Serial.println(((reinterpret_cast<const __FlashStringHelper *>(
 # 161 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino" 3
-                      (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "991_HTTPUpdate.ino" "." "161" "." "332" "\", \"aSM\", @progbits, 1 #"))) = (
+                      (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "991_HTTPUpdate.ino" "." "161" "." "333" "\", \"aSM\", @progbits, 1 #"))) = (
 # 161 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
                       "*** SYSINFO: No certs found. Did you run certs-from-mozill.py and upload the LittleFS directory before running?"
 # 161 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino" 3

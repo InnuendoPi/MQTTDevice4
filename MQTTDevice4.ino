@@ -48,7 +48,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.06"
+#define Version "4.07"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -251,6 +251,7 @@ NextionComponent kettleIst4_text(nextion, 0, 14);
 NextionComponent kettleSoll4_text(nextion, 0, 18);
 NextionComponent slider(nextion, 0, 9);
 NextionComponent notification(nextion, 0, 19);
+NextionComponent mqttDevice(nextion, 0, 21);
 
 NextionComponent p1uhrzeit_text(nextion, 1, 3);
 NextionComponent p1current_text(nextion, 1, 4);
@@ -259,6 +260,7 @@ NextionComponent p1temp_text(nextion, 1, 1);
 NextionComponent p1target_text(nextion, 1, 2);
 NextionComponent p1slider(nextion, 1, 6);
 NextionComponent p1notification(nextion, 1, 7);
+NextionComponent p1mqttDevice(nextion, 1, 9);
 
 #define ALARM_ON 1
 #define ALARM_OFF 2

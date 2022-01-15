@@ -50,7 +50,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.06"
+#define Version "4.07"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -253,6 +253,7 @@ NextionComponent kettleIst4_text(nextion, 0, 14);
 NextionComponent kettleSoll4_text(nextion, 0, 18);
 NextionComponent slider(nextion, 0, 9);
 NextionComponent notification(nextion, 0, 19);
+NextionComponent mqttDevice(nextion, 0, 21);
 
 NextionComponent p1uhrzeit_text(nextion, 1, 3);
 NextionComponent p1current_text(nextion, 1, 4);
@@ -261,6 +262,7 @@ NextionComponent p1temp_text(nextion, 1, 1);
 NextionComponent p1target_text(nextion, 1, 2);
 NextionComponent p1slider(nextion, 1, 6);
 NextionComponent p1notification(nextion, 1, 7);
+NextionComponent p1mqttDevice(nextion, 1, 9);
 
 #define ALARM_ON 1
 #define ALARM_OFF 2
@@ -270,7 +272,7 @@ NextionComponent p1notification(nextion, 1, 7);
 const int PIN_BUZZER = D8; // Buzzer
 bool startBuzzer = false;  // Aktiviere Buzzer
 
-#line 271 "c:\\Arduino\\git\\MQTTDevice4\\MQTTDevice4.ino"
+#line 273 "c:\\Arduino\\git\\MQTTDevice4\\MQTTDevice4.ino"
 void configModeCallback(WiFiManager *myWiFiManager);
 #line 1 "c:\\Arduino\\git\\MQTTDevice4\\0_SETUP.ino"
 void setup();
@@ -372,13 +374,13 @@ bool saveConfig();
 void brewCallback();
 #line 15 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino"
 void tickerDispCallback();
-#line 45 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino"
-void tickerSenCallback();
 #line 50 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino"
+void tickerSenCallback();
+#line 55 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino"
 void tickerMQTTCallback();
-#line 93 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino"
+#line 98 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino"
 void tickerWLANCallback();
-#line 131 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino"
+#line 136 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino"
 void tickerNTPCallback();
 #line 1 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
 void upIn();
@@ -454,7 +456,7 @@ void handleFileDelete();
 void handleFileCreate();
 #line 129 "c:\\Arduino\\git\\MQTTDevice4\\FSBrowser.ino"
 void handleFileList();
-#line 271 "c:\\Arduino\\git\\MQTTDevice4\\MQTTDevice4.ino"
+#line 273 "c:\\Arduino\\git\\MQTTDevice4\\MQTTDevice4.ino"
 void configModeCallback(WiFiManager *myWiFiManager)
 {
     Serial.print("*** SYSINFO: MQTTDevice in AP mode ");
@@ -2962,7 +2964,9 @@ void brewCallback()
 
 void tickerDispCallback()
 {
+  char ipMQTT[50];
   sprintf_P(uhrzeit, (PGM_P)F("%02d:%02d"), timeClient.getHours(), timeClient.getMinutes());
+  sprintf_P(ipMQTT, (PGM_P)F("%s %s"), nameMDNS, WiFi.localIP().toString().c_str());
   switch (activePage)
   {
   case 0: //BrewPage
@@ -2972,6 +2976,7 @@ void tickerDispCallback()
       strlcpy(notify, "Waiting for data - start brewing", maxNotifySign);
     }
     uhrzeit_text.attribute("txt", uhrzeit);
+    mqttDevice.attribute("txt", ipMQTT);
     BrewPage();
     break;
   case 1: // KettlePage
@@ -2981,7 +2986,9 @@ void tickerDispCallback()
       strlcpy(structKettles[0].target_temp, "0", maxTempSign);
       strlcpy(currentStepName, sensors[0].getName().c_str(), maxStepSign);
     }
-    uhrzeit_text.attribute("txt", uhrzeit);
+
+    p1mqttDevice.attribute("txt", ipMQTT);
+    p1uhrzeit_text.attribute("txt", uhrzeit);
     KettlePage();
     break;
   default:
