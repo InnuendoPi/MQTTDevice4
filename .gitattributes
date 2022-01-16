@@ -6,4 +6,4 @@
 *.h linguist-language=Arduino
 *.js linguist-detectable=false
 *.css linguist-detectable=false
-
+*.gcode = linguist-detectable=false
