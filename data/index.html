@@ -6,10 +6,11 @@
   <title>MQTTDevice4</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="bootstrap.min.css">
+  <link rel="shortcut icon" href="#">
   <!-- <link rel="stylesheet" href="styles.min.css"> -->
 </head>
 
-<body onload="setInterval(refresh, 3000)">
+<body onload="setInterval(refresh, 5000)">
   <div class="py-2">
     <div class="container">
       <div class="row">
@@ -234,7 +235,7 @@
             </li>
             <li class="nav-item">
               <a class="nav-link" id="misc4-tab" data-toggle="tab" href="#misc4" role="tab" aria-controls="misc4"
-                aria-selected="true">Restore</a>
+                aria-selected="true">Reset to defaults</a>
             </li>
           </ul>
           <div class="tab-content" id="miscTabContent">
@@ -289,11 +290,11 @@
               <br />
               <div class="form-check">
                 <input class="form-check-input" type="checkbox" value="" id="modal_misc_reset" />
-                <label class="form-check-label" for="modal_misc_reset">Reset to AP mode (remove WLAN settings)</label>
+                <label class="form-check-label" for="modal_misc_reset">Reset WLAN settings (reboot in access point mode)</label>
               </div>
               <div class="form-check">
                 <input class="form-check-input" type="checkbox" value="" id="modal_misc_clear" />
-                <label class="form-check-label" for="modal_misc_clear">Reset to defaults (wipe)</label>
+                <label class="form-check-label" for="modal_misc_clear">Reset to defaults</label>
               </div>
               <br />
               <label class="form-check-label">Development</label>
@@ -719,7 +720,7 @@
       var reset = modal.find('#modal_misc_reset').prop("checked");
 
       $.ajax({
-        url: '/setMisc?reset=' + reset + '&clear=' + clear + '&MQTTHOST=' + mqttaddress + '&enable_mqtt=' + enable_mqtt + '&delay_mqtt=' + delay_mqtt + '&del_sen_act=' + del_sen_act + '&del_sen_ind=' + del_sen_ind + '&mdns=' + mdns + '&mdns_name=' + mdns_name + '&buzzer=' + buzzer + '&display=' + display + + '&devbranch=' + devbranch,
+        url: '/setMisc?reset=' + reset + '&clear=' + clear + '&MQTTHOST=' + mqttaddress + '&enable_mqtt=' + enable_mqtt + '&delay_mqtt=' + delay_mqtt + '&del_sen_act=' + del_sen_act + '&del_sen_ind=' + del_sen_ind + '&mdns=' + mdns + '&mdns_name=' + mdns_name + '&buzzer=' + buzzer + '&display=' + display + '&devbranch=' + devbranch,
         type: 'POST',
         dataType: 'html',
         async: false,

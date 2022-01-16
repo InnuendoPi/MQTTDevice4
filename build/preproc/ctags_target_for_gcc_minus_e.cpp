@@ -3062,8 +3062,14 @@ void upIn()
     clientup->setInsecure();
 
     HTTPClient https;
+    String indexURL;
+    if (LittleFS.exists("/dev.txt"))
+        indexURL = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/index.html";
+    else
+        indexURL = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/index.html";
 
-    if (https.begin(*clientup, "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/index.html"))
+    // if (https.begin(*clientup, "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/index.html"))
+    if (https.begin(*clientup, indexURL))
     {
         int httpCode = https.GET();
         if (httpCode > 0)
@@ -3147,8 +3153,14 @@ void upCerts()
     //clientup->setFingerprint(fingerprint);
     clientup->setInsecure();
     HTTPClient https;
+    String certURL;
+    if (LittleFS.exists("/dev.txt"))
+        certURL = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/ce.rts";
+    else
+        certURL = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/ce.rts";
 
-    if (https.begin(*clientup, "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/Info/ce.rts"))
+
+    if (https.begin(*clientup, certURL))
     {
         int httpCode = https.GET();
         if (httpCode > 0)
@@ -3210,42 +3222,42 @@ void upFirm()
 {
     BearSSL::CertStore certStore;
     int numCerts = certStore.initCertStore(LittleFS, 
-# 156 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino" 3
-                                                    (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "991_HTTPUpdate.ino" "." "156" "." "330" "\", \"aSM\", @progbits, 1 #"))) = (
-# 156 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
+# 168 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino" 3
+                                                    (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "991_HTTPUpdate.ino" "." "168" "." "330" "\", \"aSM\", @progbits, 1 #"))) = (
+# 168 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
                                                     "/certs.idx"
-# 156 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino" 3
+# 168 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino" 3
                                                     ); &__pstr__[0];}))
-# 156 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
+# 168 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
                                                                       , 
-# 156 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino" 3
-                                                                        (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "991_HTTPUpdate.ino" "." "156" "." "331" "\", \"aSM\", @progbits, 1 #"))) = (
-# 156 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
+# 168 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino" 3
+                                                                        (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "991_HTTPUpdate.ino" "." "168" "." "331" "\", \"aSM\", @progbits, 1 #"))) = (
+# 168 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
                                                                         "/certs.ar"
-# 156 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino" 3
+# 168 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino" 3
                                                                         ); &__pstr__[0];}))
-# 156 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
+# 168 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
                                                                                          );
     Serial.print(((reinterpret_cast<const __FlashStringHelper *>(
-# 157 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino" 3
-                (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "991_HTTPUpdate.ino" "." "157" "." "332" "\", \"aSM\", @progbits, 1 #"))) = (
-# 157 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
+# 169 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino" 3
+                (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "991_HTTPUpdate.ino" "." "169" "." "332" "\", \"aSM\", @progbits, 1 #"))) = (
+# 169 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
                 "Number of CA certs read: "
-# 157 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino" 3
+# 169 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino" 3
                 ); &__pstr__[0];}))
-# 157 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
+# 169 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
                 ))));
     Serial.println(numCerts);
     if (numCerts == 0)
     {
         Serial.println(((reinterpret_cast<const __FlashStringHelper *>(
-# 161 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino" 3
-                      (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "991_HTTPUpdate.ino" "." "161" "." "333" "\", \"aSM\", @progbits, 1 #"))) = (
-# 161 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
+# 173 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino" 3
+                      (__extension__({static const char __pstr__[] __attribute__((__aligned__(4))) __attribute__((section( "\".irom0.pstr." "991_HTTPUpdate.ino" "." "173" "." "333" "\", \"aSM\", @progbits, 1 #"))) = (
+# 173 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
                       "*** SYSINFO: No certs found. Did you run certs-from-mozill.py and upload the LittleFS directory before running?"
-# 161 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino" 3
+# 173 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino" 3
                       ); &__pstr__[0];}))
-# 161 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
+# 173 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
                       ))));
         return; // Can't connect to anything w/o certs!
     }
@@ -3260,10 +3272,10 @@ void upFirm()
     ESPhttpUpdate.onError(update_error);
 
     t_httpUpdate_return ret;
-    if (!devBranch)
-        ret = ESPhttpUpdate.update(clientFirm, "https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/build/MQTTDevice4.ino.bin");
-    else
+    if (LittleFS.exists("/dev.txt"))
         ret = ESPhttpUpdate.update(clientFirm, "https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/build/MQTTDevice4.ino.bin");
+    else
+        ret = ESPhttpUpdate.update(clientFirm, "https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/build/MQTTDevice4.ino.bin");
 
     // t_httpUpdate_return ret = ESPhttpUpdate.update(clientFirm, "https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/build/MQTTDevice4.ino.bin");
 
@@ -3565,8 +3577,8 @@ void setTicker()
 {
   // Ticker Objekte
   TickerSen.config(tickerSenCallback, SEN_UPDATE, 0);
-  TickerMQTT.config(tickerMQTTCallback, 10000 /* für Ticker Objekt MQTT in ms*/, 0);
-  TickerWLAN.config(tickerWLANCallback, 10000 /* für Ticker Objekt WLAN in ms*/, 0);
+  TickerMQTT.config(tickerMQTTCallback, 20000 /* für Ticker Objekt MQTT in ms*/, 0);
+  TickerWLAN.config(tickerWLANCallback, 20000 /* für Ticker Objekt WLAN in ms*/, 0);
   TickerNTP.config(tickerNTPCallback, 60 * 60 * 1000 /* Aktualisierung NTP in ms*/, 0);
   TickerDisp.config(tickerDispCallback, DISP_UPDATE, 0);
   TickerMQTT.stop();
@@ -3938,15 +3950,16 @@ void listenerSystem(int event, int parm) // System event listener
         line = char(fsUploadFile.read());
       }
       fsUploadFile.close();
+      LittleFS.remove("/log3.txt");
       if (LittleFS.exists("/dev.txt")) // WebUpdate Firmware
       {
           Serial.printf("*** SYSINFO: Update development firmware retries count %s\n", line.c_str());
           LittleFS.remove("/dev.txt");
       }
       else
+      {
         Serial.printf("*** SYSINFO: Update firmware retries count %s\n", line.c_str());
-
-      LittleFS.remove("/log3.txt");
+      }
       alertState = true;
     }
     break;

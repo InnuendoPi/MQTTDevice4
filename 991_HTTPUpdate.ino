@@ -6,8 +6,14 @@ void upIn()
     clientup->setInsecure();
 
     HTTPClient https;
+    String indexURL;
+    if (LittleFS.exists("/dev.txt"))
+        indexURL = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/index.html";
+    else
+        indexURL = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/index.html";
 
-    if (https.begin(*clientup, "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/index.html"))
+    // if (https.begin(*clientup, "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/index.html"))
+    if (https.begin(*clientup, indexURL))
     {
         int httpCode = https.GET();
         if (httpCode > 0)
@@ -91,8 +97,14 @@ void upCerts()
     //clientup->setFingerprint(fingerprint);
     clientup->setInsecure();
     HTTPClient https;
+    String certURL;
+    if (LittleFS.exists("/dev.txt"))
+        certURL = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/ce.rts";
+    else
+        certURL = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/ce.rts";
 
-    if (https.begin(*clientup, "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/Info/ce.rts"))
+
+    if (https.begin(*clientup, certURL))
     {
         int httpCode = https.GET();
         if (httpCode > 0)
@@ -172,10 +184,10 @@ void upFirm()
     ESPhttpUpdate.onError(update_error);
 
     t_httpUpdate_return ret;
-    if (!devBranch)
-        ret = ESPhttpUpdate.update(clientFirm, "https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/build/MQTTDevice4.ino.bin");
-    else
+    if (LittleFS.exists("/dev.txt"))
         ret = ESPhttpUpdate.update(clientFirm, "https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/build/MQTTDevice4.ino.bin");
+    else
+        ret = ESPhttpUpdate.update(clientFirm, "https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/build/MQTTDevice4.ino.bin");
 
     // t_httpUpdate_return ret = ESPhttpUpdate.update(clientFirm, "https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/build/MQTTDevice4.ino.bin");
 
@@ -291,7 +303,7 @@ void startHTTPUpdate()
     fsUploadFile = LittleFS.open("/update.txt", "w");
     if (!fsUploadFile)
     {
-        DEBUG_MSG("%s\n", "*** Eroor WebUpdate create file (LittleFS)");
+        DEBUG_MSG("%s\n", "*** Error WebUpdate create file (LittleFS)");
         return;
     }
     else
@@ -304,7 +316,7 @@ void startHTTPUpdate()
         fsUploadFile = LittleFS.open("/dev.txt", "w");
         if (!fsUploadFile)
         {
-            DEBUG_MSG("%s\n", "*** Eroor WebUpdate create file (LittleFS)");
+            DEBUG_MSG("%s\n", "*** Error WebUpdate create file (LittleFS)");
             return;
         }
         else

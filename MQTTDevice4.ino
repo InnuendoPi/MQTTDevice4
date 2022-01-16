@@ -155,8 +155,8 @@ bool mqtt_state = true;           // Status MQTT
 bool devBranch = false;           // Check out development branch
 
 // Event handling Zeitintervall für Reconnects WLAN und MQTT
-#define tickerWLAN 10000 // für Ticker Objekt WLAN in ms
-#define tickerMQTT 10000 // für Ticker Objekt MQTT in ms
+#define tickerWLAN 20000 // für Ticker Objekt WLAN in ms
+#define tickerMQTT 20000 // für Ticker Objekt MQTT in ms
 
 // Event handling Standard Verzögerungen
 unsigned long wait_on_error_mqtt = 120000;             // How long should device wait between tries to reconnect WLAN      - approx in ms

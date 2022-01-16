@@ -157,8 +157,8 @@ bool mqtt_state = true;           // Status MQTT
 bool devBranch = false;           // Check out development branch
 
 // Event handling Zeitintervall für Reconnects WLAN und MQTT
-#define tickerWLAN 10000 // für Ticker Objekt WLAN in ms
-#define tickerMQTT 10000 // für Ticker Objekt MQTT in ms
+#define tickerWLAN 20000 // für Ticker Objekt WLAN in ms
+#define tickerMQTT 20000 // für Ticker Objekt MQTT in ms
 
 // Event handling Standard Verzögerungen
 unsigned long wait_on_error_mqtt = 120000;             // How long should device wait between tries to reconnect WLAN      - approx in ms
@@ -385,21 +385,21 @@ void tickerWLANCallback();
 void tickerNTPCallback();
 #line 1 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
 void upIn();
-#line 87 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
+#line 93 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
 void upCerts();
-#line 153 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
+#line 165 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
 void upFirm();
-#line 202 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
+#line 214 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
 void updateSys();
-#line 288 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
+#line 300 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
 void startHTTPUpdate();
-#line 319 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
+#line 331 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
 void update_progress(int cur, int total);
-#line 324 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
+#line 336 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
 void update_started();
-#line 329 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
+#line 341 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
 void update_finished();
-#line 335 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
+#line 347 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
 void update_error(int err);
 #line 1 "c:\\Arduino\\git\\MQTTDevice4\\9_SYSTEM.ino"
 void millis2wait(const int &value);
@@ -429,19 +429,19 @@ unsigned char convertCharToHex(char ch);
 void sendAlarm(const uint8_t &setAlarm);
 #line 1 "c:\\Arduino\\git\\MQTTDevice4\\EventManager.ino"
 void listenerSystem(int event, int parm);
-#line 219 "c:\\Arduino\\git\\MQTTDevice4\\EventManager.ino"
+#line 220 "c:\\Arduino\\git\\MQTTDevice4\\EventManager.ino"
 void listenerSensors(int event, int parm);
-#line 322 "c:\\Arduino\\git\\MQTTDevice4\\EventManager.ino"
+#line 323 "c:\\Arduino\\git\\MQTTDevice4\\EventManager.ino"
 void listenerActors(int event, int parm);
-#line 363 "c:\\Arduino\\git\\MQTTDevice4\\EventManager.ino"
+#line 364 "c:\\Arduino\\git\\MQTTDevice4\\EventManager.ino"
 void listenerInduction(int event, int parm);
-#line 404 "c:\\Arduino\\git\\MQTTDevice4\\EventManager.ino"
+#line 405 "c:\\Arduino\\git\\MQTTDevice4\\EventManager.ino"
 void cbpiEventSystem(int parm);
-#line 409 "c:\\Arduino\\git\\MQTTDevice4\\EventManager.ino"
+#line 410 "c:\\Arduino\\git\\MQTTDevice4\\EventManager.ino"
 void cbpiEventSensors(int parm);
-#line 413 "c:\\Arduino\\git\\MQTTDevice4\\EventManager.ino"
+#line 414 "c:\\Arduino\\git\\MQTTDevice4\\EventManager.ino"
 void cbpiEventActors(int parm);
-#line 417 "c:\\Arduino\\git\\MQTTDevice4\\EventManager.ino"
+#line 418 "c:\\Arduino\\git\\MQTTDevice4\\EventManager.ino"
 void cbpiEventInduction(int parm);
 #line 2 "c:\\Arduino\\git\\MQTTDevice4\\FSBrowser.ino"
 String formatBytes(size_t bytes);
@@ -3109,8 +3109,14 @@ void upIn()
     clientup->setInsecure();
 
     HTTPClient https;
+    String indexURL;
+    if (LittleFS.exists("/dev.txt"))
+        indexURL = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/index.html";
+    else
+        indexURL = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/index.html";
 
-    if (https.begin(*clientup, "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/index.html"))
+    // if (https.begin(*clientup, "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/index.html"))
+    if (https.begin(*clientup, indexURL))
     {
         int httpCode = https.GET();
         if (httpCode > 0)
@@ -3194,8 +3200,14 @@ void upCerts()
     //clientup->setFingerprint(fingerprint);
     clientup->setInsecure();
     HTTPClient https;
+    String certURL;
+    if (LittleFS.exists("/dev.txt"))
+        certURL = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/ce.rts";
+    else
+        certURL = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/ce.rts";
 
-    if (https.begin(*clientup, "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/Info/ce.rts"))
+
+    if (https.begin(*clientup, certURL))
     {
         int httpCode = https.GET();
         if (httpCode > 0)
@@ -3275,10 +3287,10 @@ void upFirm()
     ESPhttpUpdate.onError(update_error);
 
     t_httpUpdate_return ret;
-    if (!devBranch)
-        ret = ESPhttpUpdate.update(clientFirm, "https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/build/MQTTDevice4.ino.bin");
-    else
+    if (LittleFS.exists("/dev.txt"))
         ret = ESPhttpUpdate.update(clientFirm, "https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/build/MQTTDevice4.ino.bin");
+    else
+        ret = ESPhttpUpdate.update(clientFirm, "https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/build/MQTTDevice4.ino.bin");
 
     // t_httpUpdate_return ret = ESPhttpUpdate.update(clientFirm, "https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/build/MQTTDevice4.ino.bin");
 
@@ -3394,7 +3406,7 @@ void startHTTPUpdate()
     fsUploadFile = LittleFS.open("/update.txt", "w");
     if (!fsUploadFile)
     {
-        DEBUG_MSG("%s\n", "*** Eroor WebUpdate create file (LittleFS)");
+        DEBUG_MSG("%s\n", "*** Error WebUpdate create file (LittleFS)");
         return;
     }
     else
@@ -3407,7 +3419,7 @@ void startHTTPUpdate()
         fsUploadFile = LittleFS.open("/dev.txt", "w");
         if (!fsUploadFile)
         {
-            DEBUG_MSG("%s\n", "*** Eroor WebUpdate create file (LittleFS)");
+            DEBUG_MSG("%s\n", "*** Error WebUpdate create file (LittleFS)");
             return;
         }
         else
@@ -3937,15 +3949,16 @@ void listenerSystem(int event, int parm) // System event listener
         line = char(fsUploadFile.read());
       }
       fsUploadFile.close();
+      LittleFS.remove("/log3.txt");
       if (LittleFS.exists("/dev.txt")) // WebUpdate Firmware
       {
           Serial.printf("*** SYSINFO: Update development firmware retries count %s\n", line.c_str());
           LittleFS.remove("/dev.txt");
       }
       else
+      {
         Serial.printf("*** SYSINFO: Update firmware retries count %s\n", line.c_str());
-      
-      LittleFS.remove("/log3.txt");
+      }
       alertState = true;
     }
     break;
