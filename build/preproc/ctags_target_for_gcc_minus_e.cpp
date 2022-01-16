@@ -126,6 +126,7 @@ bool StopOnMQTTError = false; // Event handling für MQTT Fehler
 unsigned long mqttconnectlasttry; // Zeitstempel bei Fehler MQTT
 unsigned long wlanconnectlasttry; // Zeitstempel bei Fehler WLAN
 bool mqtt_state = true; // Status MQTT
+bool devBranch = false; // Check out development branch
 
 // Event handling Zeitintervall für Reconnects WLAN und MQTT
 
@@ -161,7 +162,7 @@ int inductionStatus = 0;
 
 // FSBrowser
 File fsUploadFile; // a File object to temporarily store the received file
-# 200 "c:\\Arduino\\git\\MQTTDevice4\\MQTTDevice4.ino"
+# 201 "c:\\Arduino\\git\\MQTTDevice4\\MQTTDevice4.ino"
 bool useDisplay = false;
 int startPage = 1; // Startseite: BrewPage = 0 Kettlepage = 1 // not yet ready ActorPage = 2 SensorPage = 3 FermenterPage = 4
 int activePage = 1; // die aktuell angeziegte Seite
@@ -2446,6 +2447,7 @@ void handleRequestMisc()
   doc["mdns"] = startMDNS;
   doc["buzzer"] = startBuzzer;
   doc["display"] = useDisplay;
+  doc["devbranch"] = devBranch;
   doc["enable_mqtt"] = StopOnMQTTError;
   doc["delay_mqtt"] = wait_on_error_mqtt / 1000;
   doc["del_sen_act"] = wait_on_Sensor_error_actor / 1000;
@@ -2514,6 +2516,10 @@ void handleSetMisc()
     if (server.argName(i) == "display")
     {
       useDisplay = checkBool(server.arg(i));
+    }
+    if (server.argName(i) == "devbranch")
+    {
+      devBranch = checkBool(server.arg(i));
     }
     if (server.argName(i) == "mdns_name")
     {
@@ -2702,6 +2708,10 @@ bool loadConfig()
   if (miscObj["display"] || miscObj["display"] == "1")
     useDisplay = true;
   ;
+  devBranch = false;
+  if (miscObj["devbranch"] || miscObj["devbranch"] == "1")
+    devBranch = true;
+  ;
 
   if (miscObj.containsKey("mdns_name"))
     strlcpy(nameMDNS, miscObj["mdns_name"], sizeof(nameMDNS));
@@ -2827,6 +2837,7 @@ bool saveConfig()
 
   miscObj["buzzer"] = (int)startBuzzer;
   miscObj["display"] = (int)useDisplay;
+  miscObj["devbranch"] = (int)devBranch;
   miscObj["mdns_name"] = nameMDNS;
   miscObj["mdns"] = (int)startMDNS;
   miscObj["MQTTHOST"] = mqtthost;
@@ -3248,7 +3259,13 @@ void upFirm()
     //ESPhttpUpdate.onProgress(update_progress);
     ESPhttpUpdate.onError(update_error);
 
-    t_httpUpdate_return ret = ESPhttpUpdate.update(clientFirm, "https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/build/MQTTDevice4.ino.bin");
+    t_httpUpdate_return ret;
+    if (!devBranch)
+        ret = ESPhttpUpdate.update(clientFirm, "https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/build/MQTTDevice4.ino.bin");
+    else
+        ret = ESPhttpUpdate.update(clientFirm, "https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/build/MQTTDevice4.ino.bin");
+
+    // t_httpUpdate_return ret = ESPhttpUpdate.update(clientFirm, "https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/build/MQTTDevice4.ino.bin");
 
     switch (ret)
     {
@@ -3369,6 +3386,20 @@ void startHTTPUpdate()
     {
         int bytesWritten = fsUploadFile.print("0");
         fsUploadFile.close();
+    }
+    if (devBranch)
+    {
+        fsUploadFile = LittleFS.open("/dev.txt", "w");
+        if (!fsUploadFile)
+        {
+            ;
+            return;
+        }
+        else
+        {
+            int bytesWritten = fsUploadFile.print("0");
+            fsUploadFile.close();
+        }
     }
     cbpiEventSystem(11);
 }
@@ -3907,7 +3938,14 @@ void listenerSystem(int event, int parm) // System event listener
         line = char(fsUploadFile.read());
       }
       fsUploadFile.close();
-      Serial.printf("*** SYSINFO: Update firmware retries count %s\n", line.c_str());
+      if (LittleFS.exists("/dev.txt")) // WebUpdate Firmware
+      {
+          Serial.printf("*** SYSINFO: Update development firmware retries count %s\n", line.c_str());
+          LittleFS.remove("/dev.txt");
+      }
+      else
+        Serial.printf("*** SYSINFO: Update firmware retries count %s\n", line.c_str());
+
       LittleFS.remove("/log3.txt");
       alertState = true;
     }

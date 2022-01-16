@@ -154,6 +154,7 @@ bool StopOnMQTTError = false;     // Event handling für MQTT Fehler
 unsigned long mqttconnectlasttry; // Zeitstempel bei Fehler MQTT
 unsigned long wlanconnectlasttry; // Zeitstempel bei Fehler WLAN
 bool mqtt_state = true;           // Status MQTT
+bool devBranch = false;           // Check out development branch
 
 // Event handling Zeitintervall für Reconnects WLAN und MQTT
 #define tickerWLAN 10000 // für Ticker Objekt WLAN in ms
@@ -272,7 +273,7 @@ NextionComponent p1mqttDevice(nextion, 1, 9);
 const int PIN_BUZZER = D8; // Buzzer
 bool startBuzzer = false;  // Aktiviere Buzzer
 
-#line 273 "c:\\Arduino\\git\\MQTTDevice4\\MQTTDevice4.ino"
+#line 274 "c:\\Arduino\\git\\MQTTDevice4\\MQTTDevice4.ino"
 void configModeCallback(WiFiManager *myWiFiManager);
 #line 1 "c:\\Arduino\\git\\MQTTDevice4\\0_SETUP.ino"
 void setup();
@@ -358,17 +359,17 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length);
 void handleRequestMisc2();
 #line 157 "c:\\Arduino\\git\\MQTTDevice4\\7_WEB.ino"
 void handleRequestMisc();
-#line 179 "c:\\Arduino\\git\\MQTTDevice4\\7_WEB.ino"
+#line 180 "c:\\Arduino\\git\\MQTTDevice4\\7_WEB.ino"
 void handleRequestFirm();
-#line 200 "c:\\Arduino\\git\\MQTTDevice4\\7_WEB.ino"
+#line 201 "c:\\Arduino\\git\\MQTTDevice4\\7_WEB.ino"
 void handleSetMisc();
-#line 269 "c:\\Arduino\\git\\MQTTDevice4\\7_WEB.ino"
+#line 274 "c:\\Arduino\\git\\MQTTDevice4\\7_WEB.ino"
 void rebootDevice();
 #line 1 "c:\\Arduino\\git\\MQTTDevice4\\8_CONFIGFILE.ino"
 bool loadConfig();
-#line 183 "c:\\Arduino\\git\\MQTTDevice4\\8_CONFIGFILE.ino"
+#line 187 "c:\\Arduino\\git\\MQTTDevice4\\8_CONFIGFILE.ino"
 void saveConfigCallback();
-#line 197 "c:\\Arduino\\git\\MQTTDevice4\\8_CONFIGFILE.ino"
+#line 201 "c:\\Arduino\\git\\MQTTDevice4\\8_CONFIGFILE.ino"
 bool saveConfig();
 #line 1 "c:\\Arduino\\git\\MQTTDevice4\\990_tickerCallback.ino"
 void brewCallback();
@@ -388,17 +389,17 @@ void upIn();
 void upCerts();
 #line 153 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
 void upFirm();
-#line 196 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
+#line 202 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
 void updateSys();
-#line 282 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
+#line 288 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
 void startHTTPUpdate();
-#line 299 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
+#line 319 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
 void update_progress(int cur, int total);
-#line 304 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
+#line 324 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
 void update_started();
-#line 309 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
+#line 329 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
 void update_finished();
-#line 315 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
+#line 335 "c:\\Arduino\\git\\MQTTDevice4\\991_HTTPUpdate.ino"
 void update_error(int err);
 #line 1 "c:\\Arduino\\git\\MQTTDevice4\\9_SYSTEM.ino"
 void millis2wait(const int &value);
@@ -428,19 +429,19 @@ unsigned char convertCharToHex(char ch);
 void sendAlarm(const uint8_t &setAlarm);
 #line 1 "c:\\Arduino\\git\\MQTTDevice4\\EventManager.ino"
 void listenerSystem(int event, int parm);
-#line 212 "c:\\Arduino\\git\\MQTTDevice4\\EventManager.ino"
+#line 219 "c:\\Arduino\\git\\MQTTDevice4\\EventManager.ino"
 void listenerSensors(int event, int parm);
-#line 315 "c:\\Arduino\\git\\MQTTDevice4\\EventManager.ino"
+#line 322 "c:\\Arduino\\git\\MQTTDevice4\\EventManager.ino"
 void listenerActors(int event, int parm);
-#line 356 "c:\\Arduino\\git\\MQTTDevice4\\EventManager.ino"
+#line 363 "c:\\Arduino\\git\\MQTTDevice4\\EventManager.ino"
 void listenerInduction(int event, int parm);
-#line 397 "c:\\Arduino\\git\\MQTTDevice4\\EventManager.ino"
+#line 404 "c:\\Arduino\\git\\MQTTDevice4\\EventManager.ino"
 void cbpiEventSystem(int parm);
-#line 402 "c:\\Arduino\\git\\MQTTDevice4\\EventManager.ino"
+#line 409 "c:\\Arduino\\git\\MQTTDevice4\\EventManager.ino"
 void cbpiEventSensors(int parm);
-#line 406 "c:\\Arduino\\git\\MQTTDevice4\\EventManager.ino"
+#line 413 "c:\\Arduino\\git\\MQTTDevice4\\EventManager.ino"
 void cbpiEventActors(int parm);
-#line 410 "c:\\Arduino\\git\\MQTTDevice4\\EventManager.ino"
+#line 417 "c:\\Arduino\\git\\MQTTDevice4\\EventManager.ino"
 void cbpiEventInduction(int parm);
 #line 2 "c:\\Arduino\\git\\MQTTDevice4\\FSBrowser.ino"
 String formatBytes(size_t bytes);
@@ -456,7 +457,7 @@ void handleFileDelete();
 void handleFileCreate();
 #line 129 "c:\\Arduino\\git\\MQTTDevice4\\FSBrowser.ino"
 void handleFileList();
-#line 273 "c:\\Arduino\\git\\MQTTDevice4\\MQTTDevice4.ino"
+#line 274 "c:\\Arduino\\git\\MQTTDevice4\\MQTTDevice4.ino"
 void configModeCallback(WiFiManager *myWiFiManager)
 {
     Serial.print("*** SYSINFO: MQTTDevice in AP mode ");
@@ -2514,6 +2515,7 @@ void handleRequestMisc()
   doc["mdns"] = startMDNS;
   doc["buzzer"] = startBuzzer;
   doc["display"] = useDisplay;
+  doc["devbranch"] = devBranch;
   doc["enable_mqtt"] = StopOnMQTTError;
   doc["delay_mqtt"] = wait_on_error_mqtt / 1000;
   doc["del_sen_act"] = wait_on_Sensor_error_actor / 1000;
@@ -2582,6 +2584,10 @@ void handleSetMisc()
     if (server.argName(i) == "display")
     {
       useDisplay = checkBool(server.arg(i));
+    }
+    if (server.argName(i) == "devbranch")
+    {
+      devBranch = checkBool(server.arg(i));
     }
     if (server.argName(i) == "mdns_name")
     {
@@ -2771,6 +2777,10 @@ bool loadConfig()
   if (miscObj["display"] || miscObj["display"] == "1")
     useDisplay = true;
   DEBUG_MSG("Display: %d\n", useDisplay);
+  devBranch = false;
+  if (miscObj["devbranch"] || miscObj["devbranch"] == "1")
+    devBranch = true;
+  DEBUG_MSG("devBranch: %d\n", devBranch);
 
   if (miscObj.containsKey("mdns_name"))
     strlcpy(nameMDNS, miscObj["mdns_name"], sizeof(nameMDNS));
@@ -2896,6 +2906,7 @@ bool saveConfig()
 
   miscObj["buzzer"] = (int)startBuzzer;
   miscObj["display"] = (int)useDisplay;
+  miscObj["devbranch"] = (int)devBranch;
   miscObj["mdns_name"] = nameMDNS;
   miscObj["mdns"] = (int)startMDNS;
   miscObj["MQTTHOST"] = mqtthost;
@@ -3263,7 +3274,13 @@ void upFirm()
     //ESPhttpUpdate.onProgress(update_progress);
     ESPhttpUpdate.onError(update_error);
 
-    t_httpUpdate_return ret = ESPhttpUpdate.update(clientFirm, "https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/build/MQTTDevice4.ino.bin");
+    t_httpUpdate_return ret;
+    if (!devBranch)
+        ret = ESPhttpUpdate.update(clientFirm, "https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/build/MQTTDevice4.ino.bin");
+    else
+        ret = ESPhttpUpdate.update(clientFirm, "https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/build/MQTTDevice4.ino.bin");
+
+    // t_httpUpdate_return ret = ESPhttpUpdate.update(clientFirm, "https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/build/MQTTDevice4.ino.bin");
 
     switch (ret)
     {
@@ -3377,13 +3394,27 @@ void startHTTPUpdate()
     fsUploadFile = LittleFS.open("/update.txt", "w");
     if (!fsUploadFile)
     {
-        DEBUG_MSG("%s\n", "*** Fehler WebUpdate Datei erstellen auf LittleFS nicht möglich");
+        DEBUG_MSG("%s\n", "*** Eroor WebUpdate create file (LittleFS)");
         return;
     }
     else
     {
         int bytesWritten = fsUploadFile.print("0");
         fsUploadFile.close();
+    }
+    if (devBranch)
+    {
+        fsUploadFile = LittleFS.open("/dev.txt", "w");
+        if (!fsUploadFile)
+        {
+            DEBUG_MSG("%s\n", "*** Eroor WebUpdate create file (LittleFS)");
+            return;
+        }
+        else
+        {
+            int bytesWritten = fsUploadFile.print("0");
+            fsUploadFile.close();
+        }
     }
     cbpiEventSystem(EM_REBOOT);
 }
@@ -3906,7 +3937,14 @@ void listenerSystem(int event, int parm) // System event listener
         line = char(fsUploadFile.read());
       }
       fsUploadFile.close();
-      Serial.printf("*** SYSINFO: Update firmware retries count %s\n", line.c_str());
+      if (LittleFS.exists("/dev.txt")) // WebUpdate Firmware
+      {
+          Serial.printf("*** SYSINFO: Update development firmware retries count %s\n", line.c_str());
+          LittleFS.remove("/dev.txt");
+      }
+      else
+        Serial.printf("*** SYSINFO: Update firmware retries count %s\n", line.c_str());
+      
       LittleFS.remove("/log3.txt");
       alertState = true;
     }

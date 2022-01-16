@@ -199,7 +199,14 @@ void listenerSystem(int event, int parm) // System event listener
         line = char(fsUploadFile.read());
       }
       fsUploadFile.close();
-      Serial.printf("*** SYSINFO: Update firmware retries count %s\n", line.c_str());
+      if (LittleFS.exists("/dev.txt")) // WebUpdate Firmware
+      {
+          Serial.printf("*** SYSINFO: Update development firmware retries count %s\n", line.c_str());
+          LittleFS.remove("/dev.txt");
+      }
+      else
+        Serial.printf("*** SYSINFO: Update firmware retries count %s\n", line.c_str());
+      
       LittleFS.remove("/log3.txt");
       alertState = true;
     }

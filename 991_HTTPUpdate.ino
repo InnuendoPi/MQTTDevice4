@@ -171,7 +171,13 @@ void upFirm()
     //ESPhttpUpdate.onProgress(update_progress);
     ESPhttpUpdate.onError(update_error);
 
-    t_httpUpdate_return ret = ESPhttpUpdate.update(clientFirm, "https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/build/MQTTDevice4.ino.bin");
+    t_httpUpdate_return ret;
+    if (!devBranch)
+        ret = ESPhttpUpdate.update(clientFirm, "https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/build/MQTTDevice4.ino.bin");
+    else
+        ret = ESPhttpUpdate.update(clientFirm, "https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/build/MQTTDevice4.ino.bin");
+
+    // t_httpUpdate_return ret = ESPhttpUpdate.update(clientFirm, "https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/build/MQTTDevice4.ino.bin");
 
     switch (ret)
     {
@@ -285,13 +291,27 @@ void startHTTPUpdate()
     fsUploadFile = LittleFS.open("/update.txt", "w");
     if (!fsUploadFile)
     {
-        DEBUG_MSG("%s\n", "*** Fehler WebUpdate Datei erstellen auf LittleFS nicht möglich");
+        DEBUG_MSG("%s\n", "*** Eroor WebUpdate create file (LittleFS)");
         return;
     }
     else
     {
         int bytesWritten = fsUploadFile.print("0");
         fsUploadFile.close();
+    }
+    if (devBranch)
+    {
+        fsUploadFile = LittleFS.open("/dev.txt", "w");
+        if (!fsUploadFile)
+        {
+            DEBUG_MSG("%s\n", "*** Eroor WebUpdate create file (LittleFS)");
+            return;
+        }
+        else
+        {
+            int bytesWritten = fsUploadFile.print("0");
+            fsUploadFile.close();
+        }
     }
     cbpiEventSystem(EM_REBOOT);
 }

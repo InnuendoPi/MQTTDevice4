@@ -162,6 +162,7 @@ void handleRequestMisc()
   doc["mdns"] = startMDNS;
   doc["buzzer"] = startBuzzer;
   doc["display"] = useDisplay;
+  doc["devbranch"] = devBranch;
   doc["enable_mqtt"] = StopOnMQTTError;
   doc["delay_mqtt"] = wait_on_error_mqtt / 1000;
   doc["del_sen_act"] = wait_on_Sensor_error_actor / 1000;
@@ -230,6 +231,10 @@ void handleSetMisc()
     if (server.argName(i) == "display")
     {
       useDisplay = checkBool(server.arg(i));
+    }
+    if (server.argName(i) == "devbranch")
+    {
+      devBranch = checkBool(server.arg(i));
     }
     if (server.argName(i) == "mdns_name")
     {

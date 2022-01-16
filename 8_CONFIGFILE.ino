@@ -144,6 +144,10 @@ bool loadConfig()
   if (miscObj["display"] || miscObj["display"] == "1")
     useDisplay = true;
   DEBUG_MSG("Display: %d\n", useDisplay);
+  devBranch = false;
+  if (miscObj["devbranch"] || miscObj["devbranch"] == "1")
+    devBranch = true;
+  DEBUG_MSG("devBranch: %d\n", devBranch);
 
   if (miscObj.containsKey("mdns_name"))
     strlcpy(nameMDNS, miscObj["mdns_name"], sizeof(nameMDNS));
@@ -269,6 +273,7 @@ bool saveConfig()
 
   miscObj["buzzer"] = (int)startBuzzer;
   miscObj["display"] = (int)useDisplay;
+  miscObj["devbranch"] = (int)devBranch;
   miscObj["mdns_name"] = nameMDNS;
   miscObj["mdns"] = (int)startMDNS;
   miscObj["MQTTHOST"] = mqtthost;
