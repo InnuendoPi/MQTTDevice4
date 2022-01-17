@@ -1,58 +1,25 @@
-# Prerequisites
-*.d
-
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
 .DS_Store
-.gitattributes
+.vscode
+.vscode/
+*.cmd
+*.exe
 .gitignore
-readme.txt
-.vscode/launch.json
-.vscode/tasks.json
+core
+preproc
+sketch
+libraries
+ld_h
+arduino.ar
+build.options.json
+MQTTDevice4.ino.elf
+MQTTDevice4.ino.map
+includes.cache
+local.eagle.flash.ld
+local.eagle.app.v6.common.ld
 data/config.txt
 data/certs.ar
-build/core
-build/preproc
-build/sketch
-build/libraries
-build/arduino.ar
-build/build.options.json
-build/MQTTDevice4.ino.elf
-build/MQTTDevice4.ino.map
-build/includes.cache
-build/local.eagle.app.v6.common.ld
 tools/MQTTDevice4.ino.bin
 tools/MQTTDevice4.spiffs.bin
 tools/esptool.exe
 tools/Flashen.cmd
 tools/buildFirm.cmd
-Gehäuse/
-998_InfluxDB.ino
-999_TCP_Server.ino
