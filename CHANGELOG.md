@@ -1,7 +1,11 @@
 # Changelog
 
-Version 4.05
+Version 4.08
 
+- Optimize: config handling
+- Optimize: memory usage
+- Optimize: MQTT error handling
+- Added:    development branch option
 - Reworked: WebIf
 - Reworked: actorshandle
 - Reworked: inductionhandle

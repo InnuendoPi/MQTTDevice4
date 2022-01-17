@@ -38,19 +38,8 @@ bool loadConfig()
   {
     if (i < numberOfActors)
     {
-      String actorPin = actorObj["PIN"];
-      String actorScript = actorObj["SCRIPT"];
-      String actorName = actorObj["NAME"];
-      bool actorInv = false;
-      bool actorSwitch = false;
-
-      if (actorObj["INV"] || actorObj["INV"] == "1")
-        actorInv = true;
-      if (actorObj["SW"] || actorObj["SW"] == "1")
-        actorSwitch = true;
-
-      actors[i].change(actorPin, actorScript, actorName, actorInv, actorSwitch);
-      DEBUG_MSG("Actor #: %d Name: %s MQTT: %s PIN: %s INV: %d SW: %d\n", (i + 1), actorName.c_str(), actorScript.c_str(), actorPin.c_str(), actorInv, actorSwitch);
+      actors[i].change(actorObj["PIN"] | "", actorObj["SCRIPT"] | "", actorObj["NAME"] | "", actorObj["INV"] | 0, actorObj["SW"] | 0);
+      DEBUG_MSG("Actor #: %d Name: %s MQTT: %s PIN: %s INV: %d SW: %d\n", (i + 1), actorObj["NAME"].as<const char *>(), actorObj["SCRIPT"].as<const char *>(), actorObj["PIN"].as<const char *>(), actorObj["INV"].as<int>(), actorObj["SW"].as<int>());
       i++;
     }
   }
@@ -71,18 +60,8 @@ bool loadConfig()
   {
     if (i < numberOfSensors)
     {
-      String sensorsAddress = sensorsObj["ADDRESS"];
-      String sensorsScript = sensorsObj["SCRIPT"];
-      String sensorsName = sensorsObj["NAME"];
-      bool sensorsSwitch = false;
-      float sensorsOffset = 0.0;
-      if (sensorsObj["SW"] || sensorsObj["SW"] == "1")
-        sensorsSwitch = true;
-      if (sensorsObj.containsKey("OFFSET"))
-        sensorsOffset = sensorsObj["OFFSET"];
-
-      sensors[i].change(sensorsAddress, sensorsScript, sensorsName, sensorsOffset, sensorsSwitch);
-      DEBUG_MSG("Sensor #: %d Name: %s Address: %s MQTT: %s Offset: %f SW: %d\n", (i + 1), sensorsName.c_str(), sensorsAddress.c_str(), sensorsScript.c_str(), sensorsOffset, sensorsSwitch);
+      sensors[i].change(sensorsObj["ADDRESS"] | "", sensorsObj["SCRIPT"] | "", sensorsObj["NAME"] | "", sensorsObj["OFFSET"] | 0, sensorsObj["SW"] | 0);
+      DEBUG_MSG("Sensor #: %d Name: %s Address: %s MQTT: %s Offset: %f SW: %d\n", (i + 1), sensorsObj["NAME"].as<const char *>(), sensorsObj["ADDRESS"].as<const char *>(), sensorsObj["SCRIPT"].as<const char *>(), sensorsObj["OFFSET"].as<float>(), sensorsObj["SW"].as<int>());
       i++;
     }
     else
@@ -95,21 +74,8 @@ bool loadConfig()
   if (indObj.containsKey("ENABLED"))
   {
     inductionStatus = 1;
-    bool indEnabled = true;
-    String indPinWhite = indObj["PINWHITE"];
-    String indPinYellow = indObj["PINYELLOW"];
-    String indPinBlue = indObj["PINBLUE"];
-    String indScript = indObj["TOPIC"];
-    long indDelayOff = DEF_DELAY_IND; //default delay
-    int indPowerLevel = 100;
-
-    if (indObj.containsKey("PL"))
-      indPowerLevel = indObj["PL"];
-    if (indObj.containsKey("DELAY"))
-      indDelayOff = indObj["DELAY"];
-
-    inductionCooker.change(StringToPin(indPinWhite), StringToPin(indPinYellow), StringToPin(indPinBlue), indScript, indDelayOff, indEnabled, indPowerLevel);
-    DEBUG_MSG("Induction: %d MQTT: %s Relais (WHITE): %s Command channel (YELLOW): %s Backchannel (BLUE): %s Delay after power off %d Power level on error: %d\n", inductionStatus, indScript.c_str(), indPinWhite.c_str(), indPinYellow.c_str(), indPinBlue.c_str(), (indDelayOff / 1000), indPowerLevel);
+    inductionCooker.change(StringToPin(indObj["PINWHITE"] | "D5"), StringToPin(indObj["PINYELLOW"] | "D6"), StringToPin(indObj["PINBLUE"] | "D7"), indObj["TOPIC"] | "", indObj["DELAY"] | DEF_DELAY_IND, true, indObj["PL"] | 100);
+    DEBUG_MSG("Induction: %d MQTT: %s Relais (WHITE): %s Command channel (YELLOW): %s Backchannel (BLUE): %s Delay after power off %d Power level on error: %d\n", inductionStatus, indObj["TOPIC"].as<const char *>(), indObj["PINWHITE"].as<const char *>(), indObj["PINYELLOW"].as<const char *>(), indObj["PINBLUE"].as<const char *>(), indObj["DELAY"].as<int>(), indObj["PL"].as<int>());
   }
   else
   {
@@ -122,50 +88,29 @@ bool loadConfig()
   JsonArray miscArray = doc["misc"];
   JsonObject miscObj = miscArray[0];
 
-  if (miscObj.containsKey("del_sen_act"))
-    wait_on_Sensor_error_actor = miscObj["del_sen_act"];
-  if (miscObj.containsKey("del_sen_ind"))
-    wait_on_Sensor_error_induction = miscObj["del_sen_ind"];
+  wait_on_Sensor_error_actor = miscObj["del_sen_act"] | 120000;
+  wait_on_Sensor_error_induction = miscObj["del_sen_ind"] | 120000;
   DEBUG_MSG("Wait on sensor error actors: %d sec\n", wait_on_Sensor_error_actor / 1000);
   DEBUG_MSG("Wait on sensor error induction: %d sec\n", wait_on_Sensor_error_induction / 1000);
 
-  StopOnMQTTError = false;
-  if (miscObj["enable_mqtt"] || miscObj["enable_mqtt"] == "1")
-    StopOnMQTTError = true;
-  if (miscObj.containsKey("delay_mqtt"))
-    wait_on_error_mqtt = miscObj["delay_mqtt"];
+  StopOnMQTTError = miscObj["enable_mqtt"] | 0;
+  wait_on_error_mqtt = miscObj["delay_mqtt"] | 120000;
   DEBUG_MSG("Switch off actors on MQTT error: %d after %d sec\n", StopOnMQTTError, (wait_on_error_mqtt / 1000));
 
-  startBuzzer = false;
-  if (miscObj["buzzer"] || miscObj["buzzer"] == "1")
-    startBuzzer = true;
+  startBuzzer = miscObj["buzzer"] | 0;
   DEBUG_MSG("Buzzer: %d\n", startBuzzer);
-  useDisplay = false;
-  if (miscObj["display"] || miscObj["display"] == "1")
-    useDisplay = true;
+  useDisplay = miscObj["display"] | 0;
   DEBUG_MSG("Display: %d\n", useDisplay);
-  devBranch = false;
-  if (miscObj["devbranch"] || miscObj["devbranch"] == "1")
-    devBranch = true;
+  devBranch = miscObj["devbranch"] | 0;
   DEBUG_MSG("devBranch: %d\n", devBranch);
 
-  if (miscObj.containsKey("mdns_name"))
-    strlcpy(nameMDNS, miscObj["mdns_name"], sizeof(nameMDNS));
-  startMDNS = false;
-  if (miscObj["mdns"] || miscObj["mdns"] == "1")
-    startMDNS = true;
+  strlcpy(nameMDNS, miscObj["mdns_name"] | "", sizeof(nameMDNS));
+  startMDNS = miscObj["mdns"] | 0;
   DEBUG_MSG("mDNS: %d name: %s\n", startMDNS, nameMDNS);
-
-  if (miscObj.containsKey("MQTTHOST"))
-  {
-    strlcpy(mqtthost, miscObj["MQTTHOST"], sizeof(mqtthost));
-    DEBUG_MSG("MQTT server IP: %s\n", mqtthost);
-  }
-  else
-  {
-    DEBUG_MSG("MQTT server not found in config file. Using default server address: %s\n", mqtthost);
-  }
+  strlcpy(mqtthost, miscObj["MQTTHOST"] | "", sizeof(mqtthost));
+  DEBUG_MSG("MQTT server IP: %s\n", mqtthost);
   DEBUG_MSG("%s\n", "------ loadConfig finished ------");
+  
   configFile.close();
   if (numberOfSensors > 0)
     TickerSen.start();
@@ -305,7 +250,7 @@ bool saveConfig()
   serializeJson(doc, configFile);
   configFile.close();
   DEBUG_MSG("%s\n", "------ saveConfig finished ------");
-  
+
   if (numberOfSensors > 0)
     TickerSen.start();
   else

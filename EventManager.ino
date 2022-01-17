@@ -5,7 +5,7 @@ void listenerSystem(int event, int parm) // System event listener
   case EM_OK: // Normal mode
     break;
   // 1 - 9 Error events
-  case EM_WLANER: 
+  case EM_WLANER:
     WiFi.reconnect();
     if (WiFi.status() == WL_CONNECTED)
       break;
@@ -90,30 +90,35 @@ void listenerSystem(int event, int parm) // System event listener
       TickerWLAN.update();
     }
     break;
-  case EM_WEB: // (21)
-    server.handleClient();    // Webserver handle
+  case EM_WEB:             // (21)
+    server.handleClient(); // Webserver handle
     break;
   case EM_MQTT: // check MQTT (22)
     if (!WiFi.status() == WL_CONNECTED)
       break;
-    if (pubsubClient.connected())
+    if (TickerMQTT.state() != RUNNING)
     {
-      mqtt_state = true;
-      pubsubClient.loop();
-      if (TickerMQTT.state() == RUNNING)
-        TickerMQTT.stop();
-    }
-    else //if (!pubsubClient.connected())
-    {
-      if (TickerMQTT.state() != RUNNING)
+      if (pubsubClient.connected())
       {
-        DEBUG_MSG("%s\n", "MQTT Error: TickerMQTT started");
-        mqtt_state = false;
-        TickerMQTT.resume();
-        mqttconnectlasttry = millis();
+        mqtt_state = true;
+        pubsubClient.loop();
+        if (TickerMQTT.state() == RUNNING)
+          TickerMQTT.stop();
       }
-      TickerMQTT.update();
+      else //if (!pubsubClient.connected())
+      {
+        if (TickerMQTT.state() != RUNNING)
+        {
+          DEBUG_MSG("%s\n", "MQTT Error: TickerMQTT started");
+          mqtt_state = false;
+          TickerMQTT.resume();
+          mqttconnectlasttry = millis();
+        }
+        TickerMQTT.update();
+      }
     }
+    else
+      TickerMQTT.update();
     break;
   case EM_MQTTCON:                     // MQTT connect (27)
     if (WiFi.status() == WL_CONNECTED) // kein wlan = kein mqtt
@@ -202,8 +207,8 @@ void listenerSystem(int event, int parm) // System event listener
       LittleFS.remove("/log3.txt");
       if (LittleFS.exists("/dev.txt")) // WebUpdate Firmware
       {
-          Serial.printf("*** SYSINFO: Update development firmware retries count %s\n", line.c_str());
-          LittleFS.remove("/dev.txt");
+        Serial.printf("*** SYSINFO: Update development firmware retries count %s\n", line.c_str());
+        LittleFS.remove("/dev.txt");
       }
       else
       {

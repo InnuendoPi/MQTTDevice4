@@ -48,7 +48,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.07"
+#define Version "4.08"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -155,8 +155,8 @@ bool mqtt_state = true;           // Status MQTT
 bool devBranch = false;           // Check out development branch
 
 // Event handling Zeitintervall für Reconnects WLAN und MQTT
-#define tickerWLAN 20000 // für Ticker Objekt WLAN in ms
-#define tickerMQTT 20000 // für Ticker Objekt MQTT in ms
+#define tickerWLAN 30000 // für Ticker Objekt WLAN in ms
+#define tickerMQTT 30000 // für Ticker Objekt MQTT in ms
 
 // Event handling Standard Verzögerungen
 unsigned long wait_on_error_mqtt = 120000;             // How long should device wait between tries to reconnect WLAN      - approx in ms

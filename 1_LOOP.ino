@@ -1,7 +1,7 @@
 void loop()
 {
-  cbpiEventSystem(EM_WEB); // Webserver handle
   cbpiEventSystem(EM_WLAN); // Check WLAN
+  cbpiEventSystem(EM_WEB); // Webserver handle
   cbpiEventSystem(EM_MQTT); // Check MQTT
   if (startMDNS)            // MDNS handle
     cbpiEventSystem(EM_MDNS);
