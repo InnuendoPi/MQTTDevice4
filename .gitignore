@@ -1,11 +1,11 @@
 .DS_Store
 .gitattributes
-.vscode/.
-build/core/.
-build/preproc/.
-build/sketch/.
-build/libraries/.
-build/ld_h/.
+.vscode/**
+build/core/**
+build/preproc/**
+build/sketch/**
+build/libraries/**
+build/ld_h/**
 build/arduino.ar
 build/build.options.json
 build/MQTTDevice4.ino.elf
