@@ -52,7 +52,7 @@
   {
     "Sourcefile": "c:\\Arduino\\git\\MQTTDevice4\\build\\sketch\\MQTTDevice4.ino.cpp",
     "Include": "ArduinoJson.h",
-    "Includepath": "c:\\Arduino\\libraries\\arduino_729656\\src"
+    "Includepath": "c:\\Arduino\\libraries\\ArduinoJson\\src"
   },
   {
     "Sourcefile": "c:\\Arduino\\git\\MQTTDevice4\\build\\sketch\\MQTTDevice4.ino.cpp",

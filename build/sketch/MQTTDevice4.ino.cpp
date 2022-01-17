@@ -33,8 +33,8 @@
 #include "InnuTicker.h"       // Bibliothek für Hintergrund Aufgaben (Tasks)
 #include <PubSubClient.h>     // MQTT Kommunikation 2.8.0
 #include <CertStoreBearSSL.h> // WebUpdate
-#include "SoftwareSerial.h"
-#include "NextionX2.h"
+#include <SoftwareSerial.h>
+#include <NextionX2.h>
 
 extern "C"
 {
