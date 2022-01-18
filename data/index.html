@@ -250,7 +250,7 @@
               </div>
               <div class="custom-control custom-switch">
                 <input type="checkbox" class="custom-control-input" id="modal_misc_display">
-                <label class="custom-control-label" for="modal_misc_display">Enable Nextion HMI Display (D1,D2)</label>
+                <label class="custom-control-label" for="modal_misc_display">Enable HMI Touchdisplay (D1,D2)</label>
               </div>
               <div class="custom-control custom-switch">
                 <input type="checkbox" class="custom-control-input" id="modal_misc_mdns" />
@@ -540,24 +540,6 @@
           miscRender += " badge-light'> Display disabled";
         }
         miscRender += "</span></li>";
-
-        // miscRender += " MQTT broker IP <span class='badge'>";
-        // miscRender += data.mqtthost;
-        // miscRender += "</span></li> <li class='list-group-item d-flex justify-content-between align-items-center'> MQTT connection <span class='badge";
-        // if (data.enable_mqtt) {
-        //   miscRender += " badge-success'> Events enabled";
-        // }
-        // else {
-        //   miscRender += " badge-light'> Events disabled";
-        // }
-        // miscRender += "</span><span class='badge";
-        // if (data.mqtt_state) {
-        //   miscRender += " badge-success'> Online";
-        // }
-        // else {
-        //   miscRender += " badge-danger'> Offline";
-        // }
-        // miscRender += "</span></li>";
         $('#miscSettings').html(miscRender);
 
         if (data.alertstate) {
