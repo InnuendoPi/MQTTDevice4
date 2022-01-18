@@ -2,6 +2,8 @@
 
 Version 4.08
 
+- Added:    MQTT basic authentication (passwordfile)
+- Update:   Bootstrap 4.6.1
 - Optimize: config handling
 - Optimize: memory usage
 - Optimize: MQTT error handling

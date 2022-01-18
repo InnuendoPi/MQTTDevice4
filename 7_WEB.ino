@@ -142,10 +142,12 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
 
 void handleRequestMisc2()
 {
-  StaticJsonDocument<256> doc;
+  StaticJsonDocument<128> doc;
   doc["mqtthost"] = mqtthost;
   doc["enable_mqtt"] = StopOnMQTTError;
   doc["mqtt_state"] = mqtt_state; // Anzeige MQTT Status -> mqtt_state verzögerter Status!
+  doc["buzzer"] = startBuzzer;
+  doc["display"] = useDisplay;
   doc["alertstate"] = alertState;
   if (alertState)
     alertState = false;
@@ -158,6 +160,8 @@ void handleRequestMisc()
 {
   StaticJsonDocument<384> doc;
   doc["mqtthost"] = mqtthost;
+  doc["mqttuser"] = mqttuser;
+  doc["mqttpass"] = mqttpass;
   doc["mdns_name"] = nameMDNS;
   doc["mdns"] = startMDNS;
   doc["buzzer"] = startBuzzer;
@@ -189,7 +193,9 @@ void handleRequestFirm()
       message += " V";
     }
     else
+    {
       message = "MQTTDevice4 V ";
+    }
     message += Version;
     goto SendMessage;
   }
@@ -221,9 +227,18 @@ void handleSetMisc()
         ESP.reset();
       }
     }
-    if (server.argName(i) == "MQTTHOST")
-      server.arg(i).toCharArray(mqtthost, sizeof(mqtthost));
-
+    if (server.argName(i) == "mqtthost")
+    {
+      server.arg(i).toCharArray(mqtthost, maxHostSign);
+    }
+    if (server.argName(i) == "mqttuser")
+    {
+      server.arg(i).toCharArray(mqttuser, maxUserSign);
+    }
+    if (server.argName(i) == "mqttpass")
+    {
+      server.arg(i).toCharArray(mqttpass, maxPassSign);
+    }
     if (server.argName(i) == "buzzer")
     {
       startBuzzer = checkBool(server.arg(i));
@@ -238,7 +253,7 @@ void handleSetMisc()
     }
     if (server.argName(i) == "mdns_name")
     {
-      server.arg(i).toCharArray(nameMDNS, sizeof(nameMDNS));
+      server.arg(i).toCharArray(nameMDNS, maxHostSign);
       checkChars(nameMDNS);
     }
     if (server.argName(i) == "mdns")

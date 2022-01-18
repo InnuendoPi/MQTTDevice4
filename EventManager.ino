@@ -13,7 +13,7 @@ void listenerSystem(int event, int parm) // System event listener
     DEBUG_MSG("%s", "EM WLAN: WLAN error ... try to reconnectn\n");
     break;
   case EM_MQTTER: // MQTT Error -> handling
-    if (pubsubClient.connect(mqtt_clientid))
+    if (pubsubClient.connect(mqtt_clientid, mqttuser, mqttpass))
     {
       DEBUG_MSG("%s", "MQTT auto reconnect successful. Subscribing..\n");
       cbpiEventSystem(EM_MQTTSUB); // MQTT subscribe
@@ -119,14 +119,15 @@ void listenerSystem(int event, int parm) // System event listener
     }
     else
       TickerMQTT.update();
+
     break;
   case EM_MQTTCON:                     // MQTT connect (27)
     if (WiFi.status() == WL_CONNECTED) // kein wlan = kein mqtt
     {
-      DEBUG_MSG("%s\n", "Connect MQTT ...");
       pubsubClient.setServer(mqtthost, 1883);
       pubsubClient.setCallback(mqttcallback);
-      pubsubClient.connect(mqtt_clientid);
+      pubsubClient.connect(mqtt_clientid, mqttuser, mqttpass);
+      DEBUG_MSG("Connecting MQTT broker %s with client-id: %s user: %s pass: %s\n", mqtthost, mqtt_clientid, mqttuser, mqttpass);
     }
     break;
   case EM_MQTTSUB: // MQTT subscribe (28)

@@ -8,12 +8,7 @@ MQTTDevice4 is an Arduino sketch for the ESP8266 Wemos D1 mini modules. This mak
 
 ## MQTTDevice2 or MQTTDevice4?
 
-There are only a few differences between MQTTDevice 2 and 4. MQTTDevice2 (with firmware versions 2.5x and earlier) was developed using CraftbeerPi version 3. MQTTDevice4 (firmware version 4.x and above) is CraftbeerPi 4 optimzed.
-
-## Update notice Firmware version 4.x from 2.5x
-
-Firmware update from MQTTDevice2: Update -> file upload -> Firmware -> MQTTDevice4.ino.bin
-Firmware update MQTTDevice2 version 2.3 or earlier (SPIFFS) is not possible. Reflash your device.
+MQTTDevice2 (firmware versions 2.5x and earlier) was developed using CraftbeerPi version 3. MQTTDevice4 (firmware version 4.x and above) is CraftbeerPi 4 optimzed.
 
 ## Documentation
 
@@ -22,13 +17,13 @@ A detailed documentation CraftbeerPi4 is available on github pages:: <https://op
 
 ## Sketch Information
 
-Libraries: Version 4.04, 01.2022
+Libraries: Version 4.08, 01.2022
 
 - ESP8266 3.0.2 (LittleFS)
 - Arduino IDE 1.8.16
 - Visual Code + modified ESP8266FS Plugin (VSCode 1.52.1 Aruindo 1.8.16)
 - PubSubClient 2.8.0 (PubSubClient.h: #define MQTT_MAX_PACKET_SIZE 512)
-- ArduinoJSON 6.18.5
+- ArduinoJSON 6.19.1
 - WiFiManager 2.0.5
 - NextionX2 1.1.2 (NextionX2.h: #define ATTRIBUTE_TEXT_LENGTH 90)
 

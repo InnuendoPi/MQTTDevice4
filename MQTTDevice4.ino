@@ -102,7 +102,11 @@ unsigned char numberOfSensorsFound = 0;
 unsigned char numberOfActors = 0; // Gesamtzahl der Aktoren
 #define numberOfActorsMax 8       // Maximale Anzahl an Aktoren
 #define maxHostSign 16
+#define maxUserSign 10
+#define maxPassSign 10
 char mqtthost[maxHostSign];                // MQTT Server
+char mqttuser[maxUserSign];
+char mqttpass[maxPassSign];
 char mqtt_clientid[maxHostSign];           // AP-Mode und Gerätename
 bool alertState = false;          // WebUpdate Status
 
@@ -176,7 +180,7 @@ int DISP_UPDATE = 1000;
 
 // Systemstart
 bool startMDNS = true; // Standard mDNS Name ist ESP8266- mit mqtt_chip_key
-char nameMDNS[16] = "MQTTDevice";
+char nameMDNS[maxHostSign] = "MQTTDevice";
 bool shouldSaveConfig = false; // WiFiManager
 
 unsigned long lastSenAct = 0; // Timestap actors on sensor error

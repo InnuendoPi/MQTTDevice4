@@ -53,7 +53,7 @@ Preparation on the RaspberryPi: Installation of the MQTT Broker
 
 This instruction installs the MQTT broker mosquitto on the RaspberryPi. The MQTT Broker serves as the central switching point between CraftbeerPi4 and MQTTDevices. CraftbeerPi4 can receive data from sensors via the MQTT protocol and send instructions to actors.
 
-Allow anonymous access to MQTT broker:
+Method 1: allow anonymous access to MQTT broker: (not recommended)
 
 `sudo nano /etc/mosquitto/mosquitto.conf`
 
@@ -61,6 +61,23 @@ Add these two line at the top of the configuration file:
 
 `allow_anonymous true`
 `port 1883`
+
+Method 2: use basic authentication
+
+Add these two line at the top of the configuration file:
+
+`cd /etc/mosquitto`
+`sudo mosquitto_passwd -c passwdfile pi`
+
+now enter your password twice
+
+`sudo nano /etc/mosquitto/mosquitto.conf`
+
+Add these three line at the top of the configuration file:
+
+`allow_anonymous false`
+`port 1883`
+`password_file /etc/mosquitto/passwdfile`
 
 You need to restart the broker service
 

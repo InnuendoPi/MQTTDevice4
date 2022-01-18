@@ -28,19 +28,6 @@ public:
     DS18B20.requestTemperatures();                        // new conversion to get recent temperatures
     sens_isConnected = DS18B20.isConnected(sens_address); // attempt to determine if the device at the given address is connected to the bus
     sens_isConnected ? sens_value = DS18B20.getTempC(sens_address) : sens_value = -127.0;
-
-    if (!sens_isConnected && sens_address[0] != 0xFF && sens_address[0] != 0x00) // double check on !sens_isConnected. Billig Tempfühler ist manchmal für 1-2 loops nicht connected. 0xFF default address. 0x00 virtual test device (adress 00 00 00 00 00)
-    {
-      millis2wait(PAUSEDS18);                               // Wartezeit ca 750ms bevor Lesen vom Sensor wiederholt wird (Init Zeit)
-      sens_isConnected = DS18B20.isConnected(sens_address); // hat der Sensor ene Adresse und ist am Bus verbunden?
-      sens_isConnected ? sens_value = DS18B20.getTempC(sens_address) : sens_value = -127.0;
-    }
-
-    if (sens_value == 85.0)
-    {                         // 85 Grad ist Standard Temp Default Reset. Wenn das Kabel zu lang ist, kommt als Fehler 85 Grad
-      millis2wait(PAUSEDS18); // Wartezeit 750ms vor einer erneuten Sensorabfrage
-      DS18B20.requestTemperatures();
-    }
     sensorsStatus = 0;
     sens_state = true;
     if (OneWire::crc8(sens_address, 7) != sens_address[7])

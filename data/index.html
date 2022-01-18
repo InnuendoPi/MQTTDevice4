@@ -6,11 +6,10 @@
   <title>MQTTDevice4</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="bootstrap.min.css">
-  <link rel="shortcut icon" href="#">
-  <!-- <link rel="stylesheet" href="styles.min.css"> -->
+  <!-- <link rel="shortcut icon" href="#"> -->
 </head>
 
-<body onload="setInterval(refresh, 3000)">
+<body onload="setInterval(refresh, 5000)">
   <div class="py-2">
     <div class="container">
       <div class="row">
@@ -174,8 +173,7 @@
     <div class="modal-dialog modal-lg" data-keyboard="true" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Induction settings</h5> <button type="button" class="close"
-            data-dismiss="modal">
+          <h5 class="modal-title">Induction settings</h5> <button type="button" class="close" data-dismiss="modal">
             <span>×</span>
           </button>
         </div>
@@ -205,7 +203,8 @@
             <input type="text" class="form-control" placeholder="" id="modal_induction_delay" />
           </div>
           <div class="form-group">
-            <label for="modal_induction_pl">Event handling induction (powerlevel induction (0 = turn off ... 100 = no changes))</label>
+            <label for="modal_induction_pl">Event handling induction (powerlevel induction (0 = turn off ... 100 = no
+              changes))</label>
             <input type="text" class="form-control" placeholder="" id="modal_induction_pl" />
           </div>
         </div>
@@ -230,6 +229,10 @@
                 aria-selected="true">System</a>
             </li>
             <li class="nav-item">
+              <a class="nav-link" id="misc2-tab" data-toggle="tab" href="#misc2" role="tab" aria-controls="misc2"
+                aria-selected="true">MQTT settings</a>
+            </li>
+            <li class="nav-item">
               <a class="nav-link" id="misc3-tab" data-toggle="tab" href="#misc3" role="tab" aria-controls="misc3"
                 aria-selected="true">EventManager</a>
             </li>
@@ -241,10 +244,6 @@
           <div class="tab-content" id="miscTabContent">
             <div class="tab-pane fade show active" id="misc1" role="tabpanel" aria-labelledby="misc1-tab">
               <br />
-              <div class="form-group">
-                <label for="modal_misc_address">IP address MQTT Broker (CBPi)</label>
-                <input type="text" class="form-control" placeholder="" id="modal_misc_address" />
-              </div>
               <div class="custom-control custom-switch">
                 <input type="checkbox" class="custom-control-input" id="modal_misc_buzzer" />
                 <label class="custom-control-label" for="modal_misc_buzzer">Enable buzzer (D8)</label>
@@ -260,6 +259,23 @@
               <div class="form-group">
                 <label for="modal_misc_mdns_name">mDNS name</label>
                 <input type="text" class="form-control" placeholder="" id="modal_misc_mdns_name" />
+              </div>
+            </div>
+
+            <div class="tab-pane fade" id="misc2" role="tabpanel" aria-labelledby="misc2-tab">
+              <br />
+              <div class="form-group">
+                <label for="modal_misc_mqtthost">IP address MQTT Broker (CBPi)</label>
+                <input type="text" class="form-control" placeholder="" id="modal_misc_mqtthost" />
+              </div>
+
+              <div class="form-group">
+                <label for="modal_misc_mqttuser">MQTT broker user</label>
+                <input type="text" class="form-control" placeholder="" id="modal_misc_mqttuser" />
+              </div>
+              <div class="form-group">
+                <label for="modal_misc_mqttpass">MQTT broker password</label>
+                <input type="text" class="form-control" placeholder="" id="modal_misc_mqttpass" />
               </div>
             </div>
             <div class="tab-pane fade" id="misc3" role="tabpanel" aria-labelledby="misc3-tab">
@@ -290,7 +306,8 @@
               <br />
               <div class="form-check">
                 <input class="form-check-input" type="checkbox" value="" id="modal_misc_reset" />
-                <label class="form-check-label" for="modal_misc_reset">Reset WLAN settings (reboot in access point mode)</label>
+                <label class="form-check-label" for="modal_misc_reset">Reset WLAN settings (reboot in access point
+                  mode)</label>
               </div>
               <div class="form-check">
                 <input class="form-check-input" type="checkbox" value="" id="modal_misc_clear" />
@@ -335,7 +352,7 @@
     </div>
   </div>
   <script src="./jquery.min.js"></script>
-  <script src="./bootstrap.bundle.min.js"></script>
+  <script src="./bootstrap.min.js"></script>
   <script type="text/javascript">
     function refresh() {
       $.get("/reqSensors?id=-1", function (data) {
@@ -490,10 +507,7 @@
         $('#inductionCooker').html(inductionRender);
       });
       $.get("/reqMisc2", function (data) {
-        let miscRender = "<li class='list-group-item d-flex justify-content-between align-items-center'> ";
-        miscRender += " MQTT broker IP <span class='badge'>";
-        miscRender += data.mqtthost;
-        miscRender += "</span></li> <li class='list-group-item d-flex justify-content-between align-items-center'> MQTT connection <span class='badge";
+        let miscRender = "<li class='list-group-item d-flex justify-content-between align-items-center'> MQTT connection <span class='badge";
         if (data.enable_mqtt) {
           miscRender += " badge-success'> Events enabled";
         }
@@ -502,12 +516,48 @@
         }
         miscRender += "</span><span class='badge";
         if (data.mqtt_state) {
-          miscRender += " badge-success'> Online";
+          miscRender += " badge-success'> ";
+          miscRender += data.mqtthost;
         }
         else {
-          miscRender += " badge-danger'> Offline";
+          miscRender += " badge-danger'> ";
+          miscRender += data.mqtthost;
         }
         miscRender += "</span></li>";
+
+        miscRender += "<li class='list-group-item d-flex justify-content-between align-items-center'> Hardware settings <span class='badge";
+        if (data.buzzer) {
+          miscRender += " badge-success'> Buzzer enabled";
+        }
+        else {
+          miscRender += " badge-light'> Buzzer disabled";
+        }
+        miscRender += "</span><span class='badge";
+        if (data.display) {
+          miscRender += " badge-success'> Display enabled";
+        }
+        else {
+          miscRender += " badge-light'> Display disabled";
+        }
+        miscRender += "</span></li>";
+
+        // miscRender += " MQTT broker IP <span class='badge'>";
+        // miscRender += data.mqtthost;
+        // miscRender += "</span></li> <li class='list-group-item d-flex justify-content-between align-items-center'> MQTT connection <span class='badge";
+        // if (data.enable_mqtt) {
+        //   miscRender += " badge-success'> Events enabled";
+        // }
+        // else {
+        //   miscRender += " badge-light'> Events disabled";
+        // }
+        // miscRender += "</span><span class='badge";
+        // if (data.mqtt_state) {
+        //   miscRender += " badge-success'> Online";
+        // }
+        // else {
+        //   miscRender += " badge-danger'> Offline";
+        // }
+        // miscRender += "</span></li>";
         $('#miscSettings').html(miscRender);
 
         if (data.alertstate) {
@@ -691,7 +741,9 @@
       modal.find('#modal_misc_reset').prop("checked", false);
       modal.find('#modal_misc_clear').prop("checked", false);
       $.get("/reqMisc", function (data) {
-        modal.find('#modal_misc_address').val(data.mqtthost);
+        modal.find('#modal_misc_mqtthost').val(data.mqtthost);
+        modal.find('#modal_misc_mqttuser').val(data.mqttuser);
+        modal.find('#modal_misc_mqttpass').val(data.mqttpass);
         modal.find('#modal_misc_mdns_name').val(data.mdns_name);
         modal.find('#modal_misc_mdns').prop("checked", Boolean(Number(data.mdns)));
         modal.find('#modal_misc_buzzer').prop("checked", Boolean(Number(data.buzzer)));
@@ -706,7 +758,9 @@
 
     $("#modal_misc_btn_save").click(function () {
       var modal = $('#misc_modal');
-      var mqttaddress = modal.find('#modal_misc_address').val();
+      var mqtthost = modal.find('#modal_misc_mqtthost').val();
+      var mqttuser = modal.find('#modal_misc_mqttuser').val();
+      var mqttpass = modal.find('#modal_misc_mqttpass').val();
       var mdns_name = modal.find('#modal_misc_mdns_name').val();
       var delay_mqtt = modal.find('#modal_misc_delay_mqtt').val();
       var del_sen_act = modal.find('#modal_misc_del_sen_act').val();
@@ -720,7 +774,7 @@
       var reset = modal.find('#modal_misc_reset').prop("checked");
 
       $.ajax({
-        url: '/setMisc?reset=' + reset + '&clear=' + clear + '&MQTTHOST=' + mqttaddress + '&enable_mqtt=' + enable_mqtt + '&delay_mqtt=' + delay_mqtt + '&del_sen_act=' + del_sen_act + '&del_sen_ind=' + del_sen_ind + '&mdns=' + mdns + '&mdns_name=' + mdns_name + '&buzzer=' + buzzer + '&display=' + display + '&devbranch=' + devbranch,
+        url: '/setMisc?reset=' + reset + '&clear=' + clear + '&mqtthost=' + mqtthost + '&mqttuser=' + mqttuser + '&mqttpass=' + mqttpass + '&enable_mqtt=' + enable_mqtt + '&delay_mqtt=' + delay_mqtt + '&del_sen_act=' + del_sen_act + '&del_sen_ind=' + del_sen_ind + '&mdns=' + mdns + '&mdns_name=' + mdns_name + '&buzzer=' + buzzer + '&display=' + display + '&devbranch=' + devbranch,
         type: 'POST',
         dataType: 'html',
         async: false,

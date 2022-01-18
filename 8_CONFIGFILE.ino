@@ -104,11 +104,13 @@ bool loadConfig()
   devBranch = miscObj["devbranch"] | 0;
   DEBUG_MSG("devBranch: %d\n", devBranch);
 
-  strlcpy(nameMDNS, miscObj["mdns_name"] | "", sizeof(nameMDNS));
+  strlcpy(nameMDNS, miscObj["mdns_name"] | "", maxHostSign);
   startMDNS = miscObj["mdns"] | 0;
   DEBUG_MSG("mDNS: %d name: %s\n", startMDNS, nameMDNS);
-  strlcpy(mqtthost, miscObj["MQTTHOST"] | "", sizeof(mqtthost));
-  DEBUG_MSG("MQTT server IP: %s\n", mqtthost);
+  strlcpy(mqtthost, miscObj["MQTTHOST"] | "", maxHostSign);
+  strlcpy(mqttuser, miscObj["MQTTUSER"] | "", maxUserSign);
+  strlcpy(mqttpass, miscObj["MQTTPASS"] | "", maxPassSign);
+  DEBUG_MSG("MQTT server IP: %s User: %s Pass: %s\n", mqtthost, mqttuser, mqttpass);
   DEBUG_MSG("%s\n", "------ loadConfig finished ------");
   
   configFile.close();
@@ -222,7 +224,9 @@ bool saveConfig()
   miscObj["mdns_name"] = nameMDNS;
   miscObj["mdns"] = (int)startMDNS;
   miscObj["MQTTHOST"] = mqtthost;
-  DEBUG_MSG("MQTT broker IP: %s\n", mqtthost);
+  miscObj["MQTTUSER"] = mqttuser;
+  miscObj["MQTTPASS"] = mqttpass;
+  DEBUG_MSG("MQTT broker IP: %s User: %s Pass: %s\n", mqtthost, mqttuser, mqttpass);
 
   size_t len = measureJson(doc);
   int memoryUsed = doc.memoryUsage();
