@@ -134,18 +134,16 @@ void setupServer()
   server.on("/startHTTPUpdate", startHTTPUpdate); // Firmware WebUpdate
 
   // FSBrowser initialisieren
+  server.on("/edit", HTTP_GET, handleGetEdit);
+  server.on("/status", HTTP_GET, handleStatus);
   server.on("/list", HTTP_GET, handleFileList); // Verzeichnisinhalt
-  server.on("/edit", HTTP_GET, []() {           // Lade Editor
-    if (!handleFileRead("/edit.htm"))
-    {
-      server.send(404, "text/plain", "FileNotFound");
-    }
-  });
   server.on("/edit", HTTP_PUT, handleFileCreate);    // Datei erstellen
+  server.on("/favicon.ico", HTTP_GET, replyOK);
   server.on("/edit", HTTP_DELETE, handleFileDelete); // Datei löschen
   server.on(
       "/edit", HTTP_POST, []() { server.send(200, "text/plain", ""); },
       handleFileUpload);
+
 
   server.onNotFound(handleWebRequests); // Sonstiges
 

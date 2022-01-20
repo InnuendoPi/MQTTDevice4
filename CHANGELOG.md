@@ -1,7 +1,8 @@
 # Changelog
 
-Version 4.08
+Version 4.09
 
+- Reworked: File Explorer
 - Added:    MQTT basic authentication (passwordfile)
 - Update:   Bootstrap 4.6.1
 - Optimize: config handling

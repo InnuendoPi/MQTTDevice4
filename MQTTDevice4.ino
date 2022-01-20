@@ -33,6 +33,8 @@
 #include <CertStoreBearSSL.h> // WebUpdate
 #include <SoftwareSerial.h>
 #include <NextionX2.h>
+#include "edit_htm.h"
+#include <FS.h>
 
 extern "C"
 {
@@ -192,6 +194,11 @@ int inductionStatus = 0;
 
 // FSBrowser
 File fsUploadFile; // a File object to temporarily store the received file
+// bool m_fsOK = true;
+enum { MSG_OK, CUSTOM, NOT_FOUND, BAD_REQUEST, ERROR };
+#define TEXT_PLAIN "text/plain"
+#define FS_INIT_ERROR "FS INIT ERROR"
+#define FILE_NOT_FOUND "FileNotFound"
 
 #define maxKettles 4
 #define maxKettleSign 15
