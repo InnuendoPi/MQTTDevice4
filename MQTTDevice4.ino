@@ -34,6 +34,7 @@
 #include <SoftwareSerial.h>
 #include <NextionX2.h>
 #include "edit_htm.h"
+#include "index_htm.h"
 #include <FS.h>
 
 extern "C"
@@ -50,7 +51,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.08"
+#define Version "4.09"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000

@@ -1,4 +1,4 @@
-void upIn()
+void upIn1()
 {
     //    const uint8_t fingerprint[20] = {0xcc, 0xaa, 0x48, 0x48, 0x66, 0x46, 0x0e, 0x91, 0x53, 0x2c, 0x9c, 0x7c, 0x23, 0x2a, 0xb1, 0x74, 0x4d, 0x29, 0x9d, 0x33};
     std::unique_ptr<BearSSL::WiFiClientSecure> clientup(new BearSSL::WiFiClientSecure);
@@ -8,9 +8,9 @@ void upIn()
     HTTPClient https;
     String indexURL;
     if (LittleFS.exists("/dev.txt"))
-        indexURL = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/index.html";
+        indexURL = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/bootstrap.min.css";
     else
-        indexURL = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/index.html";
+        indexURL = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/bootstrap.min.css";
 
     // if (https.begin(*clientup, "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/index.html"))
     if (https.begin(*clientup, indexURL))
@@ -32,12 +32,12 @@ void upIn()
                 static uint8_t buff[128] = {0};
 
                 // Open file for write
-                fsUploadFile = LittleFS.open("/index.html", "w");
+                fsUploadFile = LittleFS.open("/bootstrap.min.css", "w");
                 if (!fsUploadFile)
                 {
                     //Serial.printf( F("file open failed"));
                     Serial.println("Abbruch!");
-                    Serial.println("*** SYSINFO: Fehler beim Speichern index.html");
+                    Serial.println("*** SYSINFO: error save css file");
                     https.end();
                     return;
                 }
@@ -65,7 +65,191 @@ void upIn()
                     delay(1);
                 }
 
-                Serial.println("*** SYSINFO: Index Update abgeschlossen.");
+                Serial.println("*** SYSINFO: css Update finished");
+                fsUploadFile.close();
+                // LittleFS.remove("/update.txt");
+                // fsUploadFile = LittleFS.open("/update2.txt", "w");
+                // int bytesWritten = fsUploadFile.print("0");
+                // fsUploadFile.close();
+            }
+            else
+                return;
+        }
+        else
+        {
+            Serial.println("Abbruch!");
+            Serial.printf("*** SYSINFO: error update css: %s\n", https.errorToString(httpCode).c_str());
+            https.end();
+            LittleFS.end(); // unmount LittleFS
+            ESP.restart();
+            return;
+        }
+        https.end();
+        return;
+    }
+    return;
+}
+
+void upIn2()
+{
+    //    const uint8_t fingerprint[20] = {0xcc, 0xaa, 0x48, 0x48, 0x66, 0x46, 0x0e, 0x91, 0x53, 0x2c, 0x9c, 0x7c, 0x23, 0x2a, 0xb1, 0x74, 0x4d, 0x29, 0x9d, 0x33};
+    std::unique_ptr<BearSSL::WiFiClientSecure> clientup(new BearSSL::WiFiClientSecure);
+    //clientup->setFingerprint(fingerprint);
+    clientup->setInsecure();
+
+    HTTPClient https;
+    String indexURL;
+    if (LittleFS.exists("/dev.txt"))
+        indexURL = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/bootstrap.min.js";
+    else
+        indexURL = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/bootstrap.min.js";
+
+    // if (https.begin(*clientup, "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/index.html"))
+    if (https.begin(*clientup, indexURL))
+    {
+        int httpCode = https.GET();
+        if (httpCode > 0)
+        {
+            // HTTP header has been send and Server response header has been handled
+            // Serial.printf("*** SYSINFO: [HTTPS] GET index.html Antwort: %d\n", httpCode);
+
+            // file found at server
+            if (httpCode == HTTP_CODE_OK)
+            {
+
+                // get lenght of document (is -1 when Server sends no Content-Length header)
+                int len = https.getSize();
+
+                // create buffer for read
+                static uint8_t buff[128] = {0};
+
+                // Open file for write
+                fsUploadFile = LittleFS.open("/bootstrap.min.js", "w");
+                if (!fsUploadFile)
+                {
+                    //Serial.printf( F("file open failed"));
+                    Serial.println("Abbruch!");
+                    Serial.println("*** SYSINFO: error save js file");
+                    https.end();
+                    return;
+                }
+
+                // read all data from server
+                while (https.connected() && (len > 0 || len == -1))
+                {
+                    // get available data size
+                    size_t size = clientup->available();
+                    //Serial.printf("*** SYSINFO: [HTTPS] index size avail: %d\n", size);
+
+                    if (size)
+                    {
+                        //read up to 128 byte
+                        int c = clientup->readBytes(buff, ((size > sizeof(buff)) ? sizeof(buff) : size));
+
+                        // write it to file
+                        fsUploadFile.write(buff, c);
+
+                        if (len > 0)
+                        {
+                            len -= c;
+                        }
+                    }
+                    delay(1);
+                }
+
+                Serial.println("*** SYSINFO: js Update finished");
+                fsUploadFile.close();
+                // LittleFS.remove("/update.txt");
+                // fsUploadFile = LittleFS.open("/update2.txt", "w");
+                // int bytesWritten = fsUploadFile.print("0");
+                // fsUploadFile.close();
+            }
+            else
+                return;
+        }
+        else
+        {
+            Serial.println("Abbruch!");
+            Serial.printf("*** SYSINFO: error update js: %s\n", https.errorToString(httpCode).c_str());
+            https.end();
+            LittleFS.end(); // unmount LittleFS
+            ESP.restart();
+            return;
+        }
+        https.end();
+        return;
+    }
+    return;
+}
+
+void upIn3()
+{
+    //    const uint8_t fingerprint[20] = {0xcc, 0xaa, 0x48, 0x48, 0x66, 0x46, 0x0e, 0x91, 0x53, 0x2c, 0x9c, 0x7c, 0x23, 0x2a, 0xb1, 0x74, 0x4d, 0x29, 0x9d, 0x33};
+    std::unique_ptr<BearSSL::WiFiClientSecure> clientup(new BearSSL::WiFiClientSecure);
+    //clientup->setFingerprint(fingerprint);
+    clientup->setInsecure();
+
+    HTTPClient https;
+    String indexURL;
+    if (LittleFS.exists("/dev.txt"))
+        indexURL = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/jquery.min.js";
+    else
+        indexURL = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/jquery.min.js";
+
+    // if (https.begin(*clientup, "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/index.html"))
+    if (https.begin(*clientup, indexURL))
+    {
+        int httpCode = https.GET();
+        if (httpCode > 0)
+        {
+            // HTTP header has been send and Server response header has been handled
+            // Serial.printf("*** SYSINFO: [HTTPS] GET index.html Antwort: %d\n", httpCode);
+
+            // file found at server
+            if (httpCode == HTTP_CODE_OK)
+            {
+
+                // get lenght of document (is -1 when Server sends no Content-Length header)
+                int len = https.getSize();
+
+                // create buffer for read
+                static uint8_t buff[128] = {0};
+
+                // Open file for write
+                fsUploadFile = LittleFS.open("/jquery.min.js", "w");
+                if (!fsUploadFile)
+                {
+                    //Serial.printf( F("file open failed"));
+                    Serial.println("Abbruch!");
+                    Serial.println("*** SYSINFO: error save jquery file");
+                    https.end();
+                    return;
+                }
+
+                // read all data from server
+                while (https.connected() && (len > 0 || len == -1))
+                {
+                    // get available data size
+                    size_t size = clientup->available();
+                    //Serial.printf("*** SYSINFO: [HTTPS] index size avail: %d\n", size);
+
+                    if (size)
+                    {
+                        //read up to 128 byte
+                        int c = clientup->readBytes(buff, ((size > sizeof(buff)) ? sizeof(buff) : size));
+
+                        // write it to file
+                        fsUploadFile.write(buff, c);
+
+                        if (len > 0)
+                        {
+                            len -= c;
+                        }
+                    }
+                    delay(1);
+                }
+
+                Serial.println("*** SYSINFO: jquery Update finished");
                 fsUploadFile.close();
                 LittleFS.remove("/update.txt");
                 fsUploadFile = LittleFS.open("/update2.txt", "w");
@@ -78,7 +262,7 @@ void upIn()
         else
         {
             Serial.println("Abbruch!");
-            Serial.printf("*** SYSINFO: Update index.html Fehler: %s\n", https.errorToString(httpCode).c_str());
+            Serial.printf("*** SYSINFO: error update jquery: %s\n", https.errorToString(httpCode).c_str());
             https.end();
             LittleFS.end(); // unmount LittleFS
             ESP.restart();
@@ -238,7 +422,9 @@ void updateSys()
         fsUploadFile.close();
         Serial.print("*** SYSINFO Starte Index Update Free Heap: ");
         Serial.println(ESP.getFreeHeap());
-        upIn();
+        upIn1();
+        upIn2();
+        upIn3();
     }
     if (LittleFS.exists("/update2.txt"))
     {

@@ -22,3 +22,8 @@ tools/MQTTDevice4.spiffs.bin
 tools/esptool.exe
 tools/Flashen.cmd
 tools/buildFirm.cmd
+data/index.htm
+data/index.html
+data/index.htm.gz
+data/favicon.ico
+web/

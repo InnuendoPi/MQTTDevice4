@@ -1,9 +1,9 @@
 void handleRoot()
 {
-  server.sendHeader("Location", "/index.html", true); //Redirect to our html web page
-  server.send(302, "text/plain", "");
-  // server.sendHeader(PSTR("Content-Encoding"), "gzip");
-  // server.send(302, "text/html", index_htm_gz, sizeof(index_htm_gz));
+  // server.sendHeader("Location", "/index.html", true); //Redirect to our html web page
+  // server.send(302, "text/plain", "");
+  server.sendHeader(PSTR("Content-Encoding"), "gzip");
+  server.send(200, "text/html", index_htm_gz, sizeof(index_htm_gz));
 }
 
 void handleWebRequests()
@@ -30,8 +30,8 @@ void handleWebRequests()
 bool loadFromLittlefs(String path)
 {
   String dataType = "text/plain";
-  if (path.endsWith("/"))
-    path += "index.html";
+  // if (path.endsWith("/"))
+  //   path += "index.html";
 
   if (path.endsWith(".src"))
     path = path.substring(0, path.lastIndexOf("."));
