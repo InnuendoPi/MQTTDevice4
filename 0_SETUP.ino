@@ -140,13 +140,8 @@ void setupServer()
   server.on("/edit", HTTP_PUT, handleFileCreate);    // Datei erstellen
   server.on("/favicon.ico", HTTP_GET, replyOK);
   server.on("/edit", HTTP_DELETE, handleFileDelete); // Datei löschen
-  server.on(
-      "/edit", HTTP_POST, []() { server.send(200, "text/plain", ""); },
-      handleFileUpload);
-
-
+  server.on("/edit", HTTP_POST, []() { server.send(200, "text/plain", ""); }, handleFileUpload);
   server.onNotFound(handleWebRequests); // Sonstiges
-
   httpUpdate.setup(&server);
   server.begin();
 }
