@@ -515,7 +515,7 @@ void updateSys()
         fsUploadFile = LittleFS.open("/log.txt", "w");
         bytesWritten = fsUploadFile.print((i));
         fsUploadFile.close();
-        Serial.print("*** SYSINFO update index started - free heap: ");
+        Serial.print("*** SYSINFO: Update index started - free heap: ");
         Serial.println(ESP.getFreeHeap());
         upIn();
     }
@@ -542,7 +542,7 @@ void updateSys()
         fsUploadFile = LittleFS.open("/log1.txt", "w");
         bytesWritten = fsUploadFile.print((i));
         fsUploadFile.close();
-        Serial.print("*** SYSINFO update css started- free heap: ");
+        Serial.print("*** SYSINFO: Update css started- free heap: ");
         Serial.println(ESP.getFreeHeap());
         upCSS();
     }
@@ -569,7 +569,7 @@ void updateSys()
         fsUploadFile = LittleFS.open("/log11.txt", "w");
         bytesWritten = fsUploadFile.print((i));
         fsUploadFile.close();
-        Serial.print("*** SYSINFO update js started - free heap: ");
+        Serial.print("*** SYSINFO: Update js started - free heap: ");
         Serial.println(ESP.getFreeHeap());
         upJS();
     }
@@ -596,7 +596,7 @@ void updateSys()
         fsUploadFile = LittleFS.open("/log111.txt", "w");
         bytesWritten = fsUploadFile.print((i));
         fsUploadFile.close();
-        Serial.print("*** SYSINFO update JQuery started - free heap: ");
+        Serial.print("*** SYSINFO: Update JQuery started - free heap: ");
         Serial.println(ESP.getFreeHeap());
         upJQ();
     }
@@ -623,7 +623,7 @@ void updateSys()
         fsUploadFile = LittleFS.open("/log2.txt", "w");
         bytesWritten = fsUploadFile.print((i));
         fsUploadFile.close();
-        Serial.print("*** SYSINFO start cert update - free heap: ");
+        Serial.print("*** SYSINFO: Start cert update - free heap: ");
         Serial.println(ESP.getFreeHeap());
         upCerts();
     }
@@ -651,7 +651,7 @@ void updateSys()
         bytesWritten = fsUploadFile.print((i));
         fsUploadFile.close();
 
-        Serial.print("*** SYSINFO start firmware update - free heap: ");
+        Serial.print("*** SYSINFO: Start firmware update - free heap: ");
         Serial.println(ESP.getFreeHeap());
         upFirm();
     }
