@@ -515,7 +515,7 @@ void updateSys()
         fsUploadFile = LittleFS.open("/log.txt", "w");
         bytesWritten = fsUploadFile.print((i));
         fsUploadFile.close();
-        Serial.print("*** SYSINFO start update index - free heap: ");
+        Serial.print("*** SYSINFO update index started - free heap: ");
         Serial.println(ESP.getFreeHeap());
         upIn();
     }
@@ -542,7 +542,7 @@ void updateSys()
         fsUploadFile = LittleFS.open("/log1.txt", "w");
         bytesWritten = fsUploadFile.print((i));
         fsUploadFile.close();
-        Serial.print("*** SYSINFO start update css - free heap: ");
+        Serial.print("*** SYSINFO update css started- free heap: ");
         Serial.println(ESP.getFreeHeap());
         upCSS();
     }
@@ -569,7 +569,7 @@ void updateSys()
         fsUploadFile = LittleFS.open("/log11.txt", "w");
         bytesWritten = fsUploadFile.print((i));
         fsUploadFile.close();
-        Serial.print("*** SYSINFO start update js - free heap: ");
+        Serial.print("*** SYSINFO update js started - free heap: ");
         Serial.println(ESP.getFreeHeap());
         upJS();
     }
@@ -596,7 +596,7 @@ void updateSys()
         fsUploadFile = LittleFS.open("/log111.txt", "w");
         bytesWritten = fsUploadFile.print((i));
         fsUploadFile.close();
-        Serial.print("*** SYSINFO start update JQuery - free heap: ");
+        Serial.print("*** SYSINFO update JQuery started - free heap: ");
         Serial.println(ESP.getFreeHeap());
         upJQ();
     }

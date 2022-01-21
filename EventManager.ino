@@ -172,7 +172,7 @@ void listenerSystem(int event, int parm) // System event listener
     }
     break;
   case EM_LOG:
-    if (LittleFS.exists("/log1.txt")) // WebUpdate Zertifikate
+    if (LittleFS.exists("/log.txt")) // WebUpdate Zertifikate
     {
       fsUploadFile = LittleFS.open("/log.txt", "r");
       String line;
@@ -184,7 +184,7 @@ void listenerSystem(int event, int parm) // System event listener
       Serial.printf("*** SYSINFO: Update index retries count %s\n", line.c_str());
       LittleFS.remove("/log.txt");
     }
-    if (LittleFS.exists("/log1.txt")) // WebUpdate Zertifikate
+    if (LittleFS.exists("/log1.txt")) // css Zertifikate
     {
       fsUploadFile = LittleFS.open("/log1.txt", "r");
       String line;
@@ -196,7 +196,7 @@ void listenerSystem(int event, int parm) // System event listener
       Serial.printf("*** SYSINFO: Update css retries count %s\n", line.c_str());
       LittleFS.remove("/log1.txt");
     }
-    if (LittleFS.exists("/log11.txt")) // WebUpdate Zertifikate
+    if (LittleFS.exists("/log11.txt")) // js Zertifikate
     {
       fsUploadFile = LittleFS.open("/log11.txt", "r");
       String line;
@@ -208,7 +208,7 @@ void listenerSystem(int event, int parm) // System event listener
       Serial.printf("*** SYSINFO: Update JS retries count %s\n", line.c_str());
       LittleFS.remove("/log11.txt");
     }
-    if (LittleFS.exists("/log111.txt")) // WebUpdate Zertifikate
+    if (LittleFS.exists("/log111.txt")) // qj Zertifikate
     {
       fsUploadFile = LittleFS.open("/log111.txt", "r");
       String line;
@@ -220,7 +220,7 @@ void listenerSystem(int event, int parm) // System event listener
       Serial.printf("*** SYSINFO: Update JQuery retries count %s\n", line.c_str());
       LittleFS.remove("/log111.txt");
     }
-    if (LittleFS.exists("/log2.txt")) // WebUpdate Index
+    if (LittleFS.exists("/log2.txt")) // certs
     {
       fsUploadFile = LittleFS.open("/log2.txt", "r");
       String line;
