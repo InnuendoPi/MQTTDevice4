@@ -11,7 +11,7 @@ void setup()
   Serial.println();
   // Setze Namen für das MQTTDevice
   snprintf(mqtt_clientid, maxHostSign, "ESP8266-%08X", ESP.getChipId());
-  Serial.printf("*** SYSINFO: Starte MQTTDevice %s\n", mqtt_clientid);
+  Serial.printf("*** SYSINFO: start up MQTTDevice - device ID: %s\n", mqtt_clientid);
 
   wifiManager.setDebugOutput(false);
   wifiManager.setMinimumSignalQuality(10);
@@ -20,7 +20,7 @@ void setup()
   wifiManager.setSaveConfigCallback(saveConfigCallback);
 
   WiFiManagerParameter cstm_mqtthost("host", "MQTT Server IP (CBPi)", mqtthost, maxHostSign);
-  WiFiManagerParameter p_hint("<small>*Sobald das MQTTDevice mit deinem WLAN verbunden ist, öffne im Browser http://mqttdevice </small>");
+  WiFiManagerParameter p_hint("<small>*Conect your MQTTDevice to WLAN. When connected open http://mqttdevice in your brower</small>");
   wifiManager.addParameter(&cstm_mqtthost);
   wifiManager.addParameter(&p_hint);
   wifiManager.autoConnect(mqtt_clientid);
@@ -33,7 +33,7 @@ void setup()
   // Lade Dateisystem
   if (LittleFS.begin())
   {
-    Serial.printf("*** SYSINFO Starte Setup LittleFS Free Heap: %d\n", ESP.getFreeHeap());
+    Serial.printf("*** SYSINFO: setup LittleFS free heap: %d\n", ESP.getFreeHeap());
 
     // Prüfe WebUpdate
     updateSys();
@@ -56,10 +56,10 @@ void setup()
     if (LittleFS.exists("/config.txt")) // Lade Konfiguration
       loadConfig();
     else
-      Serial.println("*** SYSINFO: Konfigurationsdatei config.txt nicht vorhanden. Setze Standardwerte ...");
+      Serial.println("*** SYSINFO: config file config.txt missing. Load defaults ...");
   }
   else
-    Serial.println("*** SYSINFO: Fehler - Dateisystem LittleFS konnte nicht eingebunden werden!");
+    Serial.println("*** SYSINFO: error - cannot mount LittleFS!");
 
   // Lege Event Queues an
   gEM.addListener(EventManager::kEventUser0, listenerSystem);
@@ -80,7 +80,7 @@ void setup()
     cbpiEventSystem(EM_MDNSET);
   else
   {
-    Serial.printf("*** SYSINFO: ESP8266 IP Addresse: %s Time: %s RSSI: %d\n", WiFi.localIP().toString().c_str(), timeClient.getFormattedTime().c_str(), WiFi.RSSI());
+    Serial.printf("*** SYSINFO: ESP8266 IP address: %s Time: %s RSSI: %d\n", WiFi.localIP().toString().c_str(), timeClient.getFormattedTime().c_str(), WiFi.RSSI());
   }
 
   if (useDisplay)

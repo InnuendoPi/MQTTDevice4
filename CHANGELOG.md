@@ -1,7 +1,9 @@
 # Changelog
 
-Version 4.09
+Version 4.10
 
+- Reworked: WebUpdate updates bootstrap and jquery
+- Reworked: WebUpdate removes old map files
 - Reworked: File Explorer
 - Added:    MQTT basic authentication (passwordfile)
 - Update:   Bootstrap 4.6.1

@@ -17,7 +17,7 @@ A detailed documentation CraftbeerPi4 is available on github pages:: <https://op
 
 ## Sketch Information
 
-Libraries: Version 4.08, 01.2022
+Libraries: Version 4.10, 01.2022
 
 - ESP8266 3.0.2 (LittleFS)
 - Arduino IDE 1.8.16
