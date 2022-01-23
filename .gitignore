@@ -3,6 +3,7 @@
 .vscode/
 *.cmd
 *.exe
+*.psd
 core
 preproc
 sketch

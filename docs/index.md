@@ -209,20 +209,30 @@ Most of the functions of the firmware are self-explanatory. The addition or dele
 
 1. System
 
-    **IP address MQTT Server (CBPi):**
-
-    The MQTT broker is entered under System. In the vast majority of cases, this is likely to be mosquitto on the CBPi.
-    Important: the firmware MQTTDevice tries constantly to establish a connection with the MQTT broker. If the MQTT broker is not available, this will severely affect the speed of the MQTT device (web interface).
+    ![misc](img/misc.jpg)
 
     **Piezo Buzzer:**
 
     A piezo buzzer can only be connected to PIN D8. A piezo buzzer is optional. The firmware supports 4 different signals: ON, OFF, OK and ERROR
 
+    **HMI display:**
+
+    If you want to use a display check jumper settings J1 and J2 first. GPIOs D1 and D2 are used for TX and RX.
+
     **mDNS:**
 
-    A mDNS name can be used instead of the IP address of the ESP8266 in the web browser (<http://mDNSname>). The name is freely selectable. The mDNS name must be unique in the network and must not contain any spaces or special characters.
+    A mDNS name can be used instead of the IP address of the ESP8266 in the web browser (<http://mDNSname>). The name is freely selectable. The mDNS name must be unique in the network and must not contain any spaces or special characters. Please note: if you use two or more MQTTDevices you must change default mDNS "mqttdevice" into an unique identifier!
 
-2. Event manager
+2. MQTT Settings
+
+    ![mqtt](img/mqtt.jpg)
+
+    **IP address MQTT Server (CBPi):**
+
+    The MQTT broker is entered under System. In the vast majority of cases, this is likely to be mosquitto on the CBPi.
+    Important: the firmware MQTTDevice tries constantly to establish a connection with the MQTT broker. If the MQTT broker is not available, this will severely affect the speed of the MQTT device (web interface).
+
+3. Event manager
 
     The event manager handles events and misconduct. Handling of malfunctions (event handling) is deactivated in the standard setting!
 
@@ -263,6 +273,20 @@ The display can be configured via the WebIf. While display is activated, GPIO D1
 **Instructions to flash NextionsX2 touchdisplay:**
 
 Copy the file info/mqttdevice4-\<displaytype>.tft in the root directory of your SD card. Put your SD card into the cardreader of your Nextion display and power on. The MQTTDevice display template will be flashed. When finished power off and remove SD card.
+
+**Connect NextionsX2 touchdisplay:**
+
+Please check the manual of your display first! Use this information on your own risk!
+
+![disp1](img/disp1.jpg)
+
+Nextion red cable power+ plugged into screw terminal display port Vcc
+
+Nextion black cable power- plugged into screw terminal display port GND
+
+Nextion blue cable TX plugged into screw terminal display port D1 (SDL)
+
+Nextion yellow cable RX plugged into screw terminal display port D2 (SDA)
 
 ---
 
@@ -380,10 +404,15 @@ In addition to a GPIO, relay boards require a 5V power supply. 5V can be tapped 
 
 ## Case 3D print
 
-![case1](img/case1.png)
 ![case2](img/case2.png)
 ![plate](img/groundplate.png)
 
-3D print files are located in the info folder. With the current housing design, the circuit board and a 3.5" Nextion touchdisplay are glued into the housing.
+3D print files are located in the info folder. With the current housing design, the circuit board and a 3.5" Nextion touchdisplay are glued into the housing. Holes for case, lid and circuit board are made with a diameter for M3 screws. M3x10mm screws fit for display, circuit board and XLR connectors. M3x16 screws match for groundplate to case holes and pads. You need to cut M3 threads into the six pads. Both objects are build parameterized with FreeCAD. Improvments are welcome!
+
+A mash kettle example:
+
+![case3](img/case3.jpg)
+
+GPIOs D5, D6 and D7 are used by induction hob GGM IDS2. A buzzer is connected to GPIO D8. GPIO D1 and D2 are bound to display. GPIO D4 is used to handle an agitator. The yellow knob is a PWM modul. The connector below shows the cable to the agitator. This MQTTDevice is connected with a 6 cores cable: two lines for 5V power MQTTDevice. Another two lines are used for 24V agitator power, conected to the PWM modul IN. And the last two lines ares used by GPIO D4 + GND and connected to a SSR to switch on/off the agitator power adapter (24V). The PWM modul OUT is connected to the agitator. Both power adapters (MQTTDevice and agitator) are installed on a DIN rail in a central swtich cabinet.
 
 ---
