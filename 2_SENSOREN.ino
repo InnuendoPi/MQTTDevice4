@@ -66,7 +66,7 @@ public:
   {
     new_mqtttopic.toCharArray(sens_mqtttopic, new_mqtttopic.length() + 1);
     sens_name = new_name;
-    sens_offset = new_offset;
+    sens_offset = ((int)((new_offset + 0.05) * 10)) / 10.0;
     sens_sw = new_sw;
 
     if (new_address.length() == 16)
@@ -256,6 +256,7 @@ void handleSetSensor()
     if (server.argName(i) == "offset")
     {
       new_offset = formatDOT(server.arg(i));
+      DEBUG_MSG("Sens: server_arg: %s new offset: %f\n", server.arg(i), new_offset);
     }
     if (server.argName(i) == "sw")
     {

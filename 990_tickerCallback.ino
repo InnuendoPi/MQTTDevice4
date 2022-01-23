@@ -33,7 +33,7 @@ void tickerDispCallback()
     if (!activeBrew)  // aktiver Step vorhanden?
     {
       strlcpy(structKettles[0].current_temp, sensors[0].getTotalValueString(), maxTempSign);
-      strlcpy(structKettles[0].target_temp, "0", maxTempSign);
+      // strlcpy(structKettles[0].target_temp, "0", maxTempSign);
       strlcpy(currentStepName, sensors[0].getName().c_str(), maxStepSign);
     }
 

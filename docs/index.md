@@ -141,7 +141,10 @@ MQTTDevice 1: Mash tun with temperature sensors and agitator.
 
 MQTTDevice 2: HLT with temperature sensors, pumps and valves etc.
 
-Any combination is possible. Because the MQTT communication is implemented via topics, a temperature sensor and an induction hob for a CraftbeerPi Kettle do not have to be configured on the same MQTTDeivce, for example.
+Any combination is possible. Because the MQTT communication is implemented via topics, a temperature sensor and an induction hob for a CraftbeerPi Kettle do not have to be configured on the same MQTTDeivce.
+
+![induction](img/induction.jpg)
+The picture above is an example on how to configure an induction hob GGM IDS2. Do not reduce fan run on after power off below 120sec: savely cool down induction hob after mash or boil. GPIOs D5, D6 and D7 are highly recommended. Check ESP8266 manual for further information about  GPIO states (High/Low) on startup.
 
 **Updates:**
 
@@ -405,9 +408,9 @@ In addition to a GPIO, relay boards require a 5V power supply. 5V can be tapped 
 ## Case 3D print
 
 ![case2](img/case2.png)
-![plate](img/groundplate.png)
+![base](img/base.png)
 
-3D print files are located in the info folder. With the current housing design, the circuit board and a 3.5" Nextion touchdisplay are glued into the housing. Holes for case, lid and circuit board are made with a diameter for M3 screws. M3x10mm screws fit for display, circuit board and XLR connectors. M3x16 screws match for groundplate to case holes and pads. You need to cut M3 threads into the six pads. Both objects are build parameterized with FreeCAD. Improvments are welcome!
+3D print files are located in the info folder. With the current housing design, the circuit board and a 3.5" Nextion touchdisplay are glued into the housing. Holes for housing, base and circuit board are made with a diameter for M3 screws. M3x10mm screws fit for display, circuit board and XLR connectors. M3x16 screws match for groundplate to case holes and pads. You need to cut M3 threads into the six pads. Both objects are build parameterized with FreeCAD. Improvments are welcome!
 
 A mash kettle example:
 

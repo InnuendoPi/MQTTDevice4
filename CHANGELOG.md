@@ -1,7 +1,10 @@
 # Changelog
 
-Version 4.10
+Version 4.11
 
+- Fixed:    Sensor offset incorrect read
+- Fixed:    Sensor offset incorrect display (digits)
+- Reworked: gitpages
 - Reworked: WebUpdate updates bootstrap and jquery
 - Reworked: WebUpdate removes old map files
 - Reworked: File Explorer
