@@ -1,16 +1,52 @@
 void brewCallback()
 {
-  if (activePage == 1)
-  {
-    activePage = 0;
-    BrewPage();
-  }
-  else
-  {
-    activePage = 1;
-    KettlePage();
-  }
+  activePage = 0;
+  BrewPage();
+  // if (activePage == 1)
+  // {
+  //   activePage = 0;
+  //   BrewPage();
+  // }
+  // else
+  // {
+  //   activePage = 1;
+  //   KettlePage();
+  // }
 }
+void kettleCallback()
+{
+  activePage = 1;
+  KettlePage();
+  // if (activePage == 1)
+  // {
+  //   activePage = 0;
+  //   BrewPage();
+  // }
+  // else
+  // {
+  //   activePage = 1;
+  //   KettlePage();
+  // }
+}
+void inductionCallback()
+{
+  activePage = 2;
+  InductionPage();
+}
+void powerButtonCallback()
+{
+  activePage = 2;
+  inductionCooker.induction_state = !inductionCooker.induction_state;
+}
+// void plusCallback()
+// {
+//   if (inductionCooker.power < 100)
+
+// }
+// void minusCallback()
+// {
+  
+// }
 
 void tickerDispCallback()
 {
@@ -19,7 +55,7 @@ void tickerDispCallback()
   sprintf_P(ipMQTT, (PGM_P)F("%s %s"), nameMDNS, WiFi.localIP().toString().c_str());
   switch (activePage)
   {
-  case 0: //BrewPage
+  case 0:            //BrewPage
     if (!activeBrew) // aktiver Step vorhanden?
     {
       strlcpy(currentStepName, "BrewPage", maxStepSign);
@@ -29,8 +65,8 @@ void tickerDispCallback()
     mqttDevice.attribute("txt", ipMQTT);
     BrewPage();
     break;
-  case 1: // KettlePage
-    if (!activeBrew)  // aktiver Step vorhanden?
+  case 1:            // KettlePage
+    if (!activeBrew) // aktiver Step vorhanden?
     {
       strlcpy(structKettles[0].current_temp, sensors[0].getTotalValueString(), maxTempSign);
       // strlcpy(structKettles[0].target_temp, "0", maxTempSign);
@@ -40,6 +76,11 @@ void tickerDispCallback()
     p1mqttDevice.attribute("txt", ipMQTT);
     p1uhrzeit_text.attribute("txt", uhrzeit);
     KettlePage();
+    break;
+  case 2: // Induction mode
+    strlcpy(structKettles[0].current_temp, sensors[0].getTotalValueString(), maxTempSign);
+    p2uhrzeit_text.attribute("txt", uhrzeit);
+    InductionPage();
     break;
   default:
     break;

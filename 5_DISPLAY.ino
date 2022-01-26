@@ -5,7 +5,13 @@ void initDisplay()
   // millis2wait(2000); // wait short delay after reset befor passing new commands to display
 
   brewButton.touch(brewCallback);
-  kettleButton.touch(brewCallback);
+  // kettleButton.touch(brewCallback);
+  kettleButton.touch(kettleCallback);
+  inductionButton.touch(inductionCallback);
+  powerButton.touch(powerButtonCallback);
+
+  // plusButton.touch(plusCallback);
+  // minusButton.touch(minusCallback);
 }
 
 void BrewPage()
@@ -50,6 +56,26 @@ void KettlePage()
   p1target_text.attribute("txt", structKettles[0].target_temp);
   p1slider.value(sliderval);
   p1notification.attribute("txt", notify);
+}
+
+void InductionPage()
+{
+  // p2uhrzeit_text
+  // p2slider
+  // p2temp_text
+  // 316 = 0°C - 360 = 44°C - 223 = 100°C -- 53,4 je 20°C
+
+  inductionCooker.handleInductionPage(p2slider.value());
+  if (sensors[0].getValue() + sensors[0].getOffset() < 16.0)
+  {
+    p2gauge.attribute("val", (int)((sensors[0].getValue() + sensors[0].getOffset()) * 2.7 + 316));
+  }
+  else
+  {
+    p2gauge.attribute("val", (int)((sensors[0].getValue() + sensors[0].getOffset()) * 2.7 - 44));
+  }
+  
+  p2temp_text.attribute("txt", structKettles[0].current_temp);
 }
 
 void cbpi4kettle_subscribe()

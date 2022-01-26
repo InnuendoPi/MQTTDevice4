@@ -74,7 +74,7 @@ void setup()
 
   // Starte Sensoren
   DS18B20.begin();
-
+  
   // Starte mDNS
   if (startMDNS)
     cbpiEventSystem(EM_MDNSET);

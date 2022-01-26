@@ -639,7 +639,10 @@
       $.get("/reqSensors?id=" + sensorid, function (data) {
         modal.find('#modal_sensor_name').val(data.name);
         modal.find('#modal_sensor_script').val(data.script);
-        modal.find('#modal_sensor_offset').val(parseFloat(data.offset).toFixed(2));
+        var result = 0;
+        if (data.offset > 0)
+          result = parseFloat(data.offset).toFixed(2)
+        modal.find('#modal_sensor_offset').val(result);
         modal.find('#modal_sensor_sw').prop("checked", Boolean(Number(data.sw)));
       });
     });

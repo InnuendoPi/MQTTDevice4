@@ -1,11 +1,11 @@
 class TemperatureSensor
 {
   int sens_err = 0;
-  bool sens_sw = false;      // Events aktivieren
-  bool sens_state = true;    // Fehlerstatus ensor
-  bool sens_isConnected;     // ist der Sensor verbunden
-  float sens_offset = 0.0;   // Offset - Temp kalibrieren
-  float sens_value = -127.0; // Aktueller Wert
+  bool sens_sw = false;          // Events aktivieren
+  bool sens_state = true;        // Fehlerstatus ensor
+  bool sens_isConnected;         // ist der Sensor verbunden
+  float sens_offset = 0.0;       // Offset - Temp kalibrieren
+  float sens_value = -127.0;     // Aktueller Wert
   String sens_name;              // Name für Anzeige auf Website
   unsigned char sens_address[8]; // 1-Wire Adresse
   char sens_mqtttopic[50];       // Für MQTT Kommunikation
@@ -66,7 +66,7 @@ public:
   {
     new_mqtttopic.toCharArray(sens_mqtttopic, new_mqtttopic.length() + 1);
     sens_name = new_name;
-    sens_offset = ((int)((new_offset + 0.05) * 10)) / 10.0;
+    sens_offset = (round((new_offset + 0.005) * 100)) / 100.0;
     sens_sw = new_sw;
 
     if (new_address.length() == 16)
@@ -93,7 +93,7 @@ public:
         sens_address[i] = octets[i];
       }
     }
-    DS18B20.setResolution(sens_address, 10);
+    DS18B20.setResolution(sens_address, 12);
   }
 
   void publishmqtt()
@@ -105,7 +105,8 @@ public:
       sensorsObj["Name"] = sens_name;
       if (sensorsStatus == 0)
       {
-        sensorsObj["Value"] = ((int)((sens_value + sens_offset + 0.05) * 10)) / 10.0;
+        // sensorsObj["Value"] = ((int)((sens_value + sens_offset + 0.05) * 10)) / 10.0;
+        sensorsObj["Value"] = round((sens_value + sens_offset + 0.05) * 10) / 10.0;
       }
       else
       {
@@ -159,7 +160,8 @@ public:
     if (sens_value == -127.0)
       return buf;
 
-    dtostrf((sens_value + sens_offset), 2, 1, buf);
+    // dtostrf((sens_value + sens_offset), 2, 1, buf);
+    dtostrf((round((sens_value + sens_offset + 0.05) * 10) / 10.0), 2, 1, buf);
     return buf;
   }
 };
@@ -256,7 +258,6 @@ void handleSetSensor()
     if (server.argName(i) == "offset")
     {
       new_offset = formatDOT(server.arg(i));
-      DEBUG_MSG("Sens: server_arg: %s new offset: %f\n", server.arg(i), new_offset);
     }
     if (server.argName(i) == "sw")
     {

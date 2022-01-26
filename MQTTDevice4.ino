@@ -50,7 +50,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.11"
+#define Version "4.12"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -244,6 +244,7 @@ NextionComPort nextion;
 NextionComponent brewButton(nextion, 0, 20);
 NextionComponent kettleButton(nextion, 1, 8);
 
+// BrewPage
 NextionComponent uhrzeit_text(nextion, 0, 10);
 NextionComponent currentStepName_text(nextion, 0, 6);
 NextionComponent currentStepRemain_text(nextion, 0, 5);
@@ -264,7 +265,7 @@ NextionComponent kettleSoll4_text(nextion, 0, 18);
 NextionComponent slider(nextion, 0, 9);
 NextionComponent notification(nextion, 0, 19);
 NextionComponent mqttDevice(nextion, 0, 21);
-
+// KettlePage
 NextionComponent p1uhrzeit_text(nextion, 1, 3);
 NextionComponent p1current_text(nextion, 1, 4);
 NextionComponent p1remain_text(nextion, 1, 5);
@@ -273,6 +274,15 @@ NextionComponent p1target_text(nextion, 1, 2);
 NextionComponent p1slider(nextion, 1, 6);
 NextionComponent p1notification(nextion, 1, 7);
 NextionComponent p1mqttDevice(nextion, 1, 9);
+// InductionPage
+NextionComponent inductionButton(nextion, 2, 2);
+NextionComponent powerButton(nextion, 2, 3);
+// NextionComponent plusButton(nextion, 2, 9);
+// NextionComponent minusButton(nextion, 2, 9);
+NextionComponent p2uhrzeit_text(nextion, 2, 7);
+NextionComponent p2slider(nextion, 2, 1);
+NextionComponent p2temp_text(nextion, 2, 5);
+NextionComponent p2gauge(nextion, 2, 4);
 
 #define ALARM_ON 1
 #define ALARM_OFF 2

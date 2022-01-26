@@ -103,7 +103,7 @@ public:
       if (isPin(PIN_INTERRUPT))
       {
         attachInterrupt(digitalPinToInterrupt(PIN_INTERRUPT), readInputWrap, CHANGE);
-        
+
         // pinMode(PIN_INTERRUPT, INPUT_PULLUP);
         pins_used[PIN_INTERRUPT] = true;
       }
@@ -179,6 +179,16 @@ public:
     {
       newPower = doc["power"];
     }
+  }
+
+  void handleInductionPage(int value)
+  {
+    if (value > 0)
+    {
+      newPower = value;
+    }
+    else
+      newPower = 0;
   }
 
   void setupCommands()
@@ -373,7 +383,6 @@ public:
       }
     }
   }
-
 };
 
 induction inductionCooker = induction();
@@ -398,7 +407,7 @@ void handleRequestInduction()
     doc["power"] = inductionCooker.power;
     doc["relayOn"] = inductionCooker.isRelayon;
     doc["state"] = inductionCooker.induction_state;
-        
+
     if (inductionCooker.isPower)
     {
       doc["powerLevel"] = inductionCooker.CMD_CUR;
@@ -476,7 +485,7 @@ void handleSetIndu()
   {
     if (server.argName(i) == "enabled")
     {
-        is_enabled = checkBool(server.arg(i));
+      is_enabled = checkBool(server.arg(i));
     }
     if (server.argName(i) == "topic")
     {

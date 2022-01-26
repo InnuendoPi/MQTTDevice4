@@ -17,7 +17,7 @@ A detailed documentation CraftbeerPi4 is available on github pages:: <https://op
 
 ## Sketch Information
 
-Libraries: Version 4.10, 01.2022
+Libraries: Version 4.12, 01.2022
 
 - ESP8266 3.0.2 (LittleFS)
 - Arduino IDE 1.8.16
@@ -34,4 +34,4 @@ Exceptions Disabled
 IwIP variant v2 lower mem
 
 Debug output:
-For debug output, the debug port must be set to serial. Set the debug level accordingly for special debug outputs (default none).
+debug port must be set to serial. Set debug level accordingly to needed debug outputs (default none).

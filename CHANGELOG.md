@@ -1,7 +1,9 @@
 # Changelog
 
-Version 4.11
+Version 4.12
 
+- Added:    Induction Mode
+- Reworked: Callback functions display touch/release
 - Fixed:    Sensor offset incorrect read
 - Fixed:    Sensor offset incorrect display (digits)
 - Reworked: gitpages
