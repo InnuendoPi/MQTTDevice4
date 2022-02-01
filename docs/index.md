@@ -135,6 +135,8 @@ The MQTT sensor "Induction temperature" and the MQTT actor "Agitator" are now cr
 ![mqttSensor2](img/mqttSensor2.jpg)
 ![mqttAktor2](img/mqttAktor2.jpg)
 
+Please note the dot in PayloadDictionary: Sensor.Value (Sensor dot Value)
+
 The sensor or actor name can be different. These steps complete the exemplary installation and configuration of MQTT sensors and actors. Up to 6 sensors and 6 actors can be set up per MQTT device. (Almost) any number of MQTT devices can be connected to CraftbeerPi via MQTT. Two MQTT devices are used very often:
 
 MQTTDevice 1: Mash tun with temperature sensors and agitator.
@@ -207,6 +209,8 @@ Most of the functions of the firmware are self-explanatory. The addition or dele
     * Firmware WebUpdate
     * Filebrowser for simple file management (e.g. backup and restore config.json)
     * DS18B20 temperature offset - easy calibration of the sensors
+
+**Sensor settings:**
 
 **Misc settings:**
 
