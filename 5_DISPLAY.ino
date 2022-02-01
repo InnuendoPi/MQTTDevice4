@@ -1,30 +1,33 @@
 void initDisplay()
 {
   nextion.command("rest");
-  // nextion.command("doevents");
-  // millis2wait(2000); // wait short delay after reset befor passing new commands to display
+  p0indButton.touch(inductionCallback);
+  p1indButton.touch(inductionCallback);
+  p0kettleButton.touch(kettleCallback);
+  p2kettleButton.touch(kettleCallback);
+  p1brewButton.touch(brewCallback);
+  p2brewButton.touch(brewCallback);
 
-  brewButton.touch(brewCallback);
-  // kettleButton.touch(brewCallback);
-  kettleButton.touch(kettleCallback);
-  inductionButton.touch(inductionCallback);
   powerButton.touch(powerButtonCallback);
-
-  // plusButton.touch(plusCallback);
-  // minusButton.touch(minusCallback);
+  // p1notification.attribute("txt", "Waiting for CBPi4 kettle data");
+  KettlePage();
 }
 
 void BrewPage()
 {
-  // DEBUG_MSG("Disp: BrewPage3 activeBrew: %d kettleID0: %s\n", activeBrew, structKettles[0].id);
-
+  // DEBUG_MSG("Disp: BrewPage activeBrew: %d kettleID0: %s\n", activeBrew, structKettles[0].id);
   currentStepName_text.attribute("txt", currentStepName);
   currentStepRemain_text.attribute("txt", currentStepRemain);
   nextStepRemain_text.attribute("txt", nextStepRemain);
   nextStepName_text.attribute("txt", nextStepName);
-  kettleName1_text.attribute("txt", structKettles[0].name);
-  kettleSoll1_text.attribute("txt", structKettles[0].target_temp);
-  kettleIst1_text.attribute("txt", structKettles[0].current_temp);
+  if (strlen(structKettles[1].id) > 0)
+  {
+    kettleName1_text.attribute("txt", structKettles[0].name);
+    kettleSoll1_text.attribute("txt", structKettles[0].target_temp);
+    kettleIst1_text.attribute("txt", structKettles[0].current_temp);
+  }
+  else
+    strlcpy(notify, "Waiting for CBPi4 kettle data ...", maxNotifySign);
   if (strlen(structKettles[1].id) > 0)
   {
     kettleName2_text.attribute("txt", structKettles[1].name);
@@ -49,17 +52,36 @@ void BrewPage()
 
 void KettlePage()
 {
-  // DEBUG_MSG("Disp: KettlePage3 activeBrew: %d kettleID0: %s\n", activeBrew, structKettles[0].id);
+  // DEBUG_MSG("Disp: KettlePage activeBrew: %d kettleID0: %s\n", activeBrew, structKettles[0].id);
+
+  if (strlen(structKettles[0].sensor) != 0)
+  {
+    for (int i = 0; i < numberOfSensors; i++)
+    {
+      if (strcmp(structKettles[i].sensor, sensors[0].getId().c_str()) == 0)
+      {
+        p1temp_text.attribute("txt", structKettles[i].current_temp);
+        p1target_text.attribute("txt", structKettles[i].target_temp);
+        DEBUG_MSG("Display: KettlePage Sensor ID: %s\n", structKettles[i].sensor);
+        break;
+      }
+    }
+  }
+  else
+  {
+    p1temp_text.attribute("txt", structKettles[0].current_temp);
+    p1target_text.attribute("txt", "0");
+  }
+
   p1current_text.attribute("txt", currentStepName);
   p1remain_text.attribute("txt", currentStepRemain);
-  p1temp_text.attribute("txt", structKettles[0].current_temp);
-  p1target_text.attribute("txt", structKettles[0].target_temp);
   p1slider.value(sliderval);
   p1notification.attribute("txt", notify);
 }
 
 void InductionPage()
 {
+  // DEBUG_MSG("Disp: InductionPage activeBrew: %d kettleID0: %s\n", activeBrew, structKettles[0].id);
   // p2uhrzeit_text
   // p2slider
   // p2temp_text
@@ -74,8 +96,7 @@ void InductionPage()
   {
     p2gauge.attribute("val", (int)((sensors[0].getValue() + sensors[0].getOffset()) * 2.7 - 44));
   }
-  
-  p2temp_text.attribute("txt", structKettles[0].current_temp);
+  p2temp_text.attribute("txt", strcat(structKettles[0].current_temp, "°C"));
 }
 
 void cbpi4kettle_subscribe()
@@ -203,6 +224,7 @@ void cbpi4kettle_handlemqtt(char *payload)
         break;
       }
     }
+    // DEBUG_MSG("OLD kettle ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
   }
   // DEBUG_MSG("Disp: kettle_handlemqtt %s %s\n", sensorID.c_str(), target_temp.c_str());
 }
@@ -243,7 +265,8 @@ void cbpi4sensor_handlemqtt(char *payload)
         }
       }
       else
-        p1temp_text.attribute("txt", sensors[0].getTotalValueString());
+        p1temp_text.attribute("txt", structKettles[0].current_temp);
+      // p1temp_text.attribute("txt", sensors[0].getTotalValueString());
       // DEBUG_MSG("Sensor value POST %d Sensor-ID: %s Kettle-Sensor: %s value: %s activepage %d\n", i, structKettles[i].id, structKettles[i].sensor, structKettles[i].current_temp, activePage);
       break;
     }
@@ -264,6 +287,10 @@ void cbpi4steps_handlemqtt(char *payload)
   }
   if (doc["status"] == "A")
   {
+    if (!activeBrew) // aktiver Step vorhanden?
+    {
+      activeBrew = true;
+    }
     current_step = true;
     int valTimer = 0;
     int min = 0;

@@ -9,6 +9,7 @@ class TemperatureSensor
   String sens_name;              // Name für Anzeige auf Website
   unsigned char sens_address[8]; // 1-Wire Adresse
   char sens_mqtttopic[50];       // Für MQTT Kommunikation
+  String sens_id;
 
 public:
   // moved to private and get methods. change as set method
@@ -18,9 +19,9 @@ public:
     return SensorAddressToString(sens_address);
   }
 
-  TemperatureSensor(String new_address, String new_mqtttopic, String new_name, float new_offset, bool new_sw)
+  TemperatureSensor(String new_address, String new_mqtttopic, String new_name, String new_id, float new_offset, bool new_sw)
   {
-    change(new_address, new_mqtttopic, new_name, new_offset, new_sw);
+    change(new_address, new_mqtttopic, new_name, new_id, new_offset, new_sw);
   }
 
   void Update()
@@ -62,11 +63,15 @@ public:
     publishmqtt();
   } // void Update
 
-  void change(const String &new_address, const String &new_mqtttopic, const String &new_name, float new_offset, const bool &new_sw)
+  void change(const String &new_address, const String &new_mqtttopic, const String &new_name, const String &new_id, float new_offset, const bool &new_sw)
   {
     new_mqtttopic.toCharArray(sens_mqtttopic, new_mqtttopic.length() + 1);
+    sens_id = new_id;
     sens_name = new_name;
-    sens_offset = (round((new_offset + 0.005) * 100)) / 100.0;
+    if (new_offset == 0.0)
+      sens_offset = (round((new_offset) * 100)) / 100.0;
+    else
+      sens_offset = (round((new_offset + 0.005) * 100)) / 100.0;
     sens_sw = new_sw;
 
     if (new_address.length() == 16)
@@ -146,6 +151,10 @@ public:
   {
     return sens_mqtttopic;
   }
+  String getId()
+  {
+    return sens_id;
+  }
 
   char buf[5];
   char *getValueString()
@@ -168,12 +177,12 @@ public:
 
 // Initialisierung des Arrays -> max 6 Sensoren
 TemperatureSensor sensors[numberOfSensorsMax] = {
-    TemperatureSensor("", "", "", 0.0, false),
-    TemperatureSensor("", "", "", 0.0, false),
-    TemperatureSensor("", "", "", 0.0, false),
-    TemperatureSensor("", "", "", 0.0, false),
-    TemperatureSensor("", "", "", 0.0, false),
-    TemperatureSensor("", "", "", 0.0, false)};
+    TemperatureSensor("", "", "", "",0.0, false),
+    TemperatureSensor("", "", "", "",0.0, false),
+    TemperatureSensor("", "", "", "",0.0, false),
+    TemperatureSensor("", "", "", "",0.0, false),
+    TemperatureSensor("", "", "", "",0.0, false),
+    TemperatureSensor("", "", "", "",0.0, false)};
 
 // Funktion für Loop im Timer Objekt
 void handleSensors()
@@ -238,6 +247,7 @@ void handleSetSensor()
   String new_mqtttopic = sensors[id].getTopic();
   String new_name = sensors[id].getName();
   String new_address = sensors[id].getSens_adress_string();
+  String new_id = sensors[id].getId();
   float new_offset = sensors[id].getOffset();
   bool new_sw = sensors[id].getSw();
 
@@ -263,10 +273,16 @@ void handleSetSensor()
     {
       new_sw = checkBool(server.arg(i));
     }
+    if (server.argName(i) == "cbpiid")
+    {
+      new_id = server.arg(i);
+      DEBUG_MSG("Sens1: ID %s\n", new_id.c_str());
+    }
     yield();
   }
+  DEBUG_MSG("Sens2: ID %s\n", new_id.c_str());
 
-  sensors[id].change(new_address, new_mqtttopic, new_name, new_offset, new_sw);
+  sensors[id].change(new_address, new_mqtttopic, new_name, new_id, new_offset, new_sw);
   saveConfig();
   server.send(201, "text/plain", "created");
 }
@@ -280,10 +296,10 @@ void handleDelSensor()
   {
     if (i == (numberOfSensorsMax - 1)) // 5 - Array von 0 bis (numberOfSensorsMax-1)
     {
-      sensors[i].change("", "", "", 0.0, false);
+      sensors[i].change("", "", "", "", 0.0, false);
     }
     else
-      sensors[i].change(sensors[i + 1].getSens_adress_string(), sensors[i + 1].getTopic(), sensors[i + 1].getName(), sensors[i + 1].getOffset(), sensors[i + 1].getSw());
+      sensors[i].change(sensors[i + 1].getSens_adress_string(), sensors[i + 1].getTopic(), sensors[i + 1].getName(), sensors[i + 1].getId(), sensors[i + 1].getOffset(), sensors[i + 1].getSw());
 
     yield();
   }
@@ -348,6 +364,7 @@ void handleRequestSensors()
           sensorsObj["value"] = "ERR";
       }
       sensorsObj["mqtt"] = sensors[i].getTopic();
+      sensorsObj["cbpiid"] = sensors[i].getId();
       yield();
     }
   }
@@ -357,6 +374,7 @@ void handleRequestSensors()
     doc["offset"] = sensors[id].getOffset();
     doc["sw"] = sensors[id].getSw();
     doc["script"] = sensors[id].getTopic();
+    doc["cbpiid"] = sensors[id].getId();
   }
 
   String response;

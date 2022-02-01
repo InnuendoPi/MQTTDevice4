@@ -50,7 +50,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.12"
+#define Version "4.13"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -109,6 +109,7 @@ unsigned char numberOfActors = 0; // Gesamtzahl der Aktoren
 char mqtthost[maxHostSign];                // MQTT Server
 char mqttuser[maxUserSign];
 char mqttpass[maxPassSign];
+int mqttport = 1883;
 char mqtt_clientid[maxHostSign];           // AP-Mode und Gerätename
 bool alertState = false;          // WebUpdate Status
 
@@ -178,7 +179,7 @@ InnuTicker TickerDisp;
 
 // Update Intervalle für Ticker Objekte
 int SEN_UPDATE = 2000; //  sensors update delay loop
-int DISP_UPDATE = 1000;
+int DISP_UPDATE = 2000;
 
 // Systemstart
 bool startMDNS = true; // Standard mDNS Name ist ESP8266- mit mqtt_chip_key
@@ -241,8 +242,12 @@ char uhrzeit[6] ="00:00";
 
 SoftwareSerial softSerial(D1, D2);
 NextionComPort nextion;
-NextionComponent brewButton(nextion, 0, 20);
-NextionComponent kettleButton(nextion, 1, 8);
+NextionComponent p0kettleButton(nextion, 0, 20);
+NextionComponent p0indButton(nextion, 0, 22);
+NextionComponent p1indButton(nextion, 1, 10);
+NextionComponent p1brewButton(nextion, 1, 8);
+NextionComponent p2brewButton(nextion, 2, 10);
+NextionComponent p2kettleButton(nextion, 2, 2);
 
 // BrewPage
 NextionComponent uhrzeit_text(nextion, 0, 10);
@@ -275,7 +280,6 @@ NextionComponent p1slider(nextion, 1, 6);
 NextionComponent p1notification(nextion, 1, 7);
 NextionComponent p1mqttDevice(nextion, 1, 9);
 // InductionPage
-NextionComponent inductionButton(nextion, 2, 2);
 NextionComponent powerButton(nextion, 2, 3);
 // NextionComponent plusButton(nextion, 2, 9);
 // NextionComponent minusButton(nextion, 2, 9);

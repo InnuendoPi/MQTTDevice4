@@ -232,7 +232,7 @@ Most of the functions of the firmware are self-explanatory. The addition or dele
 
     **IP address MQTT Server (CBPi):**
 
-    The MQTT broker is entered under System. In the vast majority of cases, this is likely to be mosquitto on the CBPi.
+    On this page you have to enter IP address, Port and credentials of your MQTT broker. In most cases, this is likely to be mosquitto on the CBPi. The default port is 1883.
     Important: the firmware MQTTDevice tries constantly to establish a connection with the MQTT broker. If the MQTT broker is not available, this will severely affect the speed of the MQTT device (web interface).
 
 3. Event manager
@@ -262,15 +262,19 @@ Most of the functions of the firmware are self-explanatory. The addition or dele
 
 ## Touchdisplay
 
-This firmware supports Nextion Touchdisplay HMI TFT 3.5" NX4832T035 (basic series) and NX4832K035 (enhanced series). Two pages are availible:
+This firmware supports Nextion Touchdisplay HMI TFT 3.5" NX4832T035 (basic series) and NX4832K035 (enhanced series). Three pages are availible:
 
 Mode BrewPage: max 4 kettle overview
 ![BrewPage](img/Nextion1.jpg)
 
 Mode KettlePage: current and target temperature
 ![KettlePage](img/Nextion2.jpg)
+Attention: you must enter sensors IDs from CraftbeerPi4 in the sensor configuration page. Otherwise displayed tempertures may be wrong or mixed up between different sensors.
 
-BrewPage is only useable while brewing. When your mash process completed the use of BrewPage ends. The Kettlepage can be used any time as a kettle temperature informatione pannel.
+InductionPage: manually control induction cooker
+![InductionPage](img/Nextion3.jpg)
+
+BrewPage is usefull while brewing. When your mash process completed the use of BrewPage ends. The Kettlepage can be used any time as a kettle temperature information pannel. The induction mode can be usefull beside automated brew. Instead the InductionPage offers manual control of your induction cooker.
 The display can be configured via the WebIf. While display is activated, GPIO D1 (SDL) and D2 (SDA) are occupied (software serial tx/rx).
 
 **Instructions to flash NextionsX2 touchdisplay:**

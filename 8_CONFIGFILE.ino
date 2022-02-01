@@ -60,12 +60,12 @@ bool loadConfig()
   {
     if (i < numberOfSensors)
     {
-      sensors[i].change(sensorsObj["ADDRESS"] | "", sensorsObj["SCRIPT"] | "", sensorsObj["NAME"] | "", sensorsObj["OFFSET"] | 0, sensorsObj["SW"] | 0);
-      DEBUG_MSG("Sensor #: %d Name: %s Address: %s MQTT: %s Offset: %f SW: %d\n", (i + 1), sensorsObj["NAME"].as<const char *>(), sensorsObj["ADDRESS"].as<const char *>(), sensorsObj["SCRIPT"].as<const char *>(), sensorsObj["OFFSET"].as<float>(), sensorsObj["SW"].as<int>());
+      sensors[i].change(sensorsObj["ADDRESS"] | "", sensorsObj["SCRIPT"] | "", sensorsObj["NAME"] | "", sensorsObj["CBPIID"] | "", sensorsObj["OFFSET"] | 0, sensorsObj["SW"] | 0);
+      DEBUG_MSG("Sensor #: %d Name: %s Address: %s MQTT: %s CBPi-ID: %s Offset: %f SW: %d\n", (i + 1), sensorsObj["NAME"].as<const char *>(), sensorsObj["ADDRESS"].as<const char *>(), sensorsObj["SCRIPT"].as<const char *>(), sensorsObj["CBPIID"].as<const char *>(), sensorsObj["OFFSET"].as<float>(), sensorsObj["SW"].as<int>());
       i++;
     }
     else
-      sensors[i].change("", "", "", 0.0, false);
+      sensors[i].change("", "", "", "", 0.0, false);
   }
   DEBUG_MSG("%s\n", "--------------------");
 
@@ -110,7 +110,8 @@ bool loadConfig()
   strlcpy(mqtthost, miscObj["MQTTHOST"] | "", maxHostSign);
   strlcpy(mqttuser, miscObj["MQTTUSER"] | "", maxUserSign);
   strlcpy(mqttpass, miscObj["MQTTPASS"] | "", maxPassSign);
-  DEBUG_MSG("MQTT server IP: %s User: %s Pass: %s\n", mqtthost, mqttuser, mqttpass);
+  mqttport = miscObj["MQTTPORT"] | 1883;
+  DEBUG_MSG("MQTT server IP: %s Port: %d User: %s Pass: %s\n", mqtthost, mqttport, mqttuser, mqttpass);
   DEBUG_MSG("%s\n", "------ loadConfig finished ------");
   
   configFile.close();
@@ -177,8 +178,9 @@ bool saveConfig()
     sensorsObj["NAME"] = sensors[i].getName();
     sensorsObj["OFFSET"] = sensors[i].getOffset();
     sensorsObj["SCRIPT"] = sensors[i].getTopic();
+    sensorsObj["CBPIID"] = sensors[i].getId();
     sensorsObj["SW"] = (int)sensors[i].getSw();
-    DEBUG_MSG("Sensor #: %d Name: %s Address: %s MQTT: %s Offset: %f SW: %d\n", (i + 1), sensors[i].getName().c_str(), sensors[i].getSens_adress_string().c_str(), sensors[i].getTopic().c_str(), sensors[i].getOffset(), sensors[i].getSw());
+    DEBUG_MSG("Sensor #: %d Name: %s Address: %s MQTT: %s CBPi-ID: %s Offset: %f SW: %d\n", (i + 1), sensors[i].getName().c_str(), sensors[i].getSens_adress_string().c_str(), sensors[i].getTopic().c_str(), sensors[i].getId().c_str(), sensors[i].getOffset(), sensors[i].getSw());
   }
 
   DEBUG_MSG("%s\n", "--------------------");
@@ -224,9 +226,10 @@ bool saveConfig()
   miscObj["mdns_name"] = nameMDNS;
   miscObj["mdns"] = (int)startMDNS;
   miscObj["MQTTHOST"] = mqtthost;
+  miscObj["MQTTPORT"] = mqttport;
   miscObj["MQTTUSER"] = mqttuser;
   miscObj["MQTTPASS"] = mqttpass;
-  DEBUG_MSG("MQTT broker IP: %s User: %s Pass: %s\n", mqtthost, mqttuser, mqttpass);
+  DEBUG_MSG("MQTT broker IP: %s Port: %d User: %s Pass: %s\n", mqtthost, mqttport, mqttuser, mqttpass);
 
   size_t len = measureJson(doc);
   int memoryUsed = doc.memoryUsage();

@@ -1,8 +1,12 @@
 # Changelog
 
-Version 4.12
+Version 4.13
 
-- Added:    Induction Mode
+- Fixed:    Missing kettle information (mqtt)
+- Added:    CBPi4 sensor ID (optional attribute, required on KettlePage)
+- Added:    MQTTPort
+- Removed:  MQTTHost from WLAN setup
+- Added:    Induction mode
 - Reworked: Callback functions display touch/release
 - Fixed:    Sensor offset incorrect read
 - Fixed:    Sensor offset incorrect display (digits)

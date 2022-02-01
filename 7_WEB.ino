@@ -146,6 +146,7 @@ void handleRequestMisc2()
 {
   StaticJsonDocument<128> doc;
   doc["mqtthost"] = mqtthost;
+  doc["mqttport"] = mqttport;
   doc["enable_mqtt"] = StopOnMQTTError;
   doc["mqtt_state"] = mqtt_state; // Anzeige MQTT Status -> mqtt_state verzögerter Status!
   doc["buzzer"] = startBuzzer;
@@ -162,6 +163,7 @@ void handleRequestMisc()
 {
   StaticJsonDocument<384> doc;
   doc["mqtthost"] = mqtthost;
+  doc["mqttport"] = mqttport;
   doc["mqttuser"] = mqttuser;
   doc["mqttpass"] = mqttpass;
   doc["mdns_name"] = nameMDNS;
@@ -232,6 +234,13 @@ void handleSetMisc()
     if (server.argName(i) == "mqtthost")
     {
       server.arg(i).toCharArray(mqtthost, maxHostSign);
+    }
+    if (server.argName(i) == "mqttport")
+    {
+      if (isValidInt(server.arg(i)))
+      {
+        mqttport = server.arg(i).toInt();
+      }
     }
     if (server.argName(i) == "mqttuser")
     {

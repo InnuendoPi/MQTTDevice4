@@ -1,58 +1,33 @@
 void brewCallback()
 {
   activePage = 0;
+  // DEBUG_MSG("Ticker: brewCallback activePage: %d kettleID0: %s\n", activePage, structKettles[0].id);
   BrewPage();
-  // if (activePage == 1)
-  // {
-  //   activePage = 0;
-  //   BrewPage();
-  // }
-  // else
-  // {
-  //   activePage = 1;
-  //   KettlePage();
-  // }
 }
 void kettleCallback()
 {
   activePage = 1;
+  // DEBUG_MSG("Ticker: kettleCallback activePage: %d kettleID0: %s\n", activePage, structKettles[0].id);
   KettlePage();
-  // if (activePage == 1)
-  // {
-  //   activePage = 0;
-  //   BrewPage();
-  // }
-  // else
-  // {
-  //   activePage = 1;
-  //   KettlePage();
-  // }
 }
 void inductionCallback()
 {
   activePage = 2;
+  // DEBUG_MSG("Ticker: inductionCallback activePage: %d kettleID0: %s\n", activePage, structKettles[0].id);
   InductionPage();
 }
 void powerButtonCallback()
 {
-  activePage = 2;
+  // DEBUG_MSG("Ticker: powerButtonCallback activePage: %d kettleID0: %s\n", activePage, structKettles[0].id);
   inductionCooker.induction_state = !inductionCooker.induction_state;
 }
-// void plusCallback()
-// {
-//   if (inductionCooker.power < 100)
-
-// }
-// void minusCallback()
-// {
-  
-// }
 
 void tickerDispCallback()
 {
   char ipMQTT[50];
   sprintf_P(uhrzeit, (PGM_P)F("%02d:%02d"), timeClient.getHours(), timeClient.getMinutes());
   sprintf_P(ipMQTT, (PGM_P)F("%s %s"), nameMDNS, WiFi.localIP().toString().c_str());
+  // DEBUG_MSG("Ticker: activePage: %d activeBrew: %d kettleID0: %s\n", activePage, activeBrew, structKettles[0].id);
   switch (activePage)
   {
   case 0:            //BrewPage
@@ -68,11 +43,11 @@ void tickerDispCallback()
   case 1:            // KettlePage
     if (!activeBrew) // aktiver Step vorhanden?
     {
-      strlcpy(structKettles[0].current_temp, sensors[0].getTotalValueString(), maxTempSign);
+      // strlcpy(structKettles[0].current_temp, sensors[0].getTotalValueString(), maxTempSign);
       // strlcpy(structKettles[0].target_temp, "0", maxTempSign);
       strlcpy(currentStepName, sensors[0].getName().c_str(), maxStepSign);
     }
-
+    strlcpy(structKettles[0].current_temp, sensors[0].getTotalValueString(), maxTempSign);
     p1mqttDevice.attribute("txt", ipMQTT);
     p1uhrzeit_text.attribute("txt", uhrzeit);
     KettlePage();

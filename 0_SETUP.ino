@@ -19,9 +19,9 @@ void setup()
   wifiManager.setAPCallback(configModeCallback);
   wifiManager.setSaveConfigCallback(saveConfigCallback);
 
-  WiFiManagerParameter cstm_mqtthost("host", "MQTT Server IP (CBPi)", mqtthost, maxHostSign);
+  // WiFiManagerParameter cstm_mqtthost("host", "MQTT Server IP (CBPi)", mqtthost, maxHostSign);
   WiFiManagerParameter p_hint("<small>*Conect your MQTTDevice to WLAN. When connected open http://mqttdevice in your brower</small>");
-  wifiManager.addParameter(&cstm_mqtthost);
+  // wifiManager.addParameter(&cstm_mqtthost);
   wifiManager.addParameter(&p_hint);
   wifiManager.autoConnect(mqtt_clientid);
   WiFi.setSleepMode(WIFI_NONE_SLEEP);
@@ -49,7 +49,7 @@ void setup()
 
     if (shouldSaveConfig) // WiFiManager
     {
-      strlcpy(mqtthost, cstm_mqtthost.getValue(), maxHostSign);
+      // strlcpy(mqtthost, cstm_mqtthost.getValue(), maxHostSign);
       saveConfig();
     }
 

@@ -124,7 +124,7 @@ void listenerSystem(int event, int parm) // System event listener
   case EM_MQTTCON:                     // MQTT connect (27)
     if (WiFi.status() == WL_CONNECTED) // kein wlan = kein mqtt
     {
-      pubsubClient.setServer(mqtthost, 1883);
+      pubsubClient.setServer(mqtthost, mqttport);
       pubsubClient.setCallback(mqttcallback);
       pubsubClient.connect(mqtt_clientid, mqttuser, mqttpass);
       DEBUG_MSG("Connecting MQTT broker %s with client-id: %s user: %s pass: %s\n", mqtthost, mqtt_clientid, mqttuser, mqttpass);

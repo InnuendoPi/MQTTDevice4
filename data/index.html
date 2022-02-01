@@ -155,6 +155,10 @@
               <label for="modal_sensor_offset">Offset</label>
               <input type="text" class="form-control" placeholder="" id="modal_sensor_offset" />
             </div>
+            <div class="form-group">
+              <label for="modal_sensor_cbpiid">Optional: sensor CBPi ID</label>
+              <input type="text" class="form-control" placeholder="" id="modal_sensor_cbpiid" />
+            </div>
             <div class="custom-control custom-switch">
               <input type="checkbox" class="custom-control-input" value="" id="modal_sensor_sw" />
               <label class="custom-control-label" for="modal_sensor_sw">Enable event handling</label>
@@ -265,8 +269,12 @@
             <div class="tab-pane fade" id="misc2" role="tabpanel" aria-labelledby="misc2-tab">
               <br />
               <div class="form-group">
-                <label for="modal_misc_mqtthost">IP address MQTT Broker (CBPi)</label>
+                <label for="modal_misc_mqtthost">IP address MQTT broker (CBPi)</label>
                 <input type="text" class="form-control" placeholder="" id="modal_misc_mqtthost" />
+              </div>
+              <div class="form-group">
+                <label for="modal_misc_mqttport">MQTT broker port (1883)</label>
+                <input type="text" class="form-control" placeholder="" id="modal_misc_mqttport" />
               </div>
 
               <div class="form-group">
@@ -517,10 +525,14 @@
         if (data.mqtt_state) {
           miscRender += " badge-success'> ";
           miscRender += data.mqtthost;
+          miscRender += ":";
+          miscRender += data.mqttport;
         }
         else {
           miscRender += " badge-danger'> ";
           miscRender += data.mqtthost;
+          miscRender += ":";
+          miscRender += data.mqttport;
         }
         miscRender += "</span></li>";
 
@@ -639,6 +651,7 @@
       $.get("/reqSensors?id=" + sensorid, function (data) {
         modal.find('#modal_sensor_name').val(data.name);
         modal.find('#modal_sensor_script').val(data.script);
+        modal.find('#modal_sensor_cbpiid').val(data.cbpiid);
         var result = 0;
         if (data.offset > 0)
           result = parseFloat(data.offset).toFixed(2)
@@ -651,13 +664,14 @@
       var modal = $('#sensor_modal');
       var sensorname = modal.find('#modal_sensor_name').val();
       var sensorscript = modal.find('#modal_sensor_script').val();
+      var cbpiid = modal.find('#modal_sensor_cbpiid').val();
       var sensorid = modal.attr('sensor_id');
       var sensoraddress = modal.find('#modal_sensor_address').val();
       var sensoroffset = modal.find('#modal_sensor_offset').val();
       var sensorsw = modal.find('#modal_sensor_sw').prop("checked");
 
       $.ajax({
-        url: '/setSensor?id=' + sensorid + '&name=' + sensorname + '&topic=' + sensorscript + '&address=' + sensoraddress + '&offset=' + sensoroffset + '&sw=' + sensorsw,
+        url: '/setSensor?id=' + sensorid + '&name=' + sensorname + '&topic=' + sensorscript + '&address=' + sensoraddress + '&cbpiid=' + cbpiid + '&offset=' + sensoroffset + '&sw=' + sensorsw,
         type: 'POST',
         dataType: 'html',
         async: false,
@@ -726,6 +740,7 @@
       modal.find('#modal_misc_clear').prop("checked", false);
       $.get("/reqMisc", function (data) {
         modal.find('#modal_misc_mqtthost').val(data.mqtthost);
+        modal.find('#modal_misc_mqttport').val(data.mqttport);
         modal.find('#modal_misc_mqttuser').val(data.mqttuser);
         modal.find('#modal_misc_mqttpass').val(data.mqttpass);
         modal.find('#modal_misc_mdns_name').val(data.mdns_name);
@@ -743,6 +758,7 @@
     $("#modal_misc_btn_save").click(function () {
       var modal = $('#misc_modal');
       var mqtthost = modal.find('#modal_misc_mqtthost').val();
+      var mqttport = modal.find('#modal_misc_mqttport').val();
       var mqttuser = modal.find('#modal_misc_mqttuser').val();
       var mqttpass = modal.find('#modal_misc_mqttpass').val();
       var mdns_name = modal.find('#modal_misc_mdns_name').val();
@@ -758,7 +774,7 @@
       var reset = modal.find('#modal_misc_reset').prop("checked");
 
       $.ajax({
-        url: '/setMisc?reset=' + reset + '&clear=' + clear + '&mqtthost=' + mqtthost + '&mqttuser=' + mqttuser + '&mqttpass=' + mqttpass + '&enable_mqtt=' + enable_mqtt + '&delay_mqtt=' + delay_mqtt + '&del_sen_act=' + del_sen_act + '&del_sen_ind=' + del_sen_ind + '&mdns=' + mdns + '&mdns_name=' + mdns_name + '&buzzer=' + buzzer + '&display=' + display + '&devbranch=' + devbranch,
+        url: '/setMisc?reset=' + reset + '&clear=' + clear + '&mqtthost=' + mqtthost + '&mqttport=' + mqttport + '&mqttuser=' + mqttuser + '&mqttpass=' + mqttpass + '&enable_mqtt=' + enable_mqtt + '&delay_mqtt=' + delay_mqtt + '&del_sen_act=' + del_sen_act + '&del_sen_ind=' + del_sen_ind + '&mdns=' + mdns + '&mdns_name=' + mdns_name + '&buzzer=' + buzzer + '&display=' + display + '&devbranch=' + devbranch,
         type: 'POST',
         dataType: 'html',
         async: false,
