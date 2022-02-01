@@ -105,6 +105,8 @@ After CBPi4 restart MQTT is available for sensors and actors
 ![mqttSensor](img/mqttSensor.jpg)
 ![mqttAktor](img/mqttAktor.jpg)
 
+Please note the dot in PayloadDictionary: Sensor.Value (Sensor dot Value)
+
 **MQTTDevice flash firmware:**
 
 With the help of esptool.exe (<https://github.com/igrr/esptool-ck/releases>) from the tools folder, the firmware can be loaded onto the ESP module. The ESPTool is available for different operating systems.
@@ -134,8 +136,6 @@ The MQTT sensor "Induction temperature" and the MQTT actor "Agitator" are now cr
 
 ![mqttSensor2](img/mqttSensor2.jpg)
 ![mqttAktor2](img/mqttAktor2.jpg)
-
-Please note the dot in PayloadDictionary: Sensor.Value (Sensor dot Value)
 
 The sensor or actor name can be different. These steps complete the exemplary installation and configuration of MQTT sensors and actors. Up to 6 sensors and 6 actors can be set up per MQTT device. (Almost) any number of MQTT devices can be connected to CraftbeerPi via MQTT. Two MQTT devices are used very often:
 
