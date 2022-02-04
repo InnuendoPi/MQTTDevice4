@@ -156,7 +156,7 @@
               <input type="text" class="form-control" placeholder="" id="modal_sensor_offset" />
             </div>
             <div class="form-group">
-              <label for="modal_sensor_cbpiid">Optional: sensor CBPi ID</label>
+              <label for="modal_sensor_cbpiid">CBPi4 Sensor-ID (only required for HMI displays)</label>
               <input type="text" class="form-control" placeholder="" id="modal_sensor_cbpiid" />
             </div>
             <div class="custom-control custom-switch">
@@ -256,6 +256,10 @@
                 <input type="checkbox" class="custom-control-input" id="modal_misc_display">
                 <label class="custom-control-label" for="modal_misc_display">Enable HMI Touchdisplay (D1,D2)</label>
               </div>
+              <div class="form-group">
+                <label for="modal_misc_page">HMI display start page</label>
+                <select class="form-control" id="modal_misc_page"></select>
+              </div>
               <div class="custom-control custom-switch">
                 <input type="checkbox" class="custom-control-input" id="modal_misc_mdns" />
                 <label class="custom-control-label" for="modal_misc_mdns">Enable mDNS</label>
@@ -273,7 +277,7 @@
                 <input type="text" class="form-control" placeholder="" id="modal_misc_mqtthost" />
               </div>
               <div class="form-group">
-                <label for="modal_misc_mqttport">MQTT broker port (1883)</label>
+                <label for="modal_misc_mqttport">MQTT broker port (default 1883)</label>
                 <input type="text" class="form-control" placeholder="" id="modal_misc_mqttport" />
               </div>
 
@@ -736,6 +740,8 @@
     $('#misc_modal').on('show.bs.modal', function (event) {
       var button = $(event.relatedTarget);
       var modal = $(this);
+      // var pageid = button.data('value');
+      $('#modal_misc_page').load('/reqPages?id=-1');
       modal.find('#modal_misc_reset').prop("checked", false);
       modal.find('#modal_misc_clear').prop("checked", false);
       $.get("/reqMisc", function (data) {
@@ -768,13 +774,14 @@
       var mdns = modal.find('#modal_misc_mdns').prop("checked");
       var buzzer = modal.find('#modal_misc_buzzer').prop("checked");
       var display = modal.find('#modal_misc_display').prop("checked");
+      var page = modal.find('#modal_misc_page').val();
       var devbranch = modal.find('#modal_misc_dev').prop("checked");
       var enable_mqtt = modal.find('#modal_misc_onErrorMQTT').prop("checked");
       var clear = modal.find('#modal_misc_clear').prop("checked");
       var reset = modal.find('#modal_misc_reset').prop("checked");
 
       $.ajax({
-        url: '/setMisc?reset=' + reset + '&clear=' + clear + '&mqtthost=' + mqtthost + '&mqttport=' + mqttport + '&mqttuser=' + mqttuser + '&mqttpass=' + mqttpass + '&enable_mqtt=' + enable_mqtt + '&delay_mqtt=' + delay_mqtt + '&del_sen_act=' + del_sen_act + '&del_sen_ind=' + del_sen_ind + '&mdns=' + mdns + '&mdns_name=' + mdns_name + '&buzzer=' + buzzer + '&display=' + display + '&devbranch=' + devbranch,
+        url: '/setMisc?reset=' + reset + '&clear=' + clear + '&mqtthost=' + mqtthost + '&mqttport=' + mqttport + '&mqttuser=' + mqttuser + '&mqttpass=' + mqttpass + '&enable_mqtt=' + enable_mqtt + '&delay_mqtt=' + delay_mqtt + '&del_sen_act=' + del_sen_act + '&del_sen_ind=' + del_sen_ind + '&mdns=' + mdns + '&mdns_name=' + mdns_name + '&buzzer=' + buzzer + '&display=' + display + '&page=' + page + '&devbranch=' + devbranch,
         type: 'POST',
         dataType: 'html',
         async: false,

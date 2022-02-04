@@ -44,6 +44,7 @@ public:
 
 	// Die Funktion Update muss in der loop aufgerufen werden. Update prüft den Ticker und ruft wenn erforderlich die Callback Funktion auf
 	void update();
+	void updatenow();
 
 	// Setze Timer und Wiederholung neu
 	void config(uint32_t timer, uint32_t repeat = 0);

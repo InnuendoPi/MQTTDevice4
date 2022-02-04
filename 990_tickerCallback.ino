@@ -1,24 +1,29 @@
 void brewCallback()
 {
   activePage = 0;
-  // DEBUG_MSG("Ticker: brewCallback activePage: %d kettleID0: %s\n", activePage, structKettles[0].id);
+  nextion.command("page 0");
+  // DEBUG_MSG("Ticker: brewCallback activePage: %d\n", activePage);
   BrewPage();
+  TickerDisp.updatenow();
 }
 void kettleCallback()
 {
   activePage = 1;
-  // DEBUG_MSG("Ticker: kettleCallback activePage: %d kettleID0: %s\n", activePage, structKettles[0].id);
+  nextion.command("page 1");
+  // DEBUG_MSG("Ticker: kettleCallback activePage: %d\n", activePage);
   KettlePage();
+  TickerDisp.updatenow();
 }
 void inductionCallback()
 {
   activePage = 2;
-  // DEBUG_MSG("Ticker: inductionCallback activePage: %d kettleID0: %s\n", activePage, structKettles[0].id);
+  nextion.command("page 2");
+  // DEBUG_MSG("Ticker: inductionCallback activePage: %d\n", activePage);
   InductionPage();
+  TickerDisp.updatenow();
 }
 void powerButtonCallback()
 {
-  // DEBUG_MSG("Ticker: powerButtonCallback activePage: %d kettleID0: %s\n", activePage, structKettles[0].id);
   inductionCooker.induction_state = !inductionCooker.induction_state;
 }
 
@@ -26,27 +31,23 @@ void tickerDispCallback()
 {
   char ipMQTT[50];
   sprintf_P(uhrzeit, (PGM_P)F("%02d:%02d"), timeClient.getHours(), timeClient.getMinutes());
-  sprintf_P(ipMQTT, (PGM_P)F("%s %s"), nameMDNS, WiFi.localIP().toString().c_str());
-  // DEBUG_MSG("Ticker: activePage: %d activeBrew: %d kettleID0: %s\n", activePage, activeBrew, structKettles[0].id);
+  sprintf_P(ipMQTT, (PGM_P)F("http://%s - %s"), nameMDNS, WiFi.localIP().toString().c_str());
+  
   switch (activePage)
   {
   case 0:            //BrewPage
     if (!activeBrew) // aktiver Step vorhanden?
-    {
       strlcpy(currentStepName, "BrewPage", maxStepSign);
-      strlcpy(notify, "Waiting for data - start brewing", maxNotifySign);
-    }
+      
     uhrzeit_text.attribute("txt", uhrzeit);
     mqttDevice.attribute("txt", ipMQTT);
+    
     BrewPage();
     break;
   case 1:            // KettlePage
     if (!activeBrew) // aktiver Step vorhanden?
-    {
-      // strlcpy(structKettles[0].current_temp, sensors[0].getTotalValueString(), maxTempSign);
-      // strlcpy(structKettles[0].target_temp, "0", maxTempSign);
       strlcpy(currentStepName, sensors[0].getName().c_str(), maxStepSign);
-    }
+
     strlcpy(structKettles[0].current_temp, sensors[0].getTotalValueString(), maxTempSign);
     p1mqttDevice.attribute("txt", ipMQTT);
     p1uhrzeit_text.attribute("txt", uhrzeit);
@@ -58,6 +59,8 @@ void tickerDispCallback()
     InductionPage();
     break;
   default:
+    nextion.command("page 1");
+    KettlePage();
     break;
   }
   nextion.update();

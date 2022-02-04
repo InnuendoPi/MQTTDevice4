@@ -1,7 +1,6 @@
 void setup()
 {
   Serial.begin(115200);
-
 // Debug Ausgaben prüfen
 #ifdef DEBUG_ESP_PORT
   Serial.setDebugOutput(true);
@@ -18,10 +17,7 @@ void setup()
   wifiManager.setConfigPortalTimeout(300);
   wifiManager.setAPCallback(configModeCallback);
   wifiManager.setSaveConfigCallback(saveConfigCallback);
-
-  // WiFiManagerParameter cstm_mqtthost("host", "MQTT Server IP (CBPi)", mqtthost, maxHostSign);
   WiFiManagerParameter p_hint("<small>*Conect your MQTTDevice to WLAN. When connected open http://mqttdevice in your brower</small>");
-  // wifiManager.addParameter(&cstm_mqtthost);
   wifiManager.addParameter(&p_hint);
   wifiManager.autoConnect(mqtt_clientid);
   WiFi.setSleepMode(WIFI_NONE_SLEEP);
@@ -48,10 +44,7 @@ void setup()
     TickerNTP.start();
 
     if (shouldSaveConfig) // WiFiManager
-    {
-      // strlcpy(mqtthost, cstm_mqtthost.getValue(), maxHostSign);
       saveConfig();
-    }
 
     if (LittleFS.exists("/config.txt")) // Lade Konfiguration
       loadConfig();
@@ -91,6 +84,7 @@ void setup()
     pins_used[D2] = true;
     TickerDisp.start();
     initDisplay();
+    nextion.update();
   }
 
   if (startBuzzer)
@@ -103,7 +97,6 @@ void setup()
   // Starte MQTT
   cbpiEventSystem(EM_MQTTCON); // MQTT Verbindung
   cbpiEventSystem(EM_MQTTSUB); // MQTT Subscribe
-
   cbpiEventSystem(EM_LOG); // webUpdate log
 
   // Verarbeite alle Events Setup
@@ -119,29 +112,30 @@ void setupServer()
   server.on("/reqActors", handleRequestActors);   // Liste der Aktoren ausgeben
   server.on("/reqInduction", handleRequestInduction);
   server.on("/reqSearchSensorAdresses", handleRequestSensorAddresses);
-  server.on("/reqPins", handlereqPins);
-  server.on("/reqIndu", handleRequestIndu);   // Infos der Indu für WebConfig
-  server.on("/setSensor", handleSetSensor);   // Sensor ändern
-  server.on("/setActor", handleSetActor);     // Aktor ändern
-  server.on("/setIndu", handleSetIndu);       // Indu ändern
-  server.on("/delSensor", handleDelSensor);   // Sensor löschen
-  server.on("/delActor", handleDelActor);     // Aktor löschen
-  server.on("/reboot", rebootDevice);         // reboots the whole Device
-  server.on("/reqMisc2", handleRequestMisc2); // Misc Infos für WebConfig
-  server.on("/reqMisc", handleRequestMisc);   // Misc Infos für WebConfig
-  server.on("/reqFirm", handleRequestFirm);
+  server.on("/reqPins", handlereqPins);           // GPIO Pins actors
+  server.on("/reqPages", handleRequestPages);     // Display page
+  server.on("/reqIndu", handleRequestIndu);       // Infos der Indu für WebConfig
+  server.on("/setSensor", handleSetSensor);       // Sensor ändern
+  server.on("/setActor", handleSetActor);         // Aktor ändern
+  server.on("/setIndu", handleSetIndu);           // Indu ändern
+  server.on("/delSensor", handleDelSensor);       // Sensor löschen
+  server.on("/delActor", handleDelActor);         // Aktor löschen
+  server.on("/reboot", rebootDevice);             // reboots the whole Device
+  server.on("/reqMisc2", handleRequestMisc2);     // Misc Infos für WebConfig
+  server.on("/reqMisc", handleRequestMisc);       // Misc Infos für WebConfig
+  server.on("/reqFirm", handleRequestFirm);       // Firmware version
   server.on("/setMisc", handleSetMisc);           // Misc ändern
   server.on("/startHTTPUpdate", startHTTPUpdate); // Firmware WebUpdate
 
   // FSBrowser initialisieren
   server.on("/edit", HTTP_GET, handleGetEdit);
   server.on("/status", HTTP_GET, handleStatus);
-  server.on("/list", HTTP_GET, handleFileList); // Verzeichnisinhalt
-  server.on("/edit", HTTP_PUT, handleFileCreate);    // Datei erstellen
+  server.on("/list", HTTP_GET, handleFileList);
+  server.on("/edit", HTTP_PUT, handleFileCreate);
   server.on("/favicon.ico", HTTP_GET, replyOK);
-  server.on("/edit", HTTP_DELETE, handleFileDelete); // Datei löschen
+  server.on("/edit", HTTP_DELETE, handleFileDelete);
   server.on("/edit", HTTP_POST, []() { server.send(200, "text/plain", ""); }, handleFileUpload);
-  server.onNotFound(handleWebRequests); // Sonstiges
+  server.onNotFound(handleWebRequests);
   httpUpdate.setup(&server);
   server.begin();
 }

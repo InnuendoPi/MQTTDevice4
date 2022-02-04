@@ -55,6 +55,11 @@ void InnuTicker::update()
 		callback();
 }
 
+void InnuTicker::updatenow()
+{
+	callback();
+}
+
 void InnuTicker::config(uint32_t newTimer, uint32_t newRepeat)
 {
 	this->timer = newTimer;

@@ -83,6 +83,7 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
   }
   Serial.println(" ");
   */
+
   char payload_msg[length];
   for (int i = 0; i < length; i++)
   {
@@ -114,7 +115,7 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
     const char *stepupdate = "cbpi/stepupdate/";
     const char *sensorupdate = "cbpi/sensordata/";
     const char *notificationupdate = "cbpi/notification";
-
+    
     p = strstr(topic, kettleupdate);
     if (p)
     {
@@ -170,6 +171,7 @@ void handleRequestMisc()
   doc["mdns"] = startMDNS;
   doc["buzzer"] = startBuzzer;
   doc["display"] = useDisplay;
+  doc["page"] = startPage;
   doc["devbranch"] = devBranch;
   doc["enable_mqtt"] = StopOnMQTTError;
   doc["delay_mqtt"] = wait_on_error_mqtt / 1000;
@@ -258,6 +260,25 @@ void handleSetMisc()
     {
       useDisplay = checkBool(server.arg(i));
     }
+    if (server.argName(i) == "page")
+    {
+      if (server.arg(i) == "BrewPage")
+      {
+        startPage = 0;
+      }
+      else if (server.arg(i) == "KettlePage")
+      {  
+        startPage = 1;
+      }
+      else if (server.arg(i) == "InductionPage")
+      {
+        startPage = 2;
+      }
+      else
+      {
+        startPage = 1;
+      }
+    }
     if (server.argName(i) == "devbranch")
     {
       devBranch = checkBool(server.arg(i));
@@ -301,4 +322,24 @@ void rebootDevice()
 {
   server.send(205, "text/plain", "reboot");
   cbpiEventSystem(EM_REBOOT);
+}
+
+void handleRequestPages()
+{
+  int id = server.arg(0).toInt();
+  String message;
+  message += F("<option>");
+  message += page_names[startPage];
+  message += F("</option><option disabled>──────────</option>");
+
+  for (int i = 0; i < numberOfPages; i++)
+  {
+    if (i != startPage)
+    {
+      message += F("<option>");
+      message += page_names[i];
+      message += F("</option>");
+    }
+  }
+  server.send(200, "text/plain", message);
 }

@@ -144,6 +144,7 @@ void listenerSystem(int event, int parm) // System event listener
         inductionCooker.mqtt_subscribe();
       if (useDisplay)
       {
+        dispPublishmqtt();
         cbpi4kettle_subscribe();
         cbpi4steps_subscribe();
         cbpi4notification_subscribe();

@@ -114,12 +114,12 @@ void checkSummerTime()
   int lasttzHours;
   if (month < 3 || month > 10)
   {
-    timeClient.setTimeOffset(3600);
+    timeClient.setTimeOffset(3600); // +1h
     return;
   }
   if (month > 3 && month < 10)
   {
-    timeClient.setTimeOffset(7200);
+    timeClient.setTimeOffset(7200); // +2h
     return;
   }
   if (year != lastyear || tzHours != lasttzHours)
@@ -132,12 +132,12 @@ void checkSummerTime()
   x3 = hour + 24 * day;
   if (month == 3 && x3 >= x1 || month == 10 && x3 < x2)
   {
-    timeClient.setTimeOffset(7200);
+    timeClient.setTimeOffset(7200); // +2h
     return;
   }
   else
   {
-    timeClient.setTimeOffset(3600);
+    timeClient.setTimeOffset(3600); // +1h
     return;
   }
 }

@@ -1,7 +1,13 @@
 # Changelog
 
-Version 4.13
+Version 4.14
 
+- Added:    Display startPage (BrewPage, KettlePage or InductionPage)
+- Replaced: Scrolling text display (performance)
+- Reworked: Step information handling
+- Added:    MQTT request CBPi4 update kettle, actor and sensor informations
+- Reworked: CBPi4 informations (kettle, actors, sonsors) CBPi 4.0.1.11
+- Fixed:    nullptr when no timer information availible
 - Fixed:    Missing kettle information (mqtt)
 - Added:    CBPi4 sensor ID (optional attribute, required on KettlePage)
 - Added:    MQTTPort

@@ -50,12 +50,13 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.13"
+#define Version "4.14"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
 #define PAUSE2SEC 2000
 #define PAUSEDS18 750
+#define RESOLUTION 12 // 12bit resolution == 750ms update rate
 
 // OneWire
 #define ONE_WIRE_BUS D3
@@ -178,8 +179,8 @@ InnuTicker TickerNTP;
 InnuTicker TickerDisp;
 
 // Update Intervalle für Ticker Objekte
-int SEN_UPDATE = 2000; //  sensors update delay loop
-int DISP_UPDATE = 2000;
+int SEN_UPDATE = 4000; //  sensors update
+int DISP_UPDATE = 1000;
 
 // Systemstart
 bool startMDNS = true; // Standard mDNS Name ist ESP8266- mit mqtt_chip_key
@@ -207,12 +208,15 @@ enum { MSG_OK, CUSTOM, NOT_FOUND, BAD_REQUEST, ERROR };
 #define maxSensorSign 23
 #define maxStepSign 30
 #define maxRemainSign 10
-#define maxNotifySign 75
+#define maxNotifySign 52
 #define maxTempSign 10
 
 bool useDisplay = false;
-int startPage = 1;      // Startseite: BrewPage = 0 Kettlepage = 1 // not yet ready ActorPage = 2 SensorPage = 3 FermenterPage = 4
+int startPage = 1;      // Startseite: BrewPage = 0 Kettlepage = 1
 int activePage = 1;     // die aktuell angeziegte Seite
+
+const unsigned char numberOfPages = 3;
+const String page_names[numberOfPages] = {"BrewPage", "KettlePage", "InductionPage"};
 
 char cbpi4steps_topic[45] = "cbpi/stepupdate/+";
 char cbpi4kettle_topic[45] = "cbpi/kettleupdate/+";
@@ -230,22 +234,32 @@ struct Kettles
 };
 struct Kettles structKettles[maxKettles];
 
+#define maxSteps 20
+struct Steps
+{
+    char id[maxIdSign];
+    char name[maxStepSign];
+    char timer[maxRemainSign];
+};
+struct Steps structSteps[maxSteps];
+int stepsCounter = 0;
+
 char currentStepName[maxStepSign];      //= "no active step";
 char currentStepRemain[maxRemainSign];  //= "0:00";
 char nextStepName[maxStepSign];
 char nextStepRemain[maxRemainSign];
 bool activeBrew = false;
 
-char notify[maxNotifySign] = "Waiting for data - start brewing";
+char notify[maxNotifySign]; //= "Waiting for data - start brewing";
 int sliderval = 0;
 char uhrzeit[6] ="00:00";
 
 SoftwareSerial softSerial(D1, D2);
 NextionComPort nextion;
-NextionComponent p0kettleButton(nextion, 0, 20);
-NextionComponent p0indButton(nextion, 0, 22);
-NextionComponent p1indButton(nextion, 1, 10);
-NextionComponent p1brewButton(nextion, 1, 8);
+NextionComponent p0kettleButton(nextion, 0, 19);
+NextionComponent p0indButton(nextion, 0, 21);
+NextionComponent p1indButton(nextion, 1, 9);
+NextionComponent p1brewButton(nextion, 1, 7);
 NextionComponent p2brewButton(nextion, 2, 10);
 NextionComponent p2kettleButton(nextion, 2, 2);
 
@@ -268,8 +282,8 @@ NextionComponent kettleName4_text(nextion, 0, 4);
 NextionComponent kettleIst4_text(nextion, 0, 14);
 NextionComponent kettleSoll4_text(nextion, 0, 18);
 NextionComponent slider(nextion, 0, 9);
-NextionComponent notification(nextion, 0, 19);
-NextionComponent mqttDevice(nextion, 0, 21);
+NextionComponent mqttDevice(nextion, 0, 20);
+NextionComponent notification(nextion, 0, 22);
 // KettlePage
 NextionComponent p1uhrzeit_text(nextion, 1, 3);
 NextionComponent p1current_text(nextion, 1, 4);
@@ -277,12 +291,10 @@ NextionComponent p1remain_text(nextion, 1, 5);
 NextionComponent p1temp_text(nextion, 1, 1);
 NextionComponent p1target_text(nextion, 1, 2);
 NextionComponent p1slider(nextion, 1, 6);
-NextionComponent p1notification(nextion, 1, 7);
-NextionComponent p1mqttDevice(nextion, 1, 9);
+NextionComponent p1mqttDevice(nextion, 1, 8);
+NextionComponent p1notification(nextion, 1, 10);
 // InductionPage
 NextionComponent powerButton(nextion, 2, 3);
-// NextionComponent plusButton(nextion, 2, 9);
-// NextionComponent minusButton(nextion, 2, 9);
 NextionComponent p2uhrzeit_text(nextion, 2, 7);
 NextionComponent p2slider(nextion, 2, 1);
 NextionComponent p2temp_text(nextion, 2, 5);

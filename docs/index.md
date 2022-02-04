@@ -45,6 +45,18 @@ The installation and configuration of RaspberryPi is available in many good inst
 
 The communication between CraftbeerPi and MQTTDevice takes place via WLAN. Sensors send temperature values ​​to CraftbeerPi and CraftbeerPi sends commands (e.g. switch agitator on / off) to actors. The MQTT protocol is used for this communication. The MQTT protocol requires a MQTT broker.
 
+**MQTT in short:**
+
+MQTT is a publish-and-subscribe protocol. Clients, devices and applications publish and subscribe to topics handled by a broker. In a CraftbeerPi environment a sensor is a publishing and an actor is a subscribing device. Devices or applications never communicate directly, instead they send and recive messages in topics managed by the MQTT broker. A topic looks like a named channel or folders, eg induction/temp or upstairs/bathroom/light. Hundreds of different topics are possible. Each topic behave like a message in- and outbox. Messages are send in a compact JSON format, also known as payloads. A simple payload from a sensor device can look like this: { "value": 21.2 }. The sensor publishes this message into a topic. All subscribed clients, devices or application to this topic will receive the message. A simple payload from CraftbeerPi to an actor can be this: { "state": "on"}.  CBPi4 publishes this message into a topic to switch on an actor. An actor must subcribe to this topics to receive this message.
+
+MQTT summary:
+
+* sensors are publishing payloads (sensor values) into topics
+* actors subscribe to topics to receive payloads (commands)
+* man in the middle is always a broker
+* craftbeerpi subscribes to all sensor topics and publishes actor commands in actor topics
+* sensor and actor topics are unique
+
 **MQTT CraftbeerPi4:**
 
 Preparation on the RaspberryPi: Installation of the MQTT Broker
@@ -103,6 +115,7 @@ and check all MQTT parameters:
 After CBPi4 restart MQTT is available for sensors and actors
 
 ![mqttSensor](img/mqttSensor.jpg)
+
 ![mqttAktor](img/mqttAktor.jpg)
 
 Please note the dot in PayloadDictionary: Sensor.Value (Sensor dot Value)
@@ -128,13 +141,14 @@ Example for an ESP8266 module of the type Wemos D1 mini with 4MB Flash connected
 
   After flashing, the MQTT device starts in access point mode with the name "ESP8266-xxxx" und address <http://192.168.4.1>
 
-  ![wlan](img/wlan-ap.jpg)
+![wlan](img/wlan-ap.jpg)
 
 The MQTT device must now be connected to the WLAN and the IP address of the MQTT broker must be entered. In this example the MQTT broker mosquitto was installed on the RaspberryPi. So you have to enter the IP address of the RaspberryPi (CraftbeerPi4).
 
-The MQTT sensor "Induction temperature" and the MQTT actor "Agitator" are now created on the MQTT device with the identical topics:
+The MQTT sensor "Induction temperature" and the MQTT actor "Agitator" are now created on the MQTTdevice with the identical CBPi4 topics:
 
 ![mqttSensor2](img/mqttSensor2.jpg)
+
 ![mqttAktor2](img/mqttAktor2.jpg)
 
 The sensor or actor name can be different. These steps complete the exemplary installation and configuration of MQTT sensors and actors. Up to 6 sensors and 6 actors can be set up per MQTT device. (Almost) any number of MQTT devices can be connected to CraftbeerPi via MQTT. Two MQTT devices are used very often:
@@ -146,6 +160,7 @@ MQTTDevice 2: HLT with temperature sensors, pumps and valves etc.
 Any combination is possible. Because the MQTT communication is implemented via topics, a temperature sensor and an induction hob for a CraftbeerPi Kettle do not have to be configured on the same MQTTDeivce.
 
 ![induction](img/induction.jpg)
+
 The picture above is an example on how to configure an induction hob GGM IDS2. Do not reduce fan run on after power off below 120sec: savely cool down induction hob after mash or boil. GPIOs D5, D6 and D7 are highly recommended. Check ESP8266 manual for further information about  GPIO states (High/Low) on startup.
 
 **Updates:**
@@ -210,8 +225,6 @@ Most of the functions of the firmware are self-explanatory. The addition or dele
     * Filebrowser for simple file management (e.g. backup and restore config.json)
     * DS18B20 temperature offset - easy calibration of the sensors
 
-**Sensor settings:**
-
 **Misc settings:**
 
 1. System
@@ -269,13 +282,17 @@ Most of the functions of the firmware are self-explanatory. The addition or dele
 This firmware supports Nextion Touchdisplay HMI TFT 3.5" NX4832T035 (basic series) and NX4832K035 (enhanced series). Three pages are availible:
 
 Mode BrewPage: max 4 kettle overview
+
 ![BrewPage](img/Nextion1.jpg)
 
 Mode KettlePage: current and target temperature
+
 ![KettlePage](img/Nextion2.jpg)
+
 Attention: you must enter sensors IDs from CraftbeerPi4 in the sensor configuration page. Otherwise displayed tempertures may be wrong or mixed up between different sensors.
 
 InductionPage: manually control induction cooker
+
 ![InductionPage](img/Nextion3.jpg)
 
 BrewPage is usefull while brewing. When your mash process completed the use of BrewPage ends. The Kettlepage can be used any time as a kettle temperature information pannel. The induction mode can be usefull beside automated brew. Instead the InductionPage offers manual control of your induction cooker.

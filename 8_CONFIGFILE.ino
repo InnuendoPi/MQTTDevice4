@@ -100,7 +100,8 @@ bool loadConfig()
   startBuzzer = miscObj["buzzer"] | 0;
   DEBUG_MSG("Buzzer: %d\n", startBuzzer);
   useDisplay = miscObj["display"] | 0;
-  DEBUG_MSG("Display: %d\n", useDisplay);
+  startPage = miscObj["page"] | 1;
+  DEBUG_MSG("Display: %d startPage: %d\n", useDisplay, startPage);
   devBranch = miscObj["devbranch"] | 0;
   DEBUG_MSG("devBranch: %d\n", devBranch);
 
@@ -222,6 +223,7 @@ bool saveConfig()
 
   miscObj["buzzer"] = (int)startBuzzer;
   miscObj["display"] = (int)useDisplay;
+  miscObj["page"] = startPage;
   miscObj["devbranch"] = (int)devBranch;
   miscObj["mdns_name"] = nameMDNS;
   miscObj["mdns"] = (int)startMDNS;
@@ -229,6 +231,7 @@ bool saveConfig()
   miscObj["MQTTPORT"] = mqttport;
   miscObj["MQTTUSER"] = mqttuser;
   miscObj["MQTTPASS"] = mqttpass;
+  
   DEBUG_MSG("MQTT broker IP: %s Port: %d User: %s Pass: %s\n", mqtthost, mqttport, mqttuser, mqttpass);
 
   size_t len = measureJson(doc);
@@ -262,7 +265,7 @@ bool saveConfig()
     TickerSen.start();
   else
     TickerSen.stop();
-
+    
   if (useDisplay)
     TickerDisp.start();
   else

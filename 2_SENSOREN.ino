@@ -12,8 +12,6 @@ class TemperatureSensor
   String sens_id;
 
 public:
-  // moved to private and get methods. change as set method
-
   String getSens_adress_string()
   {
     return SensorAddressToString(sens_address);
@@ -98,7 +96,7 @@ public:
         sens_address[i] = octets[i];
       }
     }
-    DS18B20.setResolution(sens_address, 12);
+    DS18B20.setResolution(sens_address, RESOLUTION);
   }
 
   void publishmqtt()
@@ -110,7 +108,6 @@ public:
       sensorsObj["Name"] = sens_name;
       if (sensorsStatus == 0)
       {
-        // sensorsObj["Value"] = ((int)((sens_value + sens_offset + 0.05) * 10)) / 10.0;
         sensorsObj["Value"] = round((sens_value + sens_offset + 0.05) * 10) / 10.0;
       }
       else
@@ -290,8 +287,6 @@ void handleSetSensor()
 void handleDelSensor()
 {
   int id = server.arg(0).toInt();
-
-  //  Alle einen nach vorne schieben
   for (int i = id; i < numberOfSensors; i++)
   {
     if (i == (numberOfSensorsMax - 1)) // 5 - Array von 0 bis (numberOfSensorsMax-1)
@@ -303,8 +298,6 @@ void handleDelSensor()
 
     yield();
   }
-
-  // den letzten löschen
   numberOfSensors--;
   saveConfig();
   server.send(200, "text/plain", "deleted");

@@ -1,16 +1,44 @@
 void initDisplay()
 {
-  nextion.command("rest");
+  // nextion.command("rest");
   p0indButton.touch(inductionCallback);
   p1indButton.touch(inductionCallback);
   p0kettleButton.touch(kettleCallback);
   p2kettleButton.touch(kettleCallback);
   p1brewButton.touch(brewCallback);
   p2brewButton.touch(brewCallback);
-
   powerButton.touch(powerButtonCallback);
-  // p1notification.attribute("txt", "Waiting for CBPi4 kettle data");
-  KettlePage();
+  activePage = startPage;
+  switch (startPage)
+  {
+  case 0:
+    nextion.command("page 0");
+    break;
+  case 1:
+    nextion.command("page 1");
+    break;
+  case 2:
+    nextion.command("page 2");
+    break;
+  default:
+    nextion.command("page 1");
+    break;
+  }
+}
+
+void dispPublishmqtt()
+{
+  if (pubsubClient.connected())
+  {
+    StaticJsonDocument<4> doc;
+    char jsonMessage[2];
+    serializeJson(doc, jsonMessage);
+    DEBUG_MSG("%s\n", "Disp: Request CBPi4 configuration");
+    pubsubClient.publish("cbpi/updatekettle", jsonMessage);
+    pubsubClient.publish("cbpi/updateactor", jsonMessage);
+    pubsubClient.publish("cbpi/updatesensor", jsonMessage);
+    pubsubClient.publish("cbpi/updatefermenter", jsonMessage);
+  }
 }
 
 void BrewPage()
@@ -20,14 +48,15 @@ void BrewPage()
   currentStepRemain_text.attribute("txt", currentStepRemain);
   nextStepRemain_text.attribute("txt", nextStepRemain);
   nextStepName_text.attribute("txt", nextStepName);
-  if (strlen(structKettles[1].id) > 0)
+  if (strlen(structKettles[0].id) > 0)
   {
     kettleName1_text.attribute("txt", structKettles[0].name);
     kettleSoll1_text.attribute("txt", structKettles[0].target_temp);
     kettleIst1_text.attribute("txt", structKettles[0].current_temp);
   }
   else
-    strlcpy(notify, "Waiting for CBPi4 kettle data ...", maxNotifySign);
+    dispPublishmqtt();
+
   if (strlen(structKettles[1].id) > 0)
   {
     kettleName2_text.attribute("txt", structKettles[1].name);
@@ -62,7 +91,7 @@ void KettlePage()
       {
         p1temp_text.attribute("txt", structKettles[i].current_temp);
         p1target_text.attribute("txt", structKettles[i].target_temp);
-        DEBUG_MSG("Display: KettlePage Sensor ID: %s\n", structKettles[i].sensor);
+        // DEBUG_MSG("Display: KettlePage Sensor ID: %s\n", structKettles[i].sensor);
         break;
       }
     }
@@ -87,8 +116,12 @@ void InductionPage()
   // p2temp_text
   // 316 = 0°C - 360 = 44°C - 223 = 100°C -- 53,4 je 20°C
 
-  inductionCooker.handleInductionPage(p2slider.value());
-  if (sensors[0].getValue() + sensors[0].getOffset() < 16.0)
+  int32_t aktSlider = p2slider.value();
+
+  if (aktSlider >= 0 && aktSlider <= 100)
+    inductionCooker.handleInductionPage(aktSlider);
+
+  if ((sensors[0].getValue() + sensors[0].getOffset()) < 16.0)
   {
     p2gauge.attribute("val", (int)((sensors[0].getValue() + sensors[0].getOffset()) * 2.7 + 316));
   }
@@ -103,7 +136,7 @@ void cbpi4kettle_subscribe()
 {
   if (pubsubClient.connected())
   {
-    DEBUG_MSG("Disp: Subscribing to %s\n", cbpi4kettle_topic);
+    // DEBUG_MSG("Disp: Subscribing to %s\n", cbpi4kettle_topic);
     pubsubClient.subscribe(cbpi4kettle_topic);
     pubsubClient.loop();
   }
@@ -163,7 +196,6 @@ void cbpi4kettle_handlemqtt(char *payload)
   {
     int memoryUsed = doc.memoryUsage();
     DEBUG_MSG("Disp: handlemqtt notification deserialize Json error %s MemoryUsage %d\n", error.c_str(), memoryUsed);
-
     return;
   }
   for (int i = 0; i < maxKettles; i++)
@@ -264,9 +296,8 @@ void cbpi4sensor_handlemqtt(char *payload)
           break;
         }
       }
-      else
+      if (activePage == 1)
         p1temp_text.attribute("txt", structKettles[0].current_temp);
-      // p1temp_text.attribute("txt", sensors[0].getTotalValueString());
       // DEBUG_MSG("Sensor value POST %d Sensor-ID: %s Kettle-Sensor: %s value: %s activepage %d\n", i, structKettles[i].id, structKettles[i].sensor, structKettles[i].current_temp, activePage);
       break;
     }
@@ -285,20 +316,64 @@ void cbpi4steps_handlemqtt(char *payload)
 
     return;
   }
+  if (doc["status"] == "D") // ignore solved steps
+    return;
+
+  JsonObject props = doc["props"];
+  bool newStep = true;
+
+  for (int i = 0; i < stepsCounter; i++)
+  {
+    if (structSteps[i].id == doc["id"])
+    {
+      int minutes = props["Timer"].as<int>() | 0;
+      sprintf(structSteps[i].timer, "%02d:%02d", minutes, 0);
+      newStep = false;
+      break;
+    }
+  }
+
+  if (newStep == true)
+  {
+    strlcpy(structSteps[stepsCounter].id, doc["id"], maxIdSign);
+    strlcpy(structSteps[stepsCounter].name, doc["name"], maxStepSign);
+    int minutes = props["Timer"].as<int>() | 0;
+    sprintf(structSteps[stepsCounter].timer, "%02d:%02d", minutes, 0);
+    stepsCounter++;
+  }
+
   if (doc["status"] == "A")
   {
     if (!activeBrew) // aktiver Step vorhanden?
-    {
       activeBrew = true;
-    }
+
     current_step = true;
     int valTimer = 0;
     int min = 0;
     int sec = 0;
-    JsonObject props = doc["props"];
-
+        
     if (currentStepName != doc["name"]) // New active step
     {
+      strlcpy(currentStepName, doc["name"] | "", maxStepSign);
+      current_step = true;
+      for (int i = 0; i < stepsCounter; i++)
+      {
+        if (structSteps[i].name == doc["name"])
+        {
+          if (stepsCounter >= i + 1)
+          {
+            strlcpy(nextStepName, structSteps[i + 1].name, maxStepSign);
+            strlcpy(nextStepRemain, structSteps[i + 1].timer, maxRemainSign);
+          }
+          if (activePage == 0)
+          {
+            nextStepName_text.attribute("txt", nextStepName);
+            nextStepRemain_text.attribute("txt", nextStepRemain);
+          }
+          break;
+        }
+      }
+
       if (doc["type"] == "MashStep")
       {
         strlcpy(notify, "Waiting for Target Temp", maxNotifySign);
@@ -344,26 +419,19 @@ void cbpi4steps_handlemqtt(char *payload)
         strlcpy(notify, "", maxNotifySign);
       }
 
+      // DEBUG_MSG("DISP stephandle 1 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
       if (activePage == 0)
-        notification.attribute("txt", notify);
-      else
-        p1notification.attribute("txt", notify);
+        currentStepName_text.attribute("txt", currentStepName);
+      if (activePage == 1)
+        p1current_text.attribute("txt", currentStepName);
     }
-
-    strlcpy(currentStepName, doc["name"] | "", maxStepSign);
-    // DEBUG_MSG("DISP stephandle 1 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
-    if (activePage == 0)
-      currentStepName_text.attribute("txt", currentStepName);
-    else
-      p1current_text.attribute("txt", currentStepName);
-
     // DEBUG_MSG("DISP stephandle 2 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
     if (doc["state_text"] != 0 && doc["state_text"] != "Waiting for Target Temp")
     {
       strlcpy(currentStepRemain, doc["state_text"] | "", maxRemainSign);
       if (activePage == 0)
         currentStepRemain_text.attribute("txt", currentStepRemain);
-      else
+      if (activePage == 1)
         p1remain_text.attribute("txt", currentStepRemain);
       // DEBUG_MSG("DISP stephandle 3 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
 
@@ -385,7 +453,7 @@ void cbpi4steps_handlemqtt(char *payload)
         sliderval = (valTimer * 60 - (min * 60 + sec)) * 100 / (valTimer * 60);
         if (activePage == 0)
           slider.value(sliderval);
-        else
+        if (activePage == 1)
           p1slider.value(sliderval);
       }
       else
@@ -393,7 +461,7 @@ void cbpi4steps_handlemqtt(char *payload)
         sliderval = 0;
         if (activePage == 0)
           slider.value(0);
-        else
+        if (activePage == 1)
           p1slider.value(0);
       }
       // DEBUG_MSG("DISP stephandle 5 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
@@ -415,7 +483,7 @@ void cbpi4steps_handlemqtt(char *payload)
         sprintf(currentStepRemain, "%02d:%02d", minutes, 0);
         if (activePage == 0)
           currentStepRemain_text.attribute("txt", currentStepRemain);
-        else
+        if (activePage == 1)
           p1remain_text.attribute("txt", currentStepRemain);
         // DEBUG_MSG("DISP stephandle 7 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
       }
@@ -424,40 +492,19 @@ void cbpi4steps_handlemqtt(char *payload)
         strcpy(currentStepRemain, "0:00");
         if (activePage == 0)
           currentStepRemain_text.attribute("txt", currentStepRemain);
-        else
+        if (activePage == 1)
           p1remain_text.attribute("txt", currentStepRemain);
         // DEBUG_MSG("DISP stephandle 8 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
       }
       sliderval = 0;
       if (activePage == 0)
         slider.value(sliderval);
-      else
+      if (activePage == 1)
         p1slider.value(sliderval);
       // DEBUG_MSG("DISP stephandle 9 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
     }
     return;
   }
-
-  if (doc["status"] == "I" && current_step)
-  {
-    current_step = false;
-    JsonObject props = doc["props"];
-    strlcpy(nextStepName, doc["name"] | "", maxStepSign);
-    // DEBUG_MSG("DISP stephandle NEXT 2 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
-    if (activePage == 0)
-      nextStepName_text.attribute("txt", nextStepName);
-
-    int minutes = 0;
-    if (props.containsKey("Timer"))
-      minutes = props["Timer"].as<int>();
-    sprintf(nextStepRemain, "%02d:%02d", minutes, 0);
-
-    // DEBUG_MSG("DISP stephandle NEXT 3 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
-
-    if (activePage == 0)
-      nextStepRemain_text.attribute("txt", nextStepRemain);
-  }
-  return;
 }
 
 void cbpi4notification_handlemqtt(char *payload)
@@ -479,14 +526,12 @@ void cbpi4notification_handlemqtt(char *payload)
       strlcpy(currentStepRemain, "", maxRemainSign);
       strlcpy(nextStepName, "", maxStepSign);
       strlcpy(nextStepRemain, "", maxRemainSign);
-      // currentStepName_text.attribute("txt", "BrewPage");
     }
-    else
+    if (activePage == 1)
     {
       strlcpy(currentStepName, sensors[0].getName().c_str(), maxStepSign);
-      // currentStepName_text.attribute("txt", sensors[0].getName().c_str());
     }
-    strlcpy(notify, "Waiting for data - start brewing", maxNotifySign);
+    strlcpy(notify, "", maxNotifySign);
     return;
   }
   if (doc["title"] == "Brewing completed")
@@ -499,9 +544,4 @@ void cbpi4notification_handlemqtt(char *payload)
     activeBrew = true;
 
   strlcpy(notify, doc["message"] | "", maxNotifySign);
-  if (activePage == 0)
-    notification.attribute("txt", notify);
-  else
-    p1notification.attribute("txt", notify);
-  // DEBUG_MSG("DISP notifyhandle5 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
 }
