@@ -2,14 +2,14 @@
 
 *What is MQTTDevice?**
 
-MQTTDevice4 is an Arduino sketch for the ESP8266 Wemos D1 mini modules. This makes it possible to establish communication between the MQTT broker mosquitto and an ESP8266 in order to control sensors and actors with CraftBeerPi V4. MQTTDevice is optimzed for version 4 of CraftbeerPi.
+MQTTDevice4 is an Arduino sketch for the ESP8266 Wemos D1 mini modules. MQTTDevice connects to a MQTT Broker in order to control sensors and actors with CraftBeerPi V4. Multiple MQTTDevices can be connected to a MQTT broker.  
 
 ![Startseite](img/startseite.jpg)
 
 **What does this firmware offer?**
 
-* A web interface (WebIf) for the configuration
-* Sensors (max 6)
+* A configuration web interface (WebIf)
+* Temperature sensors DS18B20 (max 6)
   * Search for connected sensors based on OneWire addresses
 * Actors (max 8)
   * PIN selection (GPIO)
@@ -43,19 +43,20 @@ You will need version 4.0.1a7 or above. Earlier versions do not support MQTT act
 
 The installation and configuration of RaspberryPi is available in many good instructions on the internet.
 
-The communication between CraftbeerPi and MQTTDevice takes place via WLAN. Sensors send temperature values ​​to CraftbeerPi and CraftbeerPi sends commands (e.g. switch agitator on / off) to actors. The MQTT protocol is used for this communication. The MQTT protocol requires a MQTT broker.
+The communication between CraftbeerPi and MQTTDevice takes place via WLAN. Sensors send temperature values ​​to CraftbeerPi and CraftbeerPi sends commands to actors (e.g. switch agitator on / off). The MQTT protocol is used for this communication. The MQTT protocol requires a MQTT broker.
 
 **MQTT in short:**
 
-MQTT is a publish-and-subscribe protocol. Clients, devices and applications publish and subscribe to topics handled by a broker. In a CraftbeerPi environment a sensor is a publishing and an actor is a subscribing device. Devices or applications never communicate directly, instead they send and recive messages in topics managed by the MQTT broker. A topic looks like a named channel or folders, eg induction/temp or upstairs/bathroom/light. Hundreds of different topics are possible. Each topic behave like a message in- and outbox. Messages are send in a compact JSON format, also known as payloads. A simple payload from a sensor device can look like this: { "value": 21.2 }. The sensor publishes this message into a topic. All subscribed clients, devices or application to this topic will receive the message. A simple payload from CraftbeerPi to an actor can be this: { "state": "on"}.  CBPi4 publishes this message into a topic to switch on an actor. An actor must subcribe to this topics to receive this message.
+MQTT is a publish-and-subscribe protocol. Clients, devices and applications publish and subscribe into topics handled by a broker. In a CraftbeerPi environment a sensor is a publishing and an actor is a subscribing device. Devices or applications never communicate directly, instead they send and receive messages managed in topics by the MQTT broker. A topic looks like a named channel or folder, eg induction/temp or upstairs/bathroom/light. Hundreds of different topics are possible. Each topic behave like a message in- and outbox. Messages are send in a compact JSON format, also known as payloads. A simple payload from a sensor device can look like this: { "value": 21.2 }. The sensor publishes this message into a topic. All subscribed clients, devices or application to this topic will receive the sensor message "value 21.2". A simple payload from CraftbeerPi to an actor can be { "state": "on"}. CBPi4 publishes this message into a topic to switch on an actor. An actor must subcribe to this topics to receive this message.
 
 MQTT summary:
 
 * sensors are publishing payloads (sensor values) into topics
 * actors subscribe to topics to receive payloads (commands)
-* man in the middle is always a broker
+* every published payload will always be sent to a MQTT broker
+* the MQTT broker sends every received payload to all subscribing devices and applications
 * craftbeerpi subscribes to all sensor topics and publishes actor commands in actor topics
-* sensor and actor topics are unique
+* all sensor and actor topics are unique
 
 **MQTT CraftbeerPi4:**
 
@@ -122,12 +123,12 @@ Please note the dot in PayloadDictionary: Sensor.Value (Sensor dot Value)
 
 **MQTTDevice flash firmware:**
 
-With the help of esptool.exe (<https://github.com/igrr/esptool-ck/releases>) from the tools folder, the firmware can be loaded onto the ESP module. The ESPTool is available for different operating systems.
+With the help of esptool.exe (<https://github.com/igrr/esptool-ck/releases>) in the github tools subfolder, the firmware can be flashed onto the ESP module. The ESPTool is available for different operating systems.
 ESPtool-ck Copyright (C) 2014 Christian Klippel ck@atelier-klippel.de. This code is licensed under GPL v2.
 
 The USB driver CH341SER is required under Win10: <http://www.wch.cn/download/CH341SER_ZIP.html>
 
-Example for an ESP8266 module of the type Wemos D1 mini with 4MB Flash connected to COM3
+Example for an ESP8266 module of the type Wemos D1 mini with 4MB Flash connected via USB as COM3
 
 * Download the Firmware.zip archive from the tools folder on github and extract it to any folder
 
@@ -143,7 +144,7 @@ Example for an ESP8266 module of the type Wemos D1 mini with 4MB Flash connected
 
 ![wlan](img/wlan-ap.jpg)
 
-The MQTT device must now be connected to the WLAN and the IP address of the MQTT broker must be entered. In this example the MQTT broker mosquitto was installed on the RaspberryPi. So you have to enter the IP address of the RaspberryPi (CraftbeerPi4).
+The MQTT device must now be connected to the WLAN.
 
 The MQTT sensor "Induction temperature" and the MQTT actor "Agitator" are now created on the MQTTdevice with the identical CBPi4 topics:
 
@@ -151,17 +152,19 @@ The MQTT sensor "Induction temperature" and the MQTT actor "Agitator" are now cr
 
 ![mqttAktor2](img/mqttAktor2.jpg)
 
-The sensor or actor name can be different. These steps complete the exemplary installation and configuration of MQTT sensors and actors. Up to 6 sensors and 6 actors can be set up per MQTT device. (Almost) any number of MQTT devices can be connected to CraftbeerPi via MQTT. Two MQTT devices are used very often:
+The sensor or actor name can be different. These steps complete the exemplary installation and configuration of MQTT sensors and actors. Up to 6 sensors and 8 actors can be set up per MQTT device. (Almost) any number of MQTT devices can be connected to CraftbeerPi via MQTT. Three MQTT devices are used very often:
 
 MQTTDevice 1: Mash tun with temperature sensors and agitator.
 
 MQTTDevice 2: HLT with temperature sensors, pumps and valves etc.
 
+MQTTDevice 3: Fermenter with temperature sensors, an actor for heating and an actor for cooling
+
 Any combination is possible. Because the MQTT communication is implemented via topics, a temperature sensor and an induction hob for a CraftbeerPi Kettle do not have to be configured on the same MQTTDeivce.
 
 ![induction](img/induction.jpg)
 
-The picture above is an example on how to configure an induction hob GGM IDS2. Do not reduce fan run on after power off below 120sec: savely cool down induction hob after mash or boil. GPIOs D5, D6 and D7 are highly recommended. Check ESP8266 manual for further information about  GPIO states (High/Low) on startup.
+The picture above is an example on how to configure an induction hob GGM IDS2. Do not reduce fan run on after power off below 120sec: savely cool down induction hob after mash or boil. GPIOs D5, D6 and D7 are highly recommended. Check ESP8266 manual for further information about GPIO states (High/Low) on startup.
 
 **Updates:**
 
@@ -193,7 +196,7 @@ The file explorer can be reached via the web browser <http://mqttdevice/edit>
 
 **Supported and tested hardware:**
 
-Hardware (01.2022)
+Hardware (02.2022)
 
 | Anzahl | Link |
 | ------------ | ---- |
@@ -218,12 +221,12 @@ Most of the functions of the firmware are self-explanatory. The addition or dele
     * Adding, editing and deleting sensors
     * Auto reconnect MQTT
     * Auto reconnect WiFi
-    * Optionally configure HMI touchdisplay
-    * System settings fully changeable
+    * Optional configure HMI touchdisplay
+    * Inverted GPIO
     * Firmware and LittleFS updates via file upload
     * Firmware WebUpdate
     * Filebrowser for simple file management (e.g. backup and restore config.json)
-    * DS18B20 temperature offset - easy calibration of the sensors
+    * DS18B20 temperature offset: easy calibration of the sensors
 
 **Misc settings:**
 
@@ -241,7 +244,7 @@ Most of the functions of the firmware are self-explanatory. The addition or dele
 
     **mDNS:**
 
-    A mDNS name can be used instead of the IP address of the ESP8266 in the web browser (<http://mDNSname>). The name is freely selectable. The mDNS name must be unique in the network and must not contain any spaces or special characters. Please note: if you use two or more MQTTDevices you must change default mDNS "mqttdevice" into an unique identifier!
+    A mDNS name can be used instead of the IP address of the ESP8266 in the web browser (<http://mDNSname>). The name is freely selectable. The mDNS name must be unique in local network and must not contain any spaces or special characters. Please note: if you use two or more MQTTDevices you must change default mDNS "mqttdevice" into an unique identifier!
 
 2. MQTT Settings
 
@@ -256,24 +259,35 @@ Most of the functions of the firmware are self-explanatory. The addition or dele
 
     The event manager handles events and misconduct. Handling of malfunctions (event handling) is deactivated in the standard setting!
 
-    What should the MQTT device do, if
+    Events are
     * communication with the MQTT server is interrupted
-    * Suddenly no temperature data is supplied in the sensor
+    * Suddenly no temperature data is supplied from sensor
 
-    Without event handling, the Wemos doesn't do anything automatically. The state remains unchanged.
+    Without event handling, the MQTTDevice doesn't do anything automatically. All actor states remain unchanged.
 
-    There are 4 basic types of events that can be handled automatically: for actors and for the induction hob in the event of sensor errors, as well as for actors and the induction hob in the case of MQTT connection errors. Delays for event handling are configured for these 4 types. The state remains unchanged during the delay. After the delay, the MQTT device can change the status of the actors and induction hob.
-    The delays are configured under Settings -> EventManager:
+    The first thing that will takes place in a misconduct is a delay. Default delay is 120 seconds. Delays are configured for MQTT errors, sensor errors and actors. All actor states remain unchanged during the delay. While WLAN or MQTT communication is interrupted the MQTTDevice tries every 20 seconds to reconnect, regardless of any event handling setting. A successful reconnect will stop a started event delay.
+    The delays are configured in misc settings in tab EventManager:
 
-    1. Delay for actors before a sensor triggers an event.
-    2. Delay for the induction hob before a sensor triggers an event.
-    3. Delay in MQTT errors.
+    1. Delay in MQTT errors
+    2. Delay for the induction hob before a failed sensor triggers an event
+    3. Delay for actors before a failed sensor triggers an event
 
-    The standard delay for these 3 events is 120 seconds.
+    Standard delay is 120 seconds. After the delay, the MQTTdevice can change the status of the actors and induction hob. While actors like heating or cooling element, pumps or agitator can be switched off the induction hob can be set to a (lower) powerlevel, e.g. to 25% power to hold mash temperture while temperature sensor is in error state.
+    MQTT event handling can generally be activated or deactivated. If MQTT event handling is activated, event handling must also be activated in each sensor and actor settings and for the induction hob. Each device can be configured individually.
 
-    MQTT event handling can generally be activated or deactivated for all actors and induction cooktops. If MQTT event handling are activated, event handling must also be activated in the actor settings and for the induction hob. Each device can be configured individually.
+    Every sensor also has an event handling property. If event handling is activated for a sensor, this sensor can start event handling when sensor connection is lost or sensor state changes into error. A sensor that is deactivated for event handling can not start event handling.
 
-    Every sensor also has an event handling property. If event handling is activated for a sensor, this sensor can trigger event handling in the event of a sensor fault. A sensor that is deactivated for event handling cannot trigger event handling accordingly.
+    An event handling example:
+
+    * Misc settings in tab EventManager: Event handling enabled with default delay 120sec
+
+    * Event handling temperature sensor in mash tune is enabled
+
+    * Induction hob event handling is enabled and event powerlevel is set to 25%
+
+    * Agitator actor event handling is disabled
+
+    This easy example prevents the mash kettle from uncontrolled heating, when MQTT connection drops or DS18B20 sensor suddenly reports device unplugged.
 
 ---
 
@@ -281,7 +295,7 @@ Most of the functions of the firmware are self-explanatory. The addition or dele
 
 This firmware supports Nextion Touchdisplay HMI TFT 3.5" NX4832T035 (basic series) and NX4832K035 (enhanced series). Three pages are availible:
 
-Mode BrewPage: max 4 kettle overview
+Mode BrewPage: max 4 CBPi kettles overview
 
 ![BrewPage](img/Nextion1.jpg)
 
@@ -291,12 +305,11 @@ Mode KettlePage: current and target temperature
 
 Attention: you must enter sensors IDs from CraftbeerPi4 in the sensor configuration page. Otherwise displayed tempertures may be wrong or mixed up between different sensors.
 
-InductionPage: manually control induction cooker
+InductionPage: manual induction hob controller
 
 ![InductionPage](img/Nextion3.jpg)
 
-BrewPage is usefull while brewing. When your mash process completed the use of BrewPage ends. The Kettlepage can be used any time as a kettle temperature information pannel. The induction mode can be usefull beside automated brew. Instead the InductionPage offers manual control of your induction cooker.
-The display can be configured via the WebIf. While display is activated, GPIO D1 (SDL) and D2 (SDA) are occupied (software serial tx/rx).
+BrewPage is usefull while brewing. When your mash process completed the use of BrewPage (overview) ends. The Kettlepage can be used any time as a kettle temperature information pannel. The induction mode can be usefull beside automated brew. Instead the InductionPage offers manual control of your induction cooker. The display can be configured via the WebIf. While display is activated, GPIO D1 (SDL) and D2 (SDA) are in use (software serial tx/rx).
 
 **Instructions to flash NextionsX2 touchdisplay:**
 
