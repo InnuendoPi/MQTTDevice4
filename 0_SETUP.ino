@@ -106,6 +106,7 @@ void setup()
 void setupServer()
 {
   server.on("/", handleRoot);
+  server.on("/index.htm", handleRoot);
   server.on("/setupActor", handleSetActor);       // Einstellen der Aktoren
   server.on("/setupSensor", handleSetSensor);     // Einstellen der Sensoren
   server.on("/reqSensors", handleRequestSensors); // Liste der Sensoren ausgeben
@@ -132,9 +133,8 @@ void setupServer()
   server.on("/status", HTTP_GET, handleStatus);
   server.on("/list", HTTP_GET, handleFileList);
   server.on("/edit", HTTP_PUT, handleFileCreate);
-  server.on("/favicon.ico", HTTP_GET, replyOK);
   server.on("/edit", HTTP_DELETE, handleFileDelete);
-  server.on("/edit", HTTP_POST, []() { server.send(200, "text/plain", ""); }, handleFileUpload);
+  server.on("/edit", HTTP_POST, []() { server.send(200, "text/plain", ""); loadConfig(); }, handleFileUpload);
   server.onNotFound(handleWebRequests);
   httpUpdate.setup(&server);
   server.begin();

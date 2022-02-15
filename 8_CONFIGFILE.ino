@@ -274,8 +274,10 @@ bool saveConfig()
   String Network = WiFi.SSID();
   DEBUG_MSG("ESP8266 device IP Address: %s\n", WiFi.localIP().toString().c_str());
   DEBUG_MSG("Configured WLAN SSID: %s\n", Network.c_str());
-  DEBUG_MSG("%s\n", "---------------------------------");
+  
   if (startBuzzer)
     sendAlarm(ALARM_ON);
+  DEBUG_MSG("%s\n", "---------------------------------");
   return true;
+
 }

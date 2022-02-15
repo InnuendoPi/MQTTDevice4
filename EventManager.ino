@@ -94,8 +94,9 @@ void listenerSystem(int event, int parm) // System event listener
     server.handleClient(); // Webserver handle
     break;
   case EM_MQTT: // check MQTT (22)
-    if (!WiFi.status() == WL_CONNECTED)
-      break;
+    // if (!WiFi.status() == WL_CONNECTED)
+    //   break;
+    
     if (TickerMQTT.state() != RUNNING)
     {
       if (pubsubClient.connected())
@@ -104,6 +105,7 @@ void listenerSystem(int event, int parm) // System event listener
         pubsubClient.loop();
         if (TickerMQTT.state() == RUNNING)
           TickerMQTT.stop();
+        break;
       }
       else //if (!pubsubClient.connected())
       {

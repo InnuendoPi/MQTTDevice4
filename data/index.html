@@ -5,6 +5,9 @@
   <meta charset="utf-8">
   <title>MQTTDevice4</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-cache"/>
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <link rel="stylesheet" href="bootstrap.min.css">
   <!-- <link rel="shortcut icon" href="#"> -->
 </head>
@@ -227,7 +230,7 @@
             <span>×</span></button>
         </div>
         <div class="modal-body">
-          <ul class="nav nav-tabs" id="miscTab" role="tablist">
+          <ul class="nav nav-tabs" id="miscTab">
             <li class="nav-item">
               <a class="nav-link active" id="misc1-tab" data-toggle="tab" href="#misc1" role="tab" aria-controls="misc1"
                 aria-selected="true">System</a>
@@ -592,7 +595,7 @@
         $.ajax({
           url: '/startHTTPUpdate',
           type: 'POST',
-          async: false,
+          // async: false,
           cache: false
         });
       }
@@ -627,7 +630,7 @@
         url: '/setActor?id=' + actorid + '&name=' + actorname + '&script=' + actorscript + '&pin=' + actorpin + '&inv=' + actorinverted + '&sw=' + actorswitchable,
         type: 'POST',
         dataType: 'html',
-        async: false,
+        // async: false,
         cache: false
       });
       modal.modal('hide');
@@ -640,7 +643,7 @@
         url: '/delActor?id=' + actorid,
         type: 'POST',
         dataType: 'html',
-        async: false,
+        // async: false,
         cache: false
       });
       modal.modal('hide');
@@ -678,7 +681,7 @@
         url: '/setSensor?id=' + sensorid + '&name=' + sensorname + '&topic=' + sensorscript + '&address=' + sensoraddress + '&cbpiid=' + cbpiid + '&offset=' + sensoroffset + '&sw=' + sensorsw,
         type: 'POST',
         dataType: 'html',
-        async: false,
+        // async: false,
         cache: false
       });
       modal.modal('hide');
@@ -691,7 +694,7 @@
         url: '/delSensor?id=' + sensorid,
         type: 'POST',
         dataType: 'html',
-        async: false,
+        // async: false,
         cache: false
       });
       modal.modal('hide');
@@ -731,7 +734,7 @@
         url: '/setIndu?enabled=' + enabled + '&topic=' + mqtttopic + '&pinwhite=' + pin_white + '&pinyellow=' + pin_yellow + '&pinblue=' + pin_blue + '&delay=' + delay + '&pl=' + pl,
         type: 'POST',
         dataType: 'html',
-        async: false,
+        // async: false,
         cache: false
       });
       modal.modal('hide');
@@ -784,7 +787,7 @@
         url: '/setMisc?reset=' + reset + '&clear=' + clear + '&mqtthost=' + mqtthost + '&mqttport=' + mqttport + '&mqttuser=' + mqttuser + '&mqttpass=' + mqttpass + '&enable_mqtt=' + enable_mqtt + '&delay_mqtt=' + delay_mqtt + '&del_sen_act=' + del_sen_act + '&del_sen_ind=' + del_sen_ind + '&mdns=' + mdns + '&mdns_name=' + mdns_name + '&buzzer=' + buzzer + '&display=' + display + '&page=' + page + '&devbranch=' + devbranch,
         type: 'POST',
         dataType: 'html',
-        async: false,
+        // async: false,
         cache: false
       });
       modal.modal('hide');
@@ -794,24 +797,16 @@
       $.ajax({
         url: '/reboot',
         type: 'POST',
-        async: true,
+        // async: true,
         cache: false
       });
     });
 
     $(function () {
-      var firmware;
-      $.ajax({
-        url: '/reqFirm?req=firmware',
-        type: 'get',
-        dataType: 'html',
-        async: false,
-        cache: false,
-        success: function (data) {
-          firmware = data;
-        }
+      $.get("/reqFirm?req=firmware", function (data) {
+        document.getElementById("firmware").innerHTML = data;
+        // console.log("Firmware: " + data);
       });
-      document.getElementById("firmware").innerHTML = firmware;
     });
 
   </script>

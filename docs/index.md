@@ -39,7 +39,7 @@ The installation is divided into three steps:
 3. Installation MQTTDevice
 
 The installation and configuration of CraftbeerPi4 is described here: <https://openbrewing.gitbook.io/craftbeerpi4_support/master/server-installation>
-You will need version 4.0.1a7 or above. Earlier versions do not support MQTT actors.
+You will need version 4.0.1.11 or above. Earlier versions do not support MQTT actors.
 
 The installation and configuration of RaspberryPi is available in many good instructions on the internet.
 

@@ -252,7 +252,7 @@ void handleFileUpload()
       fsUploadFile.close();
     }
     DEBUG_MSG("FS: upload size: %d\n", upload.totalSize);
-    loadConfig();
+    // loadConfig();
   }
 }
 
