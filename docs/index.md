@@ -77,7 +77,7 @@ Add these two line at the top of the configuration file:
 
 Method 2: use basic authentication
 
-Add these two line at the top of the configuration file:
+Create a password file:
 
 `cd /etc/mosquitto`
 `sudo mosquitto_passwd -c passwdfile pi`
