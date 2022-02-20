@@ -293,7 +293,7 @@ Most of the functions of the firmware are self-explanatory. The addition or dele
 
 ## Touchdisplay
 
-This firmware supports Nextion Touchdisplay HMI TFT 3.5" NX4832T035 (basic series) and NX4832K035 (enhanced series). Three pages are availible:
+This firmware supports Nextion Touchdisplay HMI TFT 3.5" NX4832T035 (basic series), NX4832K035 (enhanced series) an NX4832F035 (discovery series). Three pages are availible:
 
 Mode BrewPage: max 4 CBPi kettles overview
 
