@@ -245,6 +245,7 @@ Most of the functions of the firmware are self-explanatory. The addition or dele
     **mDNS:**
 
     A mDNS name can be used instead of the IP address of the ESP8266 in the web browser (<http://mDNSname>). The name is freely selectable. The mDNS name must be unique in local network and must not contain any spaces or special characters. Please note: if you use two or more MQTTDevices you must change default mDNS "mqttdevice" into an unique identifier!
+    Reboot your mqttdevice after changing mDNS.
 
 2. MQTT Settings
 
@@ -310,6 +311,11 @@ InductionPage: manual induction hob controller
 ![InductionPage](img/Nextion3.jpg)
 
 BrewPage is usefull while brewing. When your mash process completed the use of BrewPage (overview) ends. The Kettlepage can be used any time as a kettle temperature information pannel. The induction mode can be usefull beside automated brew. Instead the InductionPage offers manual control of your induction cooker. The display can be configured via the WebIf. While display is activated, GPIO D1 (SDL) and D2 (SDA) are in use (software serial tx/rx).
+
+Files naming:
+MQTTDevice4-Display_\<displaysize\>
+
+Please note: github repository also provide 2,8" Display files. These files are shared by MQTTDevice users. These files are untested - i do not have other displays than 3.5".
 
 **Instructions to flash NextionsX2 touchdisplay:**
 
@@ -449,6 +455,12 @@ In addition to a GPIO, relay boards require a 5V power supply. 5V can be tapped 
 ![base](img/base.png)
 
 3D print files are located in the info folder. With the current housing design, the circuit board and a 3.5" Nextion touchdisplay are glued into the housing. Holes for housing, base and circuit board are made with a diameter for M3 screws. M3x10mm screws fit for display, circuit board and XLR connectors. M3x16 screws match for groundplate to case holes and pads. You need to cut M3 threads into the six pads. Both objects are build parameterized with FreeCAD. Improvments are welcome!
+
+A friendly user from german hobbybrauerforum send me STL and HMI files for 2,8" displays. thx!
+Files nameing:
+
+MQTTDevice4-Base_\<displaysize\>
+MQTTDevice4-Case_\<displaysize\>
 
 A mash kettle example:
 

@@ -74,7 +74,7 @@ bool loadConfig()
   if (indObj.containsKey("ENABLED"))
   {
     inductionStatus = 1;
-    inductionCooker.change(StringToPin(indObj["PINWHITE"] | "D5"), StringToPin(indObj["PINYELLOW"] | "D6"), StringToPin(indObj["PINBLUE"] | "D7"), indObj["TOPIC"] | "", indObj["DELAY"] | DEF_DELAY_IND, true, indObj["PL"] | 100);
+    inductionCooker.change(StringToPin(indObj["PINWHITE"] | "D7"), StringToPin(indObj["PINYELLOW"] | "D6"), StringToPin(indObj["PINBLUE"] | "D5"), indObj["TOPIC"] | "", indObj["DELAY"] | DEF_DELAY_IND, true, indObj["PL"] | 100);
     DEBUG_MSG("Induction: %d MQTT: %s Relais (WHITE): %s Command channel (YELLOW): %s Backchannel (BLUE): %s Delay after power off %d Power level on error: %d\n", inductionStatus, indObj["TOPIC"].as<const char *>(), indObj["PINWHITE"].as<const char *>(), indObj["PINYELLOW"].as<const char *>(), indObj["PINBLUE"].as<const char *>(), indObj["DELAY"].as<int>(), indObj["PL"].as<int>());
   }
   else
