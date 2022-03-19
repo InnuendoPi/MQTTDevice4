@@ -108,6 +108,19 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
     }
   }
 
+  if(startBuzzer)
+  {
+    char *p;
+    const char *alarmupdate = "cbpi/alarm";
+    
+    p = strstr(topic, alarmupdate);
+    if (p)
+    {
+      cbpi4alarm_handlemqtt(payload_msg);
+      return;
+    }
+  }
+
   if (useDisplay)
   {
     char *p;

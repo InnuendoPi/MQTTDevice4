@@ -144,6 +144,10 @@ void listenerSystem(int event, int parm) // System event listener
       }
       if (inductionCooker.isEnabled)
         inductionCooker.mqtt_subscribe();
+      if (startBuzzer)
+      {
+        cbpi4alarm_subscribe();
+      }
       if (useDisplay)
       {
         dispPublishmqtt();
