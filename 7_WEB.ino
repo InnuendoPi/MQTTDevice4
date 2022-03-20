@@ -111,9 +111,9 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
   if(startBuzzer)
   {
     char *p;
-    const char *alarmupdate = "cbpi/alarm";
+    const char *notificationupdate = "cbpi/notification";
     
-    p = strstr(topic, alarmupdate);
+    p = strstr(topic, notificationupdate);
     if (p)
     {
       cbpi4alarm_handlemqtt(payload_msg);

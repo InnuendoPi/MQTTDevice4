@@ -312,7 +312,6 @@ NextionComponent p2gauge(nextion, 2, 4);
 
 const int PIN_BUZZER = D8; // Buzzer
 bool startBuzzer = false;  // Aktiviere Buzzer
-char cbpi4alarm_topic[45] = "cbpi/alarm";
 
 void configModeCallback(WiFiManager *myWiFiManager)
 {

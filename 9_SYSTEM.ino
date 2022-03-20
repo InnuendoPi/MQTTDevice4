@@ -294,24 +294,6 @@ void sendAlarm(const uint8_t &setAlarm)
   }
 }
 
-void cbpi4alarm_subscribe()
-{
-  if (pubsubClient.connected())
-  {
-    DEBUG_MSG("Buzzer: Subscribing to %s\n", cbpi4alarm_topic);
-    pubsubClient.subscribe(cbpi4alarm_topic);
-    pubsubClient.loop();
-  }
-}
-void cbpi4alarm_unsubscribe()
-{
-  if (pubsubClient.connected())
-  {
-    DEBUG_MSG("Buzzer: Unsubscribing from %s\n", cbpi4alarm_topic);
-    pubsubClient.unsubscribe(cbpi4alarm_topic);
-  }
-}
-
 void cbpi4alarm_handlemqtt(char *payload)
 {
   StaticJsonDocument<256> doc;
@@ -321,37 +303,28 @@ void cbpi4alarm_handlemqtt(char *payload)
     DEBUG_MSG("Buzzer: handlemqtt deserialize Json error %s\n", error.c_str());
     return;
   }
-  if (doc["alarm"] == "OK")
+  if (startBuzzer)
   {
-    if (startBuzzer)
+    if (doc["type"] == "success")
     {
       sendAlarm(ALARM_CBPI_OK);
+      return;
     }
-    return;
-  }
-  if (doc["alarm"] == "Info")
-  {
-    if (startBuzzer)
+    if (doc["type"] == "info")
     {
       sendAlarm(ALARM_CBPI_INFO);
+      return;
     }
-    return;
-  }
-  if (doc["alarm"] == "Warning")
-  {
-    if (startBuzzer)
+    if (doc["type"] == "warning")
     {
       sendAlarm(ALARM_CBPI_WARNING);
+      return;
     }
-    return;
-  }
-  if (doc["alarm"] == "Error")
-  {
-    if (startBuzzer)
+    if (doc["type"] == "error")
     {
       sendAlarm(ALARM_CBPI_ERROR);
+      return;
     }
-    return;
   }
 }
 
