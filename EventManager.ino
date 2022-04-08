@@ -151,6 +151,9 @@ void listenerSystem(int event, int parm) // System event listener
         cbpi4steps_subscribe();
         cbpi4notification_subscribe();
       }
+      else if (mqttBuzzer) // mqttBuzzer only
+        cbpi4notification_subscribe();
+
       TickerMQTT.stop();
     }
     break;
