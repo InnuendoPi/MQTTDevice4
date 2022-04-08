@@ -24,3 +24,4 @@ tools/esptool.exe
 tools/Flashen.cmd
 tools/buildFirm.cmd
 web/
+Display/

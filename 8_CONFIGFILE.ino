@@ -98,7 +98,13 @@ bool loadConfig()
   DEBUG_MSG("Switch off actors on MQTT error: %d after %d sec\n", StopOnMQTTError, (wait_on_error_mqtt / 1000));
 
   startBuzzer = miscObj["buzzer"] | 0;
-  DEBUG_MSG("Buzzer: %d\n", startBuzzer);
+  // DEBUG_MSG("Buzzer: %d\n", startBuzzer);
+  if (startBuzzer)
+    mqttBuzzer = miscObj["mqbuz"] | 0;
+  else
+    mqttBuzzer = false;
+  DEBUG_MSG("Buzzer: %d mqttBuzzer: %d\n", startBuzzer, mqttBuzzer);
+
   useDisplay = miscObj["display"] | 0;
   startPage = miscObj["page"] | 1;
   DEBUG_MSG("Display: %d startPage: %d\n", useDisplay, startPage);
@@ -222,6 +228,11 @@ bool saveConfig()
   DEBUG_MSG("Switch off actors on error enabled after %d sec\n", (wait_on_error_mqtt / 1000));
 
   miscObj["buzzer"] = (int)startBuzzer;
+  if (startBuzzer)
+    miscObj["mqbuz"] = (int)mqttBuzzer;
+  else
+    miscObj["mqbuz"] = 0;
+  
   miscObj["display"] = (int)useDisplay;
   miscObj["page"] = startPage;
   miscObj["devbranch"] = (int)devBranch;

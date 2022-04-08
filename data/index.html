@@ -255,6 +255,11 @@
                 <label class="custom-control-label" for="modal_misc_buzzer">Enable buzzer (D8)</label>
               </div>
               <div class="custom-control custom-switch">
+                <input type="checkbox" class="custom-control-input" id="modal_misc_mqbuz" />
+                <label class="custom-control-label" for="modal_misc_mqbuz">Enable mqttBuzzer (requires buzzer enabled)</label>
+              </div>
+              <br />
+              <div class="custom-control custom-switch">
                 <input type="checkbox" class="custom-control-input" id="modal_misc_display">
                 <label class="custom-control-label" for="modal_misc_display">Enable HMI Touchdisplay (D1,D2)</label>
               </div>
@@ -262,6 +267,7 @@
                 <label for="modal_misc_page">HMI display start page</label>
                 <select class="form-control" id="modal_misc_page"></select>
               </div>
+              <br />
               <div class="custom-control custom-switch">
                 <input type="checkbox" class="custom-control-input" id="modal_misc_mdns" />
                 <label class="custom-control-label" for="modal_misc_mdns">Enable mDNS</label>
@@ -754,6 +760,7 @@
         modal.find('#modal_misc_mdns_name').val(data.mdns_name);
         modal.find('#modal_misc_mdns').prop("checked", Boolean(Number(data.mdns)));
         modal.find('#modal_misc_buzzer').prop("checked", Boolean(Number(data.buzzer)));
+        modal.find('#modal_misc_mqbuz').prop("checked", Boolean(Number(data.mqbuz)));
         modal.find('#modal_misc_display').prop("checked", Boolean(Number(data.display)));
         modal.find('#modal_misc_dev').prop("checked", Boolean(Number(data.devbranch)));
         modal.find('#modal_misc_onErrorMQTT').prop("checked", Boolean(Number(data.enable_mqtt)));
@@ -775,6 +782,7 @@
       var del_sen_ind = modal.find('#modal_misc_del_sen_ind').val();
       var mdns = modal.find('#modal_misc_mdns').prop("checked");
       var buzzer = modal.find('#modal_misc_buzzer').prop("checked");
+      var mqbuz = modal.find('#modal_misc_mqbuz').prop("checked");
       var display = modal.find('#modal_misc_display').prop("checked");
       var page = modal.find('#modal_misc_page').val();
       var devbranch = modal.find('#modal_misc_dev').prop("checked");
@@ -783,7 +791,7 @@
       var reset = modal.find('#modal_misc_reset').prop("checked");
 
       $.ajax({
-        url: '/setMisc?reset=' + reset + '&clear=' + clear + '&mqtthost=' + mqtthost + '&mqttport=' + mqttport + '&mqttuser=' + mqttuser + '&mqttpass=' + mqttpass + '&enable_mqtt=' + enable_mqtt + '&delay_mqtt=' + delay_mqtt + '&del_sen_act=' + del_sen_act + '&del_sen_ind=' + del_sen_ind + '&mdns=' + mdns + '&mdns_name=' + mdns_name + '&buzzer=' + buzzer + '&display=' + display + '&page=' + page + '&devbranch=' + devbranch,
+        url: '/setMisc?reset=' + reset + '&clear=' + clear + '&mqtthost=' + mqtthost + '&mqttport=' + mqttport + '&mqttuser=' + mqttuser + '&mqttpass=' + mqttpass + '&enable_mqtt=' + enable_mqtt + '&delay_mqtt=' + delay_mqtt + '&del_sen_act=' + del_sen_act + '&del_sen_ind=' + del_sen_ind + '&mdns=' + mdns + '&mdns_name=' + mdns_name + '&buzzer=' + buzzer + '&mqbuz=' + mqbuz + '&display=' + display + '&page=' + page + '&devbranch=' + devbranch,
         type: 'POST',
         dataType: 'html',
         // async: false,

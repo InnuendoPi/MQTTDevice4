@@ -259,6 +259,36 @@ void sendAlarm(const uint8_t &setAlarm)
       delay(100);
     }
     break;
+  case ALARM_CBPI_SUCCESS:
+      tone(PIN_BUZZER, 880, 100);
+      delay(200);
+      tone(PIN_BUZZER, 440, 100);
+      delay(200);
+      tone(PIN_BUZZER, 880, 100);
+      break;
+  case ALARM_CBPI_INFO:
+      tone(PIN_BUZZER, 880, 100);
+      delay(200);
+      tone(PIN_BUZZER, 880, 100);
+      break;
+  case ALARM_CBPI_WARNING:
+      tone(PIN_BUZZER, 660, 200);
+      delay(100);
+      tone(PIN_BUZZER, 660, 100);
+      delay(100);
+      tone(PIN_BUZZER, 660, 200);
+      break;
+  case ALARM_CBPI_ERROR:
+    for (int i = 0; i < 3; i++)
+    {
+      tone(PIN_BUZZER, 440, 300);
+      delay(100);
+      tone(PIN_BUZZER, 440, 300);
+      delay(100);
+      tone(PIN_BUZZER, 440, 300);
+      delay(750);
+    }
+    break;
   default:
     break;
   }

@@ -1,7 +1,10 @@
 # Changelog
 
-Version 4.14
+Version 4.17
 
+- Added:    MQTTBuzzer (thx to pascal1404)
+- Added:    config option mqttBuzzer
+- Fixed:    bug crashing device when serialize Json to request CBPi4 to update hardware information
 - Added:    Display startPage (BrewPage, KettlePage or InductionPage)
 - Replaced: Scrolling text display (performance)
 - Reworked: Step information handling

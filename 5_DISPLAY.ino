@@ -30,8 +30,8 @@ void dispPublishmqtt()
 {
   if (pubsubClient.connected())
   {
-    StaticJsonDocument<4> doc;
-    char jsonMessage[2];
+    StaticJsonDocument<64> doc;
+    char jsonMessage[48];
     serializeJson(doc, jsonMessage);
     DEBUG_MSG("%s\n", "Disp: Request CBPi4 configuration");
     pubsubClient.publish("cbpi/updatekettle", jsonMessage);
@@ -190,7 +190,7 @@ void cbpi4notification_unsubscribe()
 
 void cbpi4kettle_handlemqtt(char *payload)
 {
-  StaticJsonDocument<768> doc;
+  StaticJsonDocument<1024> doc;
   DeserializationError error = deserializeJson(doc, (const char *)payload);
   if (error)
   {
@@ -263,7 +263,7 @@ void cbpi4kettle_handlemqtt(char *payload)
 
 void cbpi4sensor_handlemqtt(char *payload)
 {
-  StaticJsonDocument<128> doc;
+  StaticJsonDocument<256> doc;
   DeserializationError error = deserializeJson(doc, (const char *)payload);
   if (error)
   {
@@ -307,7 +307,7 @@ void cbpi4sensor_handlemqtt(char *payload)
 
 void cbpi4steps_handlemqtt(char *payload)
 {
-  StaticJsonDocument<768> doc;
+  StaticJsonDocument<1024> doc;
   DeserializationError error = deserializeJson(doc, (const char *)payload);
   if (error)
   {
@@ -509,7 +509,7 @@ void cbpi4steps_handlemqtt(char *payload)
 
 void cbpi4notification_handlemqtt(char *payload)
 {
-  StaticJsonDocument<256> doc;
+  StaticJsonDocument<384> doc;
   DeserializationError error = deserializeJson(doc, (const char *)payload);
   if (error)
   {
@@ -517,6 +517,22 @@ void cbpi4notification_handlemqtt(char *payload)
     DEBUG_MSG("Disp: handlemqtt notification deserialize Json error %s MemoryUsage %d\n", error.c_str(), memoryUsed);
     return;
   }
+  
+  if (mqttBuzzer) // MQTTBuzzer
+  {
+    if (doc["type"] == "success")
+      sendAlarm(ALARM_CBPI_SUCCESS);
+
+    if (doc["type"] == "info")
+      sendAlarm(ALARM_CBPI_INFO);
+
+    if (doc["type"] == "warning")
+      sendAlarm(ALARM_CBPI_WARNING);
+
+    if (doc["type"] == "error")
+      sendAlarm(ALARM_CBPI_ERROR);
+  }
+
   if (doc["title"] == "Stop")
   {
     activeBrew = false;

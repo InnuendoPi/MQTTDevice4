@@ -145,12 +145,13 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
 
 void handleRequestMisc2()
 {
-  StaticJsonDocument<128> doc;
+  StaticJsonDocument<512> doc;
   doc["mqtthost"] = mqtthost;
   doc["mqttport"] = mqttport;
   doc["enable_mqtt"] = StopOnMQTTError;
   doc["mqtt_state"] = mqtt_state; // Anzeige MQTT Status -> mqtt_state verzögerter Status!
   doc["buzzer"] = startBuzzer;
+  doc["mqbuz"] = mqttBuzzer;
   doc["display"] = useDisplay;
   doc["alertstate"] = alertState;
   if (alertState)
@@ -162,7 +163,7 @@ void handleRequestMisc2()
 
 void handleRequestMisc()
 {
-  StaticJsonDocument<384> doc;
+  StaticJsonDocument<512> doc;
   doc["mqtthost"] = mqtthost;
   doc["mqttport"] = mqttport;
   doc["mqttuser"] = mqttuser;
@@ -170,6 +171,7 @@ void handleRequestMisc()
   doc["mdns_name"] = nameMDNS;
   doc["mdns"] = startMDNS;
   doc["buzzer"] = startBuzzer;
+  doc["mqbuz"] = mqttBuzzer;
   doc["display"] = useDisplay;
   doc["page"] = startPage;
   doc["devbranch"] = devBranch;
@@ -255,6 +257,10 @@ void handleSetMisc()
     if (server.argName(i) == "buzzer")
     {
       startBuzzer = checkBool(server.arg(i));
+    }
+    if (server.argName(i) == "mqbuz")
+    {
+      mqttBuzzer = checkBool(server.arg(i));
     }
     if (server.argName(i) == "display")
     {
