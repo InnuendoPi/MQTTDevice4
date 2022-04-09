@@ -1,7 +1,8 @@
 # Changelog
 
-Version 4.17
+Version 4.19
 
+- Reworked: Alarm
 - Added:    MQTTBuzzer (thx to pascal1404)
 - Added:    config option mqttBuzzer
 - Fixed:    bug crashing device when serialize Json to request CBPi4 to update hardware information

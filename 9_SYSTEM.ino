@@ -231,67 +231,31 @@ void sendAlarm(const uint8_t &setAlarm)
     delay(150);
     tone(PIN_BUZZER, 440, 50);
     break;
-  case ALARM_OK:
-    digitalWrite(PIN_BUZZER, HIGH);
-    delay(200);
-    digitalWrite(PIN_BUZZER, LOW);
+  case ALARM_INFO:
+    tone(PIN_BUZZER, 880, 50);
+    break;
+  case ALARM_SUCCESS:
+    tone(PIN_BUZZER, 880, 50);
+    delay(150);
+    tone(PIN_BUZZER, 880, 50);
+    delay(150);
+    tone(PIN_BUZZER, 880, 50);
+    break;
+  case ALARM_WARNING:
+      tone(PIN_BUZZER, 660, 50);
+      delay(150);
+      tone(PIN_BUZZER, 660, 50);
+      delay(150);
+      tone(PIN_BUZZER, 660, 50);
+      delay(150);
     break;
   case ALARM_ERROR:
-    for (int i = 0; i < 20; i++)
-    {
-      tone(PIN_BUZZER, 880, 50);
+      tone(PIN_BUZZER, 440, 50);
+      delay(150);
+      tone(PIN_BUZZER, 440, 50);
       delay(150);
       tone(PIN_BUZZER, 440, 50);
       delay(150);
-    }
-    millis2wait(PAUSE1SEC);
-    break;
-  case ALARM_ERROR2:
-    for (int i = 0; i < 4; i++)
-    {
-      tone(PIN_BUZZER, 880, 50);
-      delay(100);
-      tone(PIN_BUZZER, 880, 50);
-      delay(100);
-      tone(PIN_BUZZER, 440, 50);
-      delay(100);
-      tone(PIN_BUZZER, 440, 50);
-      delay(100);
-    }
-    break;
-  case ALARM_CBPI_SUCCESS:
-      DEBUG_MSG("SYS: ALARM_CBPI_SUCCESS %d\n", ALARM_CBPI_SUCCESS);
-      tone(PIN_BUZZER, 880, 100);
-      delay(200);
-      tone(PIN_BUZZER, 440, 100);
-      delay(200);
-      tone(PIN_BUZZER, 880, 100);
-      break;
-  case ALARM_CBPI_INFO:
-      DEBUG_MSG("SYS: ALARM_CBPI_INFO %d\n", ALARM_CBPI_INFO);
-      tone(PIN_BUZZER, 880, 100);
-      delay(200);
-      tone(PIN_BUZZER, 880, 100);
-      break;
-  case ALARM_CBPI_WARNING:
-      DEBUG_MSG("SYS: ALARM_CBPI_WARNING %d\n", ALARM_CBPI_WARNING);
-      tone(PIN_BUZZER, 660, 200);
-      delay(100);
-      tone(PIN_BUZZER, 660, 100);
-      delay(100);
-      tone(PIN_BUZZER, 660, 200);
-      break;
-  case ALARM_CBPI_ERROR:
-    DEBUG_MSG("SYS: ALARM_CBPI_ERROR %d\n", ALARM_CBPI_ERROR);
-    for (int i = 0; i < 3; i++)
-    {
-      tone(PIN_BUZZER, 440, 300);
-      delay(100);
-      tone(PIN_BUZZER, 440, 300);
-      delay(100);
-      tone(PIN_BUZZER, 440, 300);
-      delay(750);
-    }
     break;
   default:
     break;

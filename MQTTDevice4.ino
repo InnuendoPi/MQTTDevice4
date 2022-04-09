@@ -50,7 +50,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.18"
+#define Version "4.19"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -302,13 +302,11 @@ NextionComponent p2gauge(nextion, 2, 4);
 
 #define ALARM_ON 1
 #define ALARM_OFF 2
-#define ALARM_OK 3
-#define ALARM_ERROR 4
-#define ALARM_ERROR2 5
-#define ALARM_CBPI_SUCCESS 6
-#define ALARM_CBPI_INFO 7
-#define ALARM_CBPI_WARNING 8
-#define ALARM_CBPI_ERROR 9
+#define ALARM_INFO 3
+#define ALARM_SUCCESS 4
+#define ALARM_WARNING 5
+#define ALARM_ERROR 6
+
 const int PIN_BUZZER = D8; // Buzzer
 bool startBuzzer = false;  // Aktiviere Buzzer
 bool mqttBuzzer = false;   // MQTTBuzzer

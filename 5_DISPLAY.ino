@@ -522,23 +522,19 @@ void cbpi4notification_handlemqtt(char *payload)
   {
     if (doc["type"] == "success")
     {
-      DEBUG_MSG("Disp: ALARM_CBPI_SUCCESS %d\n", ALARM_CBPI_SUCCESS);
-      sendAlarm(ALARM_CBPI_SUCCESS);
+      sendAlarm(ALARM_SUCCESS);
     }
     if (doc["type"] == "info")
     {
-      DEBUG_MSG("Disp: ALARM_CBPI_INFO %d\n", ALARM_CBPI_INFO);
-      sendAlarm(ALARM_CBPI_INFO);
+      sendAlarm(ALARM_INFO);
     }
     if (doc["type"] == "warning")
     {
-      DEBUG_MSG("Disp: ALARM_CBPI_WARNING %d\n", ALARM_CBPI_WARNING);
-      sendAlarm(ALARM_CBPI_WARNING);
+      sendAlarm(ALARM_WARNING);
     }
     if (doc["type"] == "error")
     {
-      DEBUG_MSG("Disp: ALARM_CBPI_ERROR %d\n", ALARM_CBPI_ERROR);
-      sendAlarm(ALARM_CBPI_ERROR);
+      sendAlarm(ALARM_ERROR);
     }
   }
   if (!useDisplay)

@@ -152,7 +152,7 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
     p = strstr(topic, notificationupdate);
     if (p)
     {
-      DEBUG_MSG("%s\n", "Web: notificationupdate2");
+      DEBUG_MSG("%s\n", "Web: notificationupdate mqttBuzzer");
       cbpi4notification_handlemqtt(payload_msg);
       return;
     }
