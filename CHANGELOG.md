@@ -1,7 +1,10 @@
 # Changelog
 
-Version 4.19
+Version 4.20
 
+- Fixed:    bug displaying wrong or none target temperature on kettlePage
+- Fixed:    bug displaying wrong or none target temperature on brewPage
+- Fixed:    bug crashing device display mode
 - Reworked: Alarm
 - Added:    MQTTBuzzer (thx to pascal1404)
 - Added:    config option mqttBuzzer
