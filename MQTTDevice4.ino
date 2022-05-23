@@ -50,7 +50,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.19"
+#define Version "4.20"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -180,7 +180,7 @@ InnuTicker TickerDisp;
 
 // Update Intervalle für Ticker Objekte
 int SEN_UPDATE = 4000; //  sensors update
-int DISP_UPDATE = 1000;
+int DISP_UPDATE = 2000;
 
 // Systemstart
 bool startMDNS = true; // Standard mDNS Name ist ESP8266- mit mqtt_chip_key

@@ -119,28 +119,28 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
     p = strstr(topic, kettleupdate);
     if (p)
     {
-      DEBUG_MSG("%s\n", "Web: kettleupdate");
+      // DEBUG_MSG("%s\n", "Web: kettleupdate");
       cbpi4kettle_handlemqtt(payload_msg);
       return;
     }
     p = strstr(topic, stepupdate);
     if (p)
     {
-      DEBUG_MSG("%s\n", "Web: stepsupdate");
+      // DEBUG_MSG("%s\n", "Web: stepsupdate");
       cbpi4steps_handlemqtt(payload_msg);
       return;
     }
     p = strstr(topic, notificationupdate);
     if (p)
     {
-      DEBUG_MSG("%s\n", "Web: notificationupdate");
+      // DEBUG_MSG("%s\n", "Web: notificationupdate");
       cbpi4notification_handlemqtt(payload_msg);
       return;
     }
     p = strstr(topic, sensorupdate);
     if (p)
     {
-      DEBUG_MSG("%s\n", "Web: sensorupdate");
+      // DEBUG_MSG("%s\n", "Web: sensorupdate");
       cbpi4sensor_handlemqtt(payload_msg);
       return;
     }
@@ -152,7 +152,7 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
     p = strstr(topic, notificationupdate);
     if (p)
     {
-      DEBUG_MSG("%s\n", "Web: notificationupdate mqttBuzzer");
+      // DEBUG_MSG("%s\n", "Web: notificationupdate mqttBuzzer");
       cbpi4notification_handlemqtt(payload_msg);
       return;
     }

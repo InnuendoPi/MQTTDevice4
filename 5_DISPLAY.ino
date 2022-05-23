@@ -9,6 +9,7 @@ void initDisplay()
   p2brewButton.touch(brewCallback);
   powerButton.touch(powerButtonCallback);
   activePage = startPage;
+
   switch (startPage)
   {
   case 0:
@@ -48,11 +49,13 @@ void BrewPage()
   currentStepRemain_text.attribute("txt", currentStepRemain);
   nextStepRemain_text.attribute("txt", nextStepRemain);
   nextStepName_text.attribute("txt", nextStepName);
+
   if (strlen(structKettles[0].id) > 0)
   {
     kettleName1_text.attribute("txt", structKettles[0].name);
     kettleSoll1_text.attribute("txt", structKettles[0].target_temp);
     kettleIst1_text.attribute("txt", structKettles[0].current_temp);
+    DEBUG_MSG("BP Kettle1: %s Target: %s Temp: %s \n", structKettles[0].name, structKettles[0].target_temp, structKettles[0].current_temp);
   }
   else
     dispPublishmqtt();
@@ -62,6 +65,7 @@ void BrewPage()
     kettleName2_text.attribute("txt", structKettles[1].name);
     kettleSoll2_text.attribute("txt", structKettles[1].target_temp);
     kettleIst2_text.attribute("txt", structKettles[1].current_temp);
+    DEBUG_MSG("BP Kettle2: %s Target: %s Temp: %s \n", structKettles[1].name, structKettles[1].target_temp, structKettles[1].current_temp);
   }
   if (strlen(structKettles[2].id) > 0)
   {
@@ -81,17 +85,16 @@ void BrewPage()
 
 void KettlePage()
 {
-  // DEBUG_MSG("Disp: KettlePage activeBrew: %d kettleID0: %s\n", activeBrew, structKettles[0].id);
-
   if (strlen(structKettles[0].sensor) != 0)
   {
-    for (int i = 0; i < numberOfSensors; i++)
+    for (int i = 0; i < maxKettles; i++)
     {
+      DEBUG_MSG("structKettleID %s - sensorID: %s\n", structKettles[i].sensor, sensors[0].getId().c_str() );
       if (strcmp(structKettles[i].sensor, sensors[0].getId().c_str()) == 0)
       {
         p1temp_text.attribute("txt", structKettles[i].current_temp);
         p1target_text.attribute("txt", structKettles[i].target_temp);
-        // DEBUG_MSG("Display: KettlePage Sensor ID: %s\n", structKettles[i].sensor);
+        DEBUG_MSG("KP Kettle %d: %s Current: %s Target: %s \n", i, structKettles[i].name, sensors[0].getTotalValueString(), structKettles[i].target_temp);
         break;
       }
     }
