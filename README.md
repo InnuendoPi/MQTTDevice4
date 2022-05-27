@@ -21,7 +21,7 @@ Libraries: Version 4.20, 05.2022
 
 - ESP8266 3.0.2 (LittleFS)
 - Arduino IDE 1.8.19
-- Visual Code + modified ESP8266FS Plugin (VSCode 1.52.1 Aruindo 1.8.16)
+- Visual Code + modified ESP8266FS Plugin (VSCode 1.67.2 Arduino 4.20)
 - PubSubClient 2.8.0 (PubSubClient.h: #define MQTT_MAX_PACKET_SIZE 512)
 - ArduinoJSON 6.19.4
 - WiFiManager 2.0.10

@@ -1,7 +1,10 @@
 # Changelog
 
-Version 4.20
+Version 4.21
 
+- Update:   VSCode 1.67.2
+- Update:   Arduino plugin 0.4.12
+- Update:   Arduino libs
 - Fixed:    bug displaying wrong or none target temperature on kettlePage
 - Fixed:    bug displaying wrong or none target temperature on brewPage
 - Fixed:    bug crashing device display mode
