@@ -66,10 +66,7 @@ public:
     new_mqtttopic.toCharArray(sens_mqtttopic, new_mqtttopic.length() + 1);
     sens_id = new_id;
     sens_name = new_name;
-    if (new_offset == 0.0)
-      sens_offset = (round((new_offset) * 100)) / 100.0;
-    else
-      sens_offset = (round((new_offset + 0.005) * 100)) / 100.0;
+    sens_offset = new_offset;
     sens_sw = new_sw;
 
     if (new_address.length() == 16)
@@ -174,12 +171,12 @@ public:
 
 // Initialisierung des Arrays -> max 6 Sensoren
 TemperatureSensor sensors[numberOfSensorsMax] = {
-    TemperatureSensor("", "", "", "",0.0, false),
-    TemperatureSensor("", "", "", "",0.0, false),
-    TemperatureSensor("", "", "", "",0.0, false),
-    TemperatureSensor("", "", "", "",0.0, false),
-    TemperatureSensor("", "", "", "",0.0, false),
-    TemperatureSensor("", "", "", "",0.0, false)};
+    TemperatureSensor("", "", "", "", 0.0, false),
+    TemperatureSensor("", "", "", "", 0.0, false),
+    TemperatureSensor("", "", "", "", 0.0, false),
+    TemperatureSensor("", "", "", "", 0.0, false),
+    TemperatureSensor("", "", "", "", 0.0, false),
+    TemperatureSensor("", "", "", "", 0.0, false)};
 
 // Funktion für Loop im Timer Objekt
 void handleSensors()
@@ -340,6 +337,7 @@ void handleRequestSensors()
       String str = sensors[i].getName();
       str.replace(" ", "%20"); // Erstze Leerzeichen für URL Charts
       sensorsObj["namehtml"] = str;
+      // sensorsObj["offset"] = (int(sensors[i].getOffset() * 100)) / 100.0;
       sensorsObj["offset"] = sensors[i].getOffset();
       sensorsObj["sw"] = sensors[i].getSw();
       sensorsObj["state"] = sensors[i].getState();

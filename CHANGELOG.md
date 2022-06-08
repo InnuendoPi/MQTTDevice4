@@ -1,7 +1,8 @@
 # Changelog
 
-Version 4.21
+Version 4.23
 
+- Fixed:    sensor offset
 - Update:   VSCode 1.67.2
 - Update:   Arduino plugin 0.4.12
 - Update:   Arduino libs
