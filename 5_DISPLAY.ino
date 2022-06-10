@@ -124,13 +124,16 @@ void InductionPage()
   if (aktSlider >= 0 && aktSlider <= 100)
     inductionCooker.handleInductionPage(aktSlider);
 
-  if ((sensors[0].getValue() + sensors[0].getOffset()) < 16.0)
+  // if ((sensors[0].getValue() + sensors[0].getOffset1()) < 16.0)
+  if (sensors[0].calcOffset() < 16.0)
   {
-    p2gauge.attribute("val", (int)((sensors[0].getValue() + sensors[0].getOffset()) * 2.7 + 316));
+    // p2gauge.attribute("val", (int)((sensors[0].getValue() + sensors[0].getOffset1()) * 2.7 + 316));
+    p2gauge.attribute("val", (int)(sensors[0].calcOffset() * 2.7 + 316));
   }
   else
   {
-    p2gauge.attribute("val", (int)((sensors[0].getValue() + sensors[0].getOffset()) * 2.7 - 44));
+    // p2gauge.attribute("val", (int)((sensors[0].getValue() + sensors[0].getOffset1()) * 2.7 - 44));
+    p2gauge.attribute("val", (int)(sensors[0].calcOffset() * 2.7 - 44));
   }
   p2temp_text.attribute("txt", strcat(structKettles[0].current_temp, "°C"));
 }

@@ -154,8 +154,12 @@
               <input type="text" class="form-control" placeholder="" id="modal_sensor_script" />
             </div>
             <div class="form-group">
-              <label for="modal_sensor_offset">Offset</label>
-              <input type="text" class="form-control" placeholder="" id="modal_sensor_offset" />
+              <label for="modal_sensor_offset1">Offset 1 [constant or at 40°C]</label>
+              <input type="text" class="form-control" placeholder="" id="modal_sensor_offset1" />
+            </div>
+            <div class="form-group">
+              <label for="modal_sensor_offset2">Offset 2 [at 78°C]</label>
+              <input type="text" class="form-control" placeholder="" id="modal_sensor_offset2" />
             </div>
             <div class="form-group">
               <label for="modal_sensor_cbpiid">CBPi4 Sensor-ID (only required for HMI displays)</label>
@@ -664,11 +668,17 @@
         modal.find('#modal_sensor_name').val(data.name);
         modal.find('#modal_sensor_script').val(data.script);
         modal.find('#modal_sensor_cbpiid').val(data.cbpiid);
-        if (isNaN(data.offset)) {
-          modal.find('#modal_sensor_offset').val(0.00);
+        if (isNaN(data.offset1)) {
+          modal.find('#modal_sensor_offset1').val(0.00);
         }
         else {
-          modal.find('#modal_sensor_offset').val(parseFloat(data.offset).toFixed(2));
+          modal.find('#modal_sensor_offset1').val(parseFloat(data.offset1).toFixed(2));
+        }
+        if (isNaN(data.offset2)) {
+          modal.find('#modal_sensor_offset2').val(0.00);
+        }
+        else {
+          modal.find('#modal_sensor_offset2').val(parseFloat(data.offset2).toFixed(2));
         }
         modal.find('#modal_sensor_sw').prop("checked", Boolean(Number(data.sw)));
       });
@@ -681,11 +691,12 @@
       var cbpiid = modal.find('#modal_sensor_cbpiid').val();
       var sensorid = modal.attr('sensor_id');
       var sensoraddress = modal.find('#modal_sensor_address').val();
-      var sensoroffset = modal.find('#modal_sensor_offset').val();
+      var sensoroffset1 = modal.find('#modal_sensor_offset1').val();
+      var sensoroffset2 = modal.find('#modal_sensor_offset2').val();
       var sensorsw = modal.find('#modal_sensor_sw').prop("checked");
 
       $.ajax({
-        url: '/setSensor?id=' + sensorid + '&name=' + sensorname + '&topic=' + sensorscript + '&address=' + sensoraddress + '&cbpiid=' + cbpiid + '&offset=' + sensoroffset + '&sw=' + sensorsw,
+        url: '/setSensor?id=' + sensorid + '&name=' + sensorname + '&topic=' + sensorscript + '&address=' + sensoraddress + '&cbpiid=' + cbpiid + '&offset1=' + sensoroffset1 + '&offset2=' + sensoroffset2 + '&sw=' + sensorsw,
         type: 'POST',
         dataType: 'html',
         // async: false,

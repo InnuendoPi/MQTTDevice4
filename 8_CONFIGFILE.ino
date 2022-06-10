@@ -60,12 +60,12 @@ bool loadConfig()
   {
     if (i < numberOfSensors)
     {
-      sensors[i].change(sensorsObj["ADDRESS"] | "", sensorsObj["SCRIPT"] | "", sensorsObj["NAME"] | "", sensorsObj["CBPIID"] | "", sensorsObj["OFFSET"] | 0.0, sensorsObj["SW"] | 0);
-      DEBUG_MSG("Sensor #: %d Name: %s Address: %s MQTT: %s CBPi-ID: %s Offset: %f SW: %d\n", (i + 1), sensorsObj["NAME"].as<const char *>(), sensorsObj["ADDRESS"].as<const char *>(), sensorsObj["SCRIPT"].as<const char *>(), sensorsObj["CBPIID"].as<const char *>(), sensorsObj["OFFSET"].as<float>(), sensorsObj["SW"].as<int>());
+      sensors[i].change(sensorsObj["ADDRESS"] | "", sensorsObj["SCRIPT"] | "", sensorsObj["NAME"] | "", sensorsObj["CBPIID"] | "", sensorsObj["OFFSET1"] | 0.0, sensorsObj["OFFSET2"] | 0.0, sensorsObj["SW"] | 0);
+      DEBUG_MSG("Sensor #: %d Name: %s Address: %s MQTT: %s CBPi-ID: %s Offset1: %f Offset2: %f SW: %d\n", (i + 1), sensorsObj["NAME"].as<const char *>(), sensorsObj["ADDRESS"].as<const char *>(), sensorsObj["SCRIPT"].as<const char *>(), sensorsObj["CBPIID"].as<const char *>(), sensorsObj["OFFSET1"].as<float>(), sensorsObj["OFFSET2"].as<float>(), sensorsObj["SW"].as<int>());
       i++;
     }
     else
-      sensors[i].change("", "", "", "", 0.0, false);
+      sensors[i].change("", "", "", "", 0.0, 0.0,false);
   }
   DEBUG_MSG("%s\n", "--------------------");
 
@@ -183,11 +183,12 @@ bool saveConfig()
     JsonObject sensorsObj = sensorsArray.createNestedObject();
     sensorsObj["ADDRESS"] = sensors[i].getSens_adress_string();
     sensorsObj["NAME"] = sensors[i].getName();
-    sensorsObj["OFFSET"] = (int(sensors[i].getOffset() * 100)) / 100.0;
+    sensorsObj["OFFSET1"] = (int(sensors[i].getOffset1() * 100)) / 100.0;
+    sensorsObj["OFFSET2"] = (int(sensors[i].getOffset2() * 100)) / 100.0;
     sensorsObj["SCRIPT"] = sensors[i].getTopic();
     sensorsObj["CBPIID"] = sensors[i].getId();
     sensorsObj["SW"] = (int)sensors[i].getSw();
-    DEBUG_MSG("Sensor #: %d Name: %s Address: %s MQTT: %s CBPi-ID: %s Offset: %f SW: %d\n", (i + 1), sensors[i].getName().c_str(), sensors[i].getSens_adress_string().c_str(), sensors[i].getTopic().c_str(), sensors[i].getId().c_str(), sensors[i].getOffset(), sensors[i].getSw());
+    DEBUG_MSG("Sensor #: %d Name: %s Address: %s MQTT: %s CBPi-ID: %s Offset1: %f Offset2: %f SW: %d\n", (i + 1), sensors[i].getName().c_str(), sensors[i].getSens_adress_string().c_str(), sensors[i].getTopic().c_str(), sensors[i].getId().c_str(), sensors[i].getOffset1(), sensors[i].getOffset2(), sensors[i].getSw());
   }
 
   DEBUG_MSG("%s\n", "--------------------");

@@ -1,7 +1,8 @@
 # Changelog
 
-Version 4.23
+Version 4.25
 
+- Added:    two-point calibration
 - Fixed:    sensor offset
 - Update:   VSCode 1.67.2
 - Update:   Arduino plugin 0.4.12

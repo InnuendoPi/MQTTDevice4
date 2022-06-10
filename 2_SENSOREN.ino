@@ -1,10 +1,12 @@
 class TemperatureSensor
 {
   int sens_err = 0;
-  bool sens_sw = false;          // Events aktivieren
-  bool sens_state = true;        // Fehlerstatus ensor
-  bool sens_isConnected;         // ist der Sensor verbunden
-  float sens_offset = 0.0;       // Offset - Temp kalibrieren
+  bool sens_sw = false;   // Events aktivieren
+  bool sens_state = true; // Fehlerstatus ensor
+  bool sens_isConnected;  // ist der Sensor verbunden
+  // float sens_offset = 0.0;       // Offset - Temp kalibrieren
+  float sens_offset1 = 0.0;      // Offset - Temp kalibrieren
+  float sens_offset2 = 0.0;      // Offset - Temp kalibrieren
   float sens_value = -127.0;     // Aktueller Wert
   String sens_name;              // Name für Anzeige auf Website
   unsigned char sens_address[8]; // 1-Wire Adresse
@@ -17,9 +19,9 @@ public:
     return SensorAddressToString(sens_address);
   }
 
-  TemperatureSensor(String new_address, String new_mqtttopic, String new_name, String new_id, float new_offset, bool new_sw)
+  TemperatureSensor(String new_address, String new_mqtttopic, String new_name, String new_id, float new_offset1, float new_offset2, bool new_sw)
   {
-    change(new_address, new_mqtttopic, new_name, new_id, new_offset, new_sw);
+    change(new_address, new_mqtttopic, new_name, new_id, new_offset1, new_offset2, new_sw);
   }
 
   void Update()
@@ -61,12 +63,13 @@ public:
     publishmqtt();
   } // void Update
 
-  void change(const String &new_address, const String &new_mqtttopic, const String &new_name, const String &new_id, float new_offset, const bool &new_sw)
+  void change(const String &new_address, const String &new_mqtttopic, const String &new_name, const String &new_id, float new_offset1, float new_offset2, const bool &new_sw)
   {
     new_mqtttopic.toCharArray(sens_mqtttopic, new_mqtttopic.length() + 1);
     sens_id = new_id;
     sens_name = new_name;
-    sens_offset = new_offset;
+    sens_offset1 = new_offset1;
+    sens_offset2 = new_offset2;
     sens_sw = new_sw;
 
     if (new_address.length() == 16)
@@ -105,7 +108,8 @@ public:
       sensorsObj["Name"] = sens_name;
       if (sensorsStatus == 0)
       {
-        sensorsObj["Value"] = round((sens_value + sens_offset + 0.05) * 10) / 10.0;
+        // sensorsObj["Value"] = round((sens_value + sens_offset + 0.05) * 10) / 10.0;
+        sensorsObj["Value"] = round((calcOffset() + 0.05) * 10) / 10.0;
       }
       else
       {
@@ -129,9 +133,13 @@ public:
   {
     return sens_state;
   }
-  float getOffset()
+  float getOffset1()
   {
-    return sens_offset;
+    return sens_offset1;
+  }
+  float getOffset2()
+  {
+    return sens_offset2;
   }
   float getValue()
   {
@@ -163,20 +171,41 @@ public:
     if (sens_value == -127.0)
       return buf;
 
-    // dtostrf((sens_value + sens_offset), 2, 1, buf);
-    dtostrf((round((sens_value + sens_offset + 0.05) * 10) / 10.0), 2, 1, buf);
+    // dtostrf((round((sens_value + sens_offset + 0.05) * 10) / 10.0), 2, 1, buf);
+
+    dtostrf((round((calcOffset() + 0.05) * 10) / 10.0), 2, 1, buf);
     return buf;
+  }
+
+  float calcOffset()
+  {
+    if (sens_offset1 == 0.0 && sens_offset2 == 0.0) // keine Kalibrierung
+    {
+      return sens_value;
+    }
+    else if ( (sens_offset1 != 0.0 && sens_offset2 != 0.0) || (sens_offset1 == 0.0 && sens_offset2 != 0.0) ) // 2-Punkte-Kalibrierung
+    {
+      float m = (TEMP_OFFSET2 - TEMP_OFFSET1) / ((TEMP_OFFSET2 + sens_offset2) - (TEMP_OFFSET1 + sens_offset1));
+      float b = ((TEMP_OFFSET2 + sens_offset2) * TEMP_OFFSET1 - ((TEMP_OFFSET1 + sens_offset1) * TEMP_OFFSET2)) / ((TEMP_OFFSET2 + sens_offset2) - (TEMP_OFFSET1 + sens_offset1));
+      // float calc_value = m * sens_value + b;
+      // DEBUG_MSG("sens_value: %.2f calc_value: %.2f sensoffset1: %.2f sensoffset2: %.2f m: %.5f b: %.5f\n", sens_value, calc_value, sens_offset1, sens_offset2, m, b);
+      return m * sens_value + b;
+    }
+    else if (sens_offset1 != 0.0 && sens_offset2 == 0.0) // 1-Punkt-Kalibrierung
+    {
+      return sens_value + sens_offset1;
+    }
   }
 };
 
 // Initialisierung des Arrays -> max 6 Sensoren
 TemperatureSensor sensors[numberOfSensorsMax] = {
-    TemperatureSensor("", "", "", "", 0.0, false),
-    TemperatureSensor("", "", "", "", 0.0, false),
-    TemperatureSensor("", "", "", "", 0.0, false),
-    TemperatureSensor("", "", "", "", 0.0, false),
-    TemperatureSensor("", "", "", "", 0.0, false),
-    TemperatureSensor("", "", "", "", 0.0, false)};
+    TemperatureSensor("", "", "", "", 0.0, 0.0, false),
+    TemperatureSensor("", "", "", "", 0.0, 0.0, false),
+    TemperatureSensor("", "", "", "", 0.0, 0.0, false),
+    TemperatureSensor("", "", "", "", 0.0, 0.0, false),
+    TemperatureSensor("", "", "", "", 0.0, 0.0, false),
+    TemperatureSensor("", "", "", "", 0.0, 0.0, false)};
 
 // Funktion für Loop im Timer Objekt
 void handleSensors()
@@ -242,7 +271,8 @@ void handleSetSensor()
   String new_name = sensors[id].getName();
   String new_address = sensors[id].getSens_adress_string();
   String new_id = sensors[id].getId();
-  float new_offset = sensors[id].getOffset();
+  float new_offset1 = sensors[id].getOffset1();
+  float new_offset2 = sensors[id].getOffset2();
   bool new_sw = sensors[id].getSw();
 
   for (int i = 0; i < server.args(); i++)
@@ -259,9 +289,13 @@ void handleSetSensor()
     {
       new_address = server.arg(i);
     }
-    if (server.argName(i) == "offset")
+    if (server.argName(i) == "offset1")
     {
-      new_offset = formatDOT(server.arg(i));
+      new_offset1 = formatDOT(server.arg(i));
+    }
+    if (server.argName(i) == "offset2")
+    {
+      new_offset2 = formatDOT(server.arg(i));
     }
     if (server.argName(i) == "sw")
     {
@@ -276,7 +310,7 @@ void handleSetSensor()
   }
   DEBUG_MSG("Sens2: ID %s\n", new_id.c_str());
 
-  sensors[id].change(new_address, new_mqtttopic, new_name, new_id, new_offset, new_sw);
+  sensors[id].change(new_address, new_mqtttopic, new_name, new_id, new_offset1, new_offset2, new_sw);
   saveConfig();
   server.send(201, "text/plain", "created");
 }
@@ -288,10 +322,10 @@ void handleDelSensor()
   {
     if (i == (numberOfSensorsMax - 1)) // 5 - Array von 0 bis (numberOfSensorsMax-1)
     {
-      sensors[i].change("", "", "", "", 0.0, false);
+      sensors[i].change("", "", "", "", 0.0, 0.0, false);
     }
     else
-      sensors[i].change(sensors[i + 1].getSens_adress_string(), sensors[i + 1].getTopic(), sensors[i + 1].getName(), sensors[i + 1].getId(), sensors[i + 1].getOffset(), sensors[i + 1].getSw());
+      sensors[i].change(sensors[i + 1].getSens_adress_string(), sensors[i + 1].getTopic(), sensors[i + 1].getName(), sensors[i + 1].getId(), sensors[i + 1].getOffset1(), sensors[i + 1].getOffset2(), sensors[i + 1].getSw());
 
     yield();
   }
@@ -338,7 +372,8 @@ void handleRequestSensors()
       str.replace(" ", "%20"); // Erstze Leerzeichen für URL Charts
       sensorsObj["namehtml"] = str;
       // sensorsObj["offset"] = (int(sensors[i].getOffset() * 100)) / 100.0;
-      sensorsObj["offset"] = sensors[i].getOffset();
+      sensorsObj["offset1"] = sensors[i].getOffset1();
+      sensorsObj["offset2"] = sensors[i].getOffset2();
       sensorsObj["sw"] = sensors[i].getSw();
       sensorsObj["state"] = sensors[i].getState();
       if (sensors[i].getValue() != -127.0)
@@ -362,7 +397,8 @@ void handleRequestSensors()
   else // get single sensor by id
   {
     doc["name"] = sensors[id].getName();
-    doc["offset"] = sensors[id].getOffset();
+    doc["offset1"] = sensors[id].getOffset1();
+    doc["offset2"] = sensors[id].getOffset2();
     doc["sw"] = sensors[id].getSw();
     doc["script"] = sensors[id].getTopic();
     doc["cbpiid"] = sensors[id].getId();

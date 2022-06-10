@@ -228,6 +228,24 @@ Most of the functions of the firmware are self-explanatory. The addition or dele
     * Filebrowser for simple file management (e.g. backup and restore config.json)
     * DS18B20 temperature offset: easy calibration of the sensors
 
+**Sensor calibration:**
+
+Note: sensor calibration is an optional task. A two-point calibrtation is recommended espacially for mash tune sensors.
+
+The firmware provides an easy option for sensor calibration. Three options availble:
+
+    * no calibration
+    
+    leave deflaut value 0.0 (zero) for offset 1 and offset 2 (eg do nothing)
+    
+    * single point calibration or constant offset: enter a value for constant offset to offset 1 and set offset 2 to 0.0 (zero)
+
+    The difference in a single temperture measure is your constant offset 1. There is no predeefined temperature for a single point measure.
+
+    * two-point calibration: you need to measure at two predefined temperatures two offsets
+
+A two point calibration provides a more accurate correction of each sensor by re-scaling it at two poinst instad of just one (constant offset). All you need is your mash tune, a calibrated temperature sensor and a cbpi4 mash profil, which includes two mash steps: at 40°C (low mashin temperature) and at 78°C (mashout temperature). Set both mash step timers to something lik 3 to 5 minutes. Fill your mash tune with water. If possible turn on agitator. Now start the two step mash profile in CraftbeerPi4. When temperatur 40°C is reached measure the temperature with a calibrated sensor. The difference between sensor value and calibrated temperatur sensor is offset 1. Repeat measurement when 78°C is reached. The difference is offset 2. In a two-point calibration it is very important to do the first measure at exactly 40°C and the second measure at exactly 78°C!
+
 **Misc settings:**
 
 1. System

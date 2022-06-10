@@ -50,13 +50,15 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.23"
+#define Version "4.25"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
 #define PAUSE2SEC 2000
 #define PAUSEDS18 750
 #define RESOLUTION 12 // 12bit resolution == 750ms update rate
+#define TEMP_OFFSET1 40
+#define TEMP_OFFSET2 78
 
 // OneWire
 #define ONE_WIRE_BUS D3
