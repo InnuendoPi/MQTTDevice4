@@ -246,6 +246,13 @@ The firmware provides an easy option for sensor calibration. Three options avail
 
 A two point calibration provides a more accurate correction of each sensor by re-scaling it at two poinst instad of just one (constant offset). All you need is your mash tune, a calibrated temperature sensor and a cbpi4 mash profil, which includes two mash steps: at 40°C (low mashin temperature) and at 78°C (mashout temperature). Set both mash step timers to something lik 3 to 5 minutes. Fill your mash tune with water. If possible turn on agitator. Now start the two step mash profile in CraftbeerPi4. When temperatur 40°C is reached measure the temperature with a calibrated sensor. The difference between sensor value and calibrated temperatur sensor is offset 1. Repeat measurement when 78°C is reached. The difference is offset 2. In a two-point calibration it is very important to do the first measure at exactly 40°C and the second measure at exactly 78°C!
 
+Calibration example:
+Measurement
+![sencal1](img/sensor_calibration2.jpg)
+
+Sensor setting
+![sencal2](img/sensor_calibration.jpg)
+
 **Misc settings:**
 
 1. System
