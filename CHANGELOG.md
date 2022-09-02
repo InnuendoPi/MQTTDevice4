@@ -1,10 +1,12 @@
 # Changelog
 
-Version 4.25
+Version 4.30
 
+- Added:    PID Controller
+- Update:   VSCode 1.70.2
 - Added:    two-point calibration
 - Fixed:    sensor offset
-- Update:   VSCode 1.67.2
+- Update:   VSCode 1.69.2
 - Update:   Arduino plugin 0.4.12
 - Update:   Arduino libs
 - Fixed:    bug displaying wrong or none target temperature on kettlePage

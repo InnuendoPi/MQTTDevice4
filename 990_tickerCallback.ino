@@ -32,16 +32,16 @@ void tickerDispCallback()
   char ipMQTT[50];
   sprintf_P(uhrzeit, (PGM_P)F("%02d:%02d"), timeClient.getHours(), timeClient.getMinutes());
   sprintf_P(ipMQTT, (PGM_P)F("http://%s - %s"), nameMDNS, WiFi.localIP().toString().c_str());
-  
+
   switch (activePage)
   {
-  case 0:            //BrewPage
+  case 0:            // BrewPage
     if (!activeBrew) // aktiver Step vorhanden?
       strlcpy(currentStepName, "BrewPage", maxStepSign);
-      
+
     uhrzeit_text.attribute("txt", uhrzeit);
     mqttDevice.attribute("txt", ipMQTT);
-    
+
     BrewPage();
     break;
   case 1:            // KettlePage
@@ -69,6 +69,39 @@ void tickerDispCallback()
 void tickerSenCallback() // Timer Objekt Sensoren
 {
   cbpiEventSensors(sensorsStatus);
+}
+void tickerIndCallback() // Timer Objekt Sensoren
+{
+  cbpiEventInduction(inductionStatus);
+}
+
+void tickerPUBSUBCallback() // Timer Objekt Sensoren
+{
+  if (TickerMQTT.state() != RUNNING)
+  {
+    if (pubsubClient.connected())
+    {
+      mqtt_state = true;
+      pubsubClient.loop();
+      if (TickerMQTT.state() == RUNNING)
+        TickerMQTT.stop();
+      return;
+    }
+    if (!pubsubClient.connected()) // if (!pubsubClient.connected())
+    {
+      if (TickerMQTT.state() != RUNNING)
+      {
+        DEBUG_MSG("%s\n", "Ticker PubSub Error: TickerMQTT started");
+        DEBUG_MSG("Ticker PubSub error rc=%d \n", pubsubClient.state());
+        mqtt_state = false;
+        TickerMQTT.resume();
+        mqttconnectlasttry = millis();
+      }
+      TickerMQTT.update();
+    }
+  }
+  else
+    TickerMQTT.update();
 }
 
 void tickerMQTTCallback() // Ticker helper function calling Event MQTT Error
@@ -156,4 +189,34 @@ void tickerNTPCallback() // Ticker helper function calling Event WLAN Error
 {
   timeClient.update();
   Serial.printf("*** SYSINFO: %s\n", timeClient.getFormattedTime().c_str());
+}
+
+void tickerMashCallback() // Ticker helper function calling Event WLAN Error
+{
+  handleMash();
+}
+
+void tickerPIDCallback() // Ticker helper function calling Event WLAN Error
+{
+  sensors[0].Update();
+  float val = sensors[0].getTotalValueFloat();
+  if (val != -127.00)
+    ggmInput = val;
+
+  if (!isnan(ggmInput))
+  {
+    ggmOutput = ggmPID.Run(ggmInput);
+    inductionCooker.inductionNewPower(int(ggmOutput));
+    handleInduction();
+    DEBUG_MSG("Ticker PID ggmInput: %.02f ggmOutput: %.02f intOutput %d Setpoint: %.02f\n", ggmInput, ggmOutput, int(ggmOutput), Setpoint);
+  }
+  
+  if (autoTune)
+    return;
+
+  if (TickerMash.state() != RUNNING && TickerMash.state() != PAUSED)
+  {
+    checkTemp();
+  }
+  // printPID();
 }

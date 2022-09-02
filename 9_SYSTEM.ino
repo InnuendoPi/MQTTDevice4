@@ -4,7 +4,16 @@ void millis2wait(const int &value)
   unsigned long pause = millis();
   while (millis() < pause + value)
   {
-    yield(); //wait approx. [period] ms
+    yield(); // wait approx. [period] milliseconds
+  }
+}
+void micros2wait(const int &value)
+{
+  // DEBUG_MSG("SYS: millis2wait %d\n", value);
+  unsigned long pause = micros();
+  while (micros() < pause + value)
+  {
+    yield(); // wait approx. [period] microsseconds
   }
 }
 
@@ -92,12 +101,17 @@ void setTicker()
 {
   // Ticker Objekte
   TickerSen.config(tickerSenCallback, SEN_UPDATE, 0);
+  TickerInd.config(tickerIndCallback, IND_UPDATE, 0);
   TickerMQTT.config(tickerMQTTCallback, tickerMQTT, 0);
+  TickerPUBSUB.config(tickerPUBSUBCallback, tickerPUSUB, 0);
   TickerWLAN.config(tickerWLANCallback, tickerWLAN, 0);
   TickerNTP.config(tickerNTPCallback, NTP_INTERVAL, 0);
   TickerDisp.config(tickerDispCallback, DISP_UPDATE, 0);
+  TickerMash.config(tickerMashCallback, MASH_UPDATE, 1);
+  TickerPID.config(tickerPIDCallback, PID_UPDATE, 0);
   TickerMQTT.stop();
   TickerWLAN.stop();
+  TickerMash.stop();
 }
 
 void checkSummerTime()
@@ -242,20 +256,20 @@ void sendAlarm(const uint8_t &setAlarm)
     tone(PIN_BUZZER, 880, 50);
     break;
   case ALARM_WARNING:
-      tone(PIN_BUZZER, 660, 50);
-      delay(150);
-      tone(PIN_BUZZER, 660, 50);
-      delay(150);
-      tone(PIN_BUZZER, 660, 50);
-      delay(150);
+    tone(PIN_BUZZER, 660, 50);
+    delay(150);
+    tone(PIN_BUZZER, 660, 50);
+    delay(150);
+    tone(PIN_BUZZER, 660, 50);
+    delay(150);
     break;
   case ALARM_ERROR:
-      tone(PIN_BUZZER, 440, 50);
-      delay(150);
-      tone(PIN_BUZZER, 440, 50);
-      delay(150);
-      tone(PIN_BUZZER, 440, 50);
-      delay(150);
+    tone(PIN_BUZZER, 440, 50);
+    delay(150);
+    tone(PIN_BUZZER, 440, 50);
+    delay(150);
+    tone(PIN_BUZZER, 440, 50);
+    delay(150);
     break;
   default:
     break;

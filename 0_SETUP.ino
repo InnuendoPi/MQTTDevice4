@@ -67,7 +67,7 @@ void setup()
 
   // Starte Sensoren
   DS18B20.begin();
-  
+
   // Starte mDNS
   if (startMDNS)
     cbpiEventSystem(EM_MDNSET);
@@ -97,7 +97,11 @@ void setup()
   // Starte MQTT
   cbpiEventSystem(EM_MQTTCON); // MQTT Verbindung
   cbpiEventSystem(EM_MQTTSUB); // MQTT Subscribe
+
   cbpiEventSystem(EM_LOG); // webUpdate log
+
+  if (!mqttoff)
+    TickerPUBSUB.start(); // PubSubClient loop ticker
 
   // Verarbeite alle Events Setup
   gEM.processAllEvents();
@@ -107,6 +111,11 @@ void setupServer()
 {
   server.on("/", handleRoot);
   server.on("/index.htm", handleRoot);
+  server.on("/index", handleRoot);
+  server.on("/index.html", handleRoot);
+  server.on("/mash", HTTP_GET, handleGetMash);
+  server.on("/mash.html", HTTP_GET, handleGetMash);
+  server.on("/mash.htm", HTTP_GET, handleGetMash);
   server.on("/setupActor", handleSetActor);       // Einstellen der Aktoren
   server.on("/setupSensor", handleSetSensor);     // Einstellen der Sensoren
   server.on("/reqSensors", handleRequestSensors); // Liste der Sensoren ausgeben
@@ -123,10 +132,18 @@ void setupServer()
   server.on("/delActor", handleDelActor);         // Aktor löschen
   server.on("/reboot", rebootDevice);             // reboots the whole Device
   server.on("/reqMisc2", handleRequestMisc2);     // Misc Infos für WebConfig
+  server.on("/reqMisc3", handleRequestMisc3);     // Misc Infos für WebConfig
   server.on("/reqMisc", handleRequestMisc);       // Misc Infos für WebConfig
   server.on("/reqFirm", handleRequestFirm);       // Firmware version
   server.on("/setMisc", handleSetMisc);           // Misc ändern
   server.on("/startHTTPUpdate", startHTTPUpdate); // Firmware WebUpdate
+  server.on("/reqMash", handleRequestMash);
+  server.on("/setMash", handleSetMash);
+  server.on("/Btn-Power", handleBtnPower);
+  server.on("/Btn-Pause", handleBtnPause);
+  server.on("/Btn-Play", handleBtnPlay);
+  server.on("/Btn-Next-Step", handleBtnNextStep);
+  server.on("/actorPower", handleActorPower);
 
   // FSBrowser initialisieren
   server.on("/edit", HTTP_GET, handleGetEdit);
@@ -134,7 +151,18 @@ void setupServer()
   server.on("/list", HTTP_GET, handleFileList);
   server.on("/edit", HTTP_PUT, handleFileCreate);
   server.on("/edit", HTTP_DELETE, handleFileDelete);
-  server.on("/edit", HTTP_POST, []() { server.send(200, "text/plain", ""); loadConfig(); }, handleFileUpload);
+  server.on(
+      "/edit", HTTP_POST, []()
+      { server.send(200, "text/plain", ""); },
+      handleFileUpload);
+  server.on(
+      "/upload", HTTP_POST, []()
+      { server.send(200, "text/plain", ""); },
+      handleRezeptUp);
+  // server.on(
+  //     "/edit", HTTP_POST, []()
+  //     { server.send(200, "text/plain", ""); loadConfig(); },
+  //     handleFileUpload);
   server.onNotFound(handleWebRequests);
   httpUpdate.setup(&server);
   server.begin();

@@ -31,6 +31,14 @@ public:
     sens_isConnected ? sens_value = DS18B20.getTempC(sens_address) : sens_value = -127.0;
     sensorsStatus = 0;
     sens_state = true;
+
+    // if (pidMode)
+    // {
+    //   ggmInput = DS18B20.getTempCByIndex(0);
+    //   // ggmPID.Compute();
+    //   // inductionCooker.handleInductionPage(int(ggmOutput));
+    // }
+
     if (OneWire::crc8(sens_address, 7) != sens_address[7])
     {
       sensorsStatus = EM_CRCER;
@@ -60,7 +68,9 @@ public:
       sens_state = true;
     }
     sens_err = sensorsStatus;
-    publishmqtt();
+    // if (!mqttoff && mqtt_state)
+    if (!mqttoff && TickerPUBSUB.state() == RUNNING && TickerMQTT.state() != RUNNING)
+      publishmqtt();
   } // void Update
 
   void change(const String &new_address, const String &new_mqtttopic, const String &new_name, const String &new_id, float new_offset1, float new_offset2, const bool &new_sw)
@@ -109,7 +119,8 @@ public:
       if (sensorsStatus == 0)
       {
         // sensorsObj["Value"] = round((sens_value + sens_offset + 0.05) * 10) / 10.0;
-        sensorsObj["Value"] = round((calcOffset() + 0.05) * 10) / 10.0;
+        // sensorsObj["Value"] = round((calcOffset() + 0.05) * 10) / 10.0;
+        sensorsObj["Value"] = getTotalValueFloat();
       }
       else
       {
@@ -119,6 +130,7 @@ public:
       char jsonMessage[100];
       serializeJson(doc, jsonMessage);
       pubsubClient.publish(sens_mqtttopic, jsonMessage);
+      // DEBUG_MSG("SEN publish %f\n", getTotalValueFloat());
     }
   }
   int getErr()
@@ -165,6 +177,14 @@ public:
     dtostrf(sens_value, 2, 1, buf);
     return buf;
   }
+  float getTotalValueFloat()
+  {
+    return round((calcOffset() + 0.05) * 10) / 10.0;
+  }
+  double getTotalValueDouble()
+  {
+    return round((calcOffset() + 0.05) * 10) / 10.0;
+  }
   char *getTotalValueString()
   {
     sprintf(buf, "%s", "0.0");
@@ -183,7 +203,7 @@ public:
     {
       return sens_value;
     }
-    else if ( (sens_offset1 != 0.0 && sens_offset2 != 0.0) || (sens_offset1 == 0.0 && sens_offset2 != 0.0) ) // 2-Punkte-Kalibrierung
+    else if ((sens_offset1 != 0.0 && sens_offset2 != 0.0) || (sens_offset1 == 0.0 && sens_offset2 != 0.0)) // 2-Punkte-Kalibrierung
     {
       float m = (TEMP_OFFSET2 - TEMP_OFFSET1) / ((TEMP_OFFSET2 + sens_offset2) - (TEMP_OFFSET1 + sens_offset1));
       float b = ((TEMP_OFFSET2 + sens_offset2) * TEMP_OFFSET1 - ((TEMP_OFFSET1 + sens_offset1) * TEMP_OFFSET2)) / ((TEMP_OFFSET2 + sens_offset2) - (TEMP_OFFSET1 + sens_offset1));
@@ -402,6 +422,7 @@ void handleRequestSensors()
     doc["sw"] = sensors[id].getSw();
     doc["script"] = sensors[id].getTopic();
     doc["cbpiid"] = sensors[id].getId();
+    // doc["value"] = sensors[id].getTotalValueString();
   }
 
   String response;

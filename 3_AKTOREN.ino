@@ -15,7 +15,7 @@ public:
   bool switchable;              // actors switchable on error events?
   bool isOnBeforeError = false; // isOn status before error event
   bool actor_state = true;      // Error state actor
-  
+
   // MQTT Publish
   char actor_mqtttopic[50]; // Für MQTT Kommunikation
 

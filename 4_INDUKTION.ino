@@ -35,7 +35,6 @@ public:
 
   // MQTT Publish
   // char induction_mqtttopic[50];      // Für MQTT Kommunikation
-
   induction()
   {
     setupCommands();
@@ -80,7 +79,7 @@ public:
     induction_state = true;
 
     // MQTT Publish
-    //mqtttopic.toCharArray(induction_mqtttopic, mqtttopic.length() + 1);
+    // mqtttopic.toCharArray(induction_mqtttopic, mqtttopic.length() + 1);
 
     isEnabled = is_enabled;
     if (isEnabled)
@@ -107,10 +106,7 @@ public:
         // pinMode(PIN_INTERRUPT, INPUT_PULLUP);
         pins_used[PIN_INTERRUPT] = true;
       }
-      if (pubsubClient.connected())
-      {
-        mqtt_subscribe();
-      }
+      mqtt_subscribe();
     }
   }
 
@@ -181,14 +177,34 @@ public:
     }
   }
 
+  unsigned char getPinInterrupt()
+  {
+    return PIN_INTERRUPT;
+  }
+
   void handleInductionPage(int value)
+  {
+    return;
+    if (value > 0)
+    {
+      newPower = value;
+    }
+    else
+    {
+      newPower = 0;
+    }
+  }
+
+  void inductionNewPower(int value)
   {
     if (value > 0)
     {
       newPower = value;
     }
     else
+    {
       newPower = 0;
+    }
   }
 
   void setupCommands()
@@ -263,10 +279,50 @@ public:
     }
   }
 
+  // Test 202209
+  // void updatePower()
+  // {
+  //   if (power != newPower)  // Neuer Befehl empfangen
+  //   {
+  //     if (newPower > 100)
+  //     {
+  //       newPower = 100; // Nicht > 100
+  //     }
+  //     if (newPower < 0)
+  //     {
+  //       newPower = 0; // Nicht < 0
+  //     }
+  //     power = newPower;
+
+  //     timeTurnedoff = 0;
+  //     isInduon = true;
+  //     if (power == 0)
+  //     {
+  //       CMD_CUR = 0;
+  //       timeTurnedoff = millis();
+  //       isInduon = false;
+  //       powerHigh = powerSampletime;
+  //       powerLow = 0;
+  //     }
+  //     else
+  //     {
+  //       for (int i = 1; i < 7; i++)
+  //       {
+  //         if (power <= PWR_STEPS[i])
+  //         {
+  //           CMD_CUR = i;
+  //           powerLow = powerSampletime * (PWR_STEPS[i] - power) / 20L;
+  //           powerHigh = powerSampletime - powerLow;
+  //           return;
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
+
   void updatePower()
   {
     lastCommand = millis();
-
     if (power != newPower)
     { /* Neuer Befehl empfangen */
 
@@ -278,6 +334,9 @@ public:
       {
         newPower = 0; /* Nicht < 0 */
       }
+      Serial.print("Setting Power to ");
+      Serial.println(newPower);
+
       power = newPower;
 
       timeTurnedoff = 0;
@@ -313,22 +372,29 @@ public:
       {
         powerHigh = powerSampletime;
         powerLow = 0;
-      } // Test#1
+      };
     }
   }
 
   void sendCommand(int command[33])
   {
+
     digitalWrite(PIN_YELLOW, HIGH);
+    // delay(SIGNAL_START);
     millis2wait(SIGNAL_START);
     digitalWrite(PIN_YELLOW, LOW);
+    // delay(SIGNAL_WAIT);
     millis2wait(SIGNAL_WAIT);
+
+    // PIN_YELLOW := Ausgabe an IDS2
     for (int i = 0; i < 33; i++)
     {
       digitalWrite(PIN_YELLOW, HIGH);
-      delayMicroseconds(command[i]);
+      // delayMicroseconds(command[i]);
+      micros2wait(command[i]);
       digitalWrite(PIN_YELLOW, LOW);
-      delayMicroseconds(SIGNAL_LOW);
+      micros2wait(SIGNAL_LOW);
+      // delayMicroseconds(SIGNAL_LOW);
     }
   }
 
@@ -420,6 +486,72 @@ void handleRequestInduction()
   doc["topic"] = inductionCooker.mqtttopic;
   doc["delay"] = inductionCooker.delayAfteroff / 1000;
   doc["pl"] = inductionCooker.powerLevelOnError;
+
+  // PID mode values
+  doc["tempvalue"] = sensors[0].getTotalValueString();
+  if (autoTune)
+  {
+    doc["target"] = Setpoint;
+    doc["step"] = "AutoTune";
+  }
+  else
+  {
+    doc["target"] = structPlan[actMashStep].temp;
+    doc["step"] = structPlan[actMashStep].name;
+  }
+  if (autoTune)
+  {
+    if (statePower)
+      doc["timer"] = "in progress";
+    else
+      doc["timer"] = "press power";
+  }
+  else if (TickerMash.state() == RUNNING)
+  {
+    unsigned long allSeconds = TickerMash.remaining() / 1000;
+    int runHours = allSeconds / 3600;
+    int secsRemaining = allSeconds % 3600;
+    int runMinutes = secsRemaining / 60;
+    int runSeconds = secsRemaining % 60;
+    char buf[21];
+    if (runHours > 0)
+      runMinutes += runHours * 60;
+    //   sprintf(buf, "%02d:%02d:%02d", runHours, runMinutes, runSeconds);
+    // else
+    sprintf(buf, "%02d:%02d", runMinutes, runSeconds);
+    doc["timer"] = buf;
+    // Serial.println(buf);
+  }
+  else if (TickerMash.state() == STOPPED)
+  {
+    // if (!structPlan[actMashStep - 1].autonext && actMashStep > 0 && statePause) // check for last step autonext false?
+    if (actMashStep > 0 && statePause) // check for last step autonext false?
+    {
+      doc["timer"] = "pause to continue";
+    }
+    else
+    {
+      // doc["timer"] = structPlan[actMashStep].duration;
+      unsigned long allSeconds = structPlan[actMashStep].duration * 60;
+      int runHours = allSeconds / 3600;
+      int secsRemaining = allSeconds % 3600;
+      int runMinutes = secsRemaining / 60;
+      int runSeconds = secsRemaining % 60;
+      char buf[21];
+      if (runHours > 0)
+        runMinutes += runHours * 60;
+      //   sprintf(buf, "%02d:%02d:%02d", runHours, runMinutes, runSeconds);
+      // else
+      sprintf(buf, "%02d:%02d", runMinutes, runSeconds);
+      doc["timer"] = buf;
+    }
+  }
+  else if (TickerMash.state() == PAUSED && TickerMash.counter() >= 1)
+  {
+    doc["timer"] = "click forward";
+  }
+  else if (TickerMash.state() == PAUSED)
+    doc["timer"] = "paused";
 
   String response;
   serializeJson(doc, response);

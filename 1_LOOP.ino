@@ -1,27 +1,41 @@
 void loop()
 {
+  server.handleClient();
+
   if (WiFi.status() == WL_CONNECTED)
   {
-    server.handleClient();
-    TickerNTP.update();       // NTP Ticker
-    cbpiEventSystem(EM_MQTT); // Check MQTT
-    if (startMDNS)            // MDNS handle
+    if (!mqttoff)
+      TickerPUBSUB.update(); // Check MQTT PubSubClient
+    // cbpiEventSystem(EM_MQTT); // Check MQTT
+
+    if (startMDNS) // MDNS handle
       mdns.update();
+    TickerNTP.update(); // NTP Ticker
   }
   else
   {
     cbpiEventSystem(EM_WLAN); // Check WLAN
   }
-  
-  if (numberOfSensors > 0)    // Sensoren
+
+  if (numberOfSensors > 0) // Sensoren
     TickerSen.update();
-  if (numberOfActors > 0)     // Aktoren
+  if (numberOfActors > 0) // Aktoren
     cbpiEventActors(actorsStatus);
-  if (inductionStatus > 0)    // Induktion
-    cbpiEventInduction(inductionStatus);
-  if (useDisplay)             // Display
-  {
+  if (inductionStatus > 0 ) // Induktion
+    TickerInd.update();
+  if (useDisplay) // Display
     TickerDisp.update();
+
+  if (autoTune && TickerPID.state() == RUNNING)
+  {
+    TickerPID.update();
+    runAutoTune();
   }
-  gEM.processAllEvents();     // event queue
+  if (pidMode)
+  {
+    TickerPID.update();
+    TickerMash.update();
+  }
+
+  gEM.processAllEvents(); // event queue
 }

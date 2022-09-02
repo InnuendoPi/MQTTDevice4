@@ -61,11 +61,11 @@ bool loadConfig()
     if (i < numberOfSensors)
     {
       sensors[i].change(sensorsObj["ADDRESS"] | "", sensorsObj["SCRIPT"] | "", sensorsObj["NAME"] | "", sensorsObj["CBPIID"] | "", sensorsObj["OFFSET1"] | 0.0, sensorsObj["OFFSET2"] | 0.0, sensorsObj["SW"] | 0);
-      DEBUG_MSG("Sensor #: %d Name: %s Address: %s MQTT: %s CBPi-ID: %s Offset1: %f Offset2: %f SW: %d\n", (i + 1), sensorsObj["NAME"].as<const char *>(), sensorsObj["ADDRESS"].as<const char *>(), sensorsObj["SCRIPT"].as<const char *>(), sensorsObj["CBPIID"].as<const char *>(), sensorsObj["OFFSET1"].as<float>(), sensorsObj["OFFSET2"].as<float>(), sensorsObj["SW"].as<int>());
+      DEBUG_MSG("Sensor #: %d Name: %s Address: %s MQTT: %s CBPi-ID: %s Offset1: %.02f Offset2: %.02f SW: %d\n", (i + 1), sensorsObj["NAME"].as<const char *>(), sensorsObj["ADDRESS"].as<const char *>(), sensorsObj["SCRIPT"].as<const char *>(), sensorsObj["CBPIID"].as<const char *>(), sensorsObj["OFFSET1"].as<float>(), sensorsObj["OFFSET2"].as<float>(), sensorsObj["SW"].as<int>());
       i++;
     }
     else
-      sensors[i].change("", "", "", "", 0.0, 0.0,false);
+      sensors[i].change("", "", "", "", 0.0, 0.0, false);
   }
   DEBUG_MSG("%s\n", "--------------------");
 
@@ -108,8 +108,6 @@ bool loadConfig()
   useDisplay = miscObj["display"] | 0;
   startPage = miscObj["page"] | 1;
   DEBUG_MSG("Display: %d startPage: %d\n", useDisplay, startPage);
-  devBranch = miscObj["devbranch"] | 0;
-  DEBUG_MSG("devBranch: %d\n", devBranch);
 
   strlcpy(nameMDNS, miscObj["mdns_name"] | "", maxHostSign);
   startMDNS = miscObj["mdns"] | 0;
@@ -118,12 +116,27 @@ bool loadConfig()
   strlcpy(mqttuser, miscObj["MQTTUSER"] | "", maxUserSign);
   strlcpy(mqttpass, miscObj["MQTTPASS"] | "", maxPassSign);
   mqttport = miscObj["MQTTPORT"] | 1883;
-  DEBUG_MSG("MQTT server IP: %s Port: %d User: %s Pass: %s\n", mqtthost, mqttport, mqttuser, mqttpass);
+  mqttoff = miscObj["MQTTOFF"] | 0;
+  
+  DEBUG_MSG("MQTT server IP: %s Port: %d User: %s Pass: %s Off: %d\n", mqtthost, mqttport, mqttuser, mqttpass, mqttoff);
+  DEBUG_MSG("%s\n", "--------------------");
+  // PID stuff
+  JsonArray pidArray = doc["pid"];
+  JsonObject pidObj = pidArray[0];
+
+  Kp = pidObj["kp"] | 2.0;
+  Ki = pidObj["ki"] | 0.5;
+  Kd = pidObj["kd"] | 1.0;
+  pidDelta = pidObj["piddelta"] | 0.0;
+  DEBUG_MSG("PIDs: Kp: %.03f Ki: %.03f Kd: %.03f delta: %.03f\n", Kp, Ki, Kd, pidDelta);
+
   DEBUG_MSG("%s\n", "------ loadConfig finished ------");
 
   configFile.close();
   if (numberOfSensors > 0)
     TickerSen.start();
+  if (inductionStatus > 0 ) // Induktion
+    TickerInd.start();
   if (useDisplay)
     TickerDisp.start();
 
@@ -135,6 +148,8 @@ bool loadConfig()
 
   if (startBuzzer)
     sendAlarm(ALARM_ON);
+
+  readMash();
 
   return true;
 }
@@ -237,14 +252,29 @@ bool saveConfig()
   miscObj["display"] = (int)useDisplay;
   miscObj["page"] = startPage;
   miscObj["devbranch"] = (int)devBranch;
+  DEBUG_MSG("Display: %d startPage: %d\n", useDisplay, startPage);
+  DEBUG_MSG("DevBranch: %d\n", devBranch);
+
   miscObj["mdns_name"] = nameMDNS;
   miscObj["mdns"] = (int)startMDNS;
   miscObj["MQTTHOST"] = mqtthost;
   miscObj["MQTTPORT"] = mqttport;
   miscObj["MQTTUSER"] = mqttuser;
   miscObj["MQTTPASS"] = mqttpass;
+  miscObj["MQTTOFF"] = (int)mqttoff;
+  
+  DEBUG_MSG("MQTT broker IP: %s Port: %d User: %s Pass: %s Off: %d\n", mqtthost, mqttport, mqttuser, mqttpass, mqttoff);
+  DEBUG_MSG("%s\n", "--------------------");
+  // Write PID Stuff
+  JsonArray pidArray = doc.createNestedArray("pid");
+  JsonObject pidObj = pidArray.createNestedObject();
 
-  DEBUG_MSG("MQTT broker IP: %s Port: %d User: %s Pass: %s\n", mqtthost, mqttport, mqttuser, mqttpass);
+  pidObj["kp"] = Kp;
+  pidObj["ki"] = Ki;
+  pidObj["kd"] = Kd;
+  pidObj["piddelta"] = (int(pidDelta * 100)) / 100.0;
+
+  DEBUG_MSG("PIDs: Kp: %.03f Ki: %.03f Kd: %.03f pidDelta: %.01f autoTune: %d Setpoint: %.01f\n", Kp, Ki, Kd, pidDelta, autoTune, Setpoint);
 
   size_t len = measureJson(doc);
   int memoryUsed = doc.memoryUsage();
@@ -277,11 +307,26 @@ bool saveConfig()
     TickerSen.start();
   else
     TickerSen.stop();
-
+  if (inductionStatus > 0 ) // Induktion
+    TickerInd.start();
+  else
+    TickerInd.stop();
   if (useDisplay)
     TickerDisp.start();
   else
     TickerDisp.stop();
+
+  if (mqttoff)
+  {
+    if (TickerPUBSUB.state() == RUNNING)
+      TickerPUBSUB.stop();
+    if (TickerMQTT.state() == RUNNING)
+      TickerMQTT.stop();
+  }
+  else
+  {
+    TickerPUBSUB.start();
+  }
 
   String Network = WiFi.SSID();
   DEBUG_MSG("ESP8266 device IP Address: %s\n", WiFi.localIP().toString().c_str());
@@ -290,5 +335,6 @@ bool saveConfig()
   if (startBuzzer)
     sendAlarm(ALARM_ON);
   DEBUG_MSG("%s\n", "---------------------------------");
+
   return true;
 }

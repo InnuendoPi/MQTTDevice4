@@ -64,6 +64,13 @@ public:
 	//
 	uint32_t elapsed();
 
+	// verbleibende Zeit bis zum nächsten tick
+	//
+	// @returns gibt die Zeit bis zum nächsten Tick zurück 
+	//
+	//
+	uint32_t remaining();
+
 	// Ticker Status
 	//
 	// @returns gibt den aktuellen Status vom Ticker zurück: STOPPED, RUNNING oder PAUSED

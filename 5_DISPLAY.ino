@@ -89,7 +89,7 @@ void KettlePage()
   {
     for (int i = 0; i < maxKettles; i++)
     {
-      DEBUG_MSG("structKettleID %s - sensorID: %s\n", structKettles[i].sensor, sensors[0].getId().c_str() );
+      DEBUG_MSG("structKettleID %s - sensorID: %s\n", structKettles[i].sensor, sensors[0].getId().c_str());
       if (strcmp(structKettles[i].sensor, sensors[0].getId().c_str()) == 0)
       {
         p1temp_text.attribute("txt", structKettles[i].current_temp);
@@ -119,11 +119,22 @@ void InductionPage()
   // p2temp_text
   // 316 = 0°C - 360 = 44°C - 223 = 100°C -- 53,4 je 20°C
 
-  int32_t aktSlider = p2slider.value();
+  // if (pidMode)
+  // {
+  //     // ggmPID.Compute();
+  //     inductionCooker.handleInductionPage(int(ggmOutput));
+  // }
 
-  if (aktSlider >= 0 && aktSlider <= 100)
-    inductionCooker.handleInductionPage(aktSlider);
-
+  if (pidMode || autoTune)
+  {
+    p2slider.value(ggmOutput);
+  }
+  else
+  {
+    int32_t aktSlider = p2slider.value();
+    if (aktSlider >= 0 && aktSlider <= 100)
+      inductionCooker.handleInductionPage(aktSlider);
+  }
   // if ((sensors[0].getValue() + sensors[0].getOffset1()) < 16.0)
   if (sensors[0].calcOffset() < 16.0)
   {
@@ -206,7 +217,7 @@ void cbpi4kettle_handlemqtt(char *payload)
   }
   for (int i = 0; i < maxKettles; i++)
   {
-    if (strlen(structKettles[i].id) == 0) //structKettle unbelegt
+    if (strlen(structKettles[i].id) == 0) // structKettle unbelegt
     {
       // DEBUG_MSG("New Kettle setup start %d ID: %s Name: %s Current: %s Target: %s Sensor: %s activepage %d\n", i, structKettles[i].id, structKettles[i].name, structKettles[i].current_temp, structKettles[i].target_temp, structKettles[i].sensor, activePage);
       strlcpy(structKettles[i].id, doc["id"], maxIdSign);

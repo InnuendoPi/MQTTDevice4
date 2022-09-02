@@ -33,8 +33,12 @@
 #include <CertStoreBearSSL.h> // WebUpdate
 #include <SoftwareSerial.h>
 #include <NextionX2.h>
+#include "index_htm.h"
 #include "edit_htm.h"
+#include "mash_htm.h"
 #include <FS.h>
+#include <PID_v2.h>
+#include <sTune.h>
 
 extern "C"
 {
@@ -50,7 +54,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.25"
+#define Version "4.30"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -144,7 +148,9 @@ EventManager gEM; //  Eventmanager Objekt Queues
 #define EM_MQTTCON 27
 #define EM_MQTTSUB 28
 #define EM_SETNTP 29
+#define PID_COMPUTE 34
 #define EM_LOG 35
+
 
 // Event für Sensoren, Aktor und Induktion
 #define EM_OK 0      // Normal mode
@@ -163,10 +169,13 @@ unsigned long mqttconnectlasttry; // Zeitstempel bei Fehler MQTT
 unsigned long wlanconnectlasttry; // Zeitstempel bei Fehler WLAN
 bool mqtt_state = true;           // Status MQTT
 bool devBranch = false;           // Check out development branch
+bool mqttoff = false;             // Disable MQTT
+// bool prevStateMQTT = false;
 
 // Event handling Zeitintervall für Reconnects WLAN und MQTT
 #define tickerWLAN 30000 // für Ticker Objekt WLAN in ms
 #define tickerMQTT 30000 // für Ticker Objekt MQTT in ms
+#define tickerPUSUB 300  // delay für PubSubClient
 
 // Event handling Standard Verzögerungen
 unsigned long wait_on_error_mqtt = 120000;             // How long should device wait between tries to reconnect WLAN      - approx in ms
@@ -175,13 +184,18 @@ unsigned long wait_on_Sensor_error_induction = 120000; // How long should induct
 
 // Ticker Objekte
 InnuTicker TickerSen;
+InnuTicker TickerInd;
 InnuTicker TickerMQTT;
+InnuTicker TickerPUBSUB;
 InnuTicker TickerWLAN;
 InnuTicker TickerNTP;
 InnuTicker TickerDisp;
+InnuTicker TickerMash;
+InnuTicker TickerPID;
 
 // Update Intervalle für Ticker Objekte
 int SEN_UPDATE = 4000; //  sensors update
+int IND_UPDATE = 2000; //  sensors update
 int DISP_UPDATE = 2000;
 
 // Systemstart
@@ -312,6 +326,70 @@ NextionComponent p2gauge(nextion, 2, 4);
 const int PIN_BUZZER = D8; // Buzzer
 bool startBuzzer = false;  // Aktiviere Buzzer
 bool mqttBuzzer = false;   // MQTTBuzzer
+
+// PID
+#define PID_UPDATE 3000     // checkTemp and send newPower
+#define RUN_PID 1000        // PID SetSampleTime
+
+// float Kp, Ki, Kd;
+// float Setpoint = 0.0, ggmInput = 0.0, ggmOutput = 0.0;
+// QuickPID ggmPID(&ggmInput, &ggmOutput, &Setpoint);
+// QuickPID ggmPID(&ggmInput, &ggmOutput, &Setpoint, Kp, Ki, Kd,
+//                ggmPID.pMode::pOnError,
+//                ggmPID.dMode::dOnMeas,
+//                ggmPID.iAwMode::iAwCondition,
+//                ggmPID.Action::direct);
+
+float Kp = 2, Ki = 5, Kd = 1;
+float ggmInput, ggmOutput, Setpoint;
+
+
+// PID_v2 ggmPID(Kp, Ki, Kd, PID::Direct);
+//PID::P_On::Measurement
+//PID_v2 ggmPID(&ggmInput, &ggmOutput, &Setpoint, Kp, Ki, Kd, PID::Direction::Direct);
+PID_v2 ggmPID(Kp, Ki, Kd, PID::Direction::Direct);
+
+
+// modes
+bool pidMode = false;
+bool autoTune = false;
+// button states
+bool statePower = false;
+bool statePause = false;
+// bool statePlay = false;
+// bool stateForward = false;
+
+// autoTune user settings
+uint32_t settleTimeSec = 10;
+uint32_t testTimeSec = 500; //100; //PID_UPDATE???
+const uint16_t samples = 500;
+const float inputSpan = 100;
+const float outputSpan = 100;
+float outputStart = 0;
+float outputStep = 100;
+float tempLimit = 75;
+
+// sTune tuner = sTune(&ggmInput, &ggmOutput, tuner.Mixed_PID, tuner.direct5T, tuner.printSUMMARY);
+sTune tuner = sTune(&ggmInput, &ggmOutput, tuner.Mixed_PID, tuner.directIP, tuner.printSUMMARY);
+// sTune tuner = sTune(&ggmInput, &ggmOutput, tuner.NoOvershoot_PID, tuner.directIP, tuner.printDEBUG);
+
+// Maischeplan
+#define MASH_UPDATE 5000    // handleMash
+#define maxSchritte 10
+int maxActMashSteps = 0;    // maxArray
+#define sizeImportMax 2400
+#define sizeRezeptMax 2048
+double pidDelta = 0.3;
+String planResponse;
+int actMashStep = 0;        // active mash step
+struct Maischeplan
+{
+    String name;
+    int duration;
+    int temp;
+    bool autonext;
+};
+struct Maischeplan structPlan[maxSchritte];
 
 void configModeCallback(WiFiManager *myWiFiManager)
 {

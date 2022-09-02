@@ -24,4 +24,7 @@ tools/esptool.exe
 tools/Flashen.cmd
 tools/buildFirm.cmd
 web/
+test/
 Display/
+992_autoPID.ino
+993_Maischeplan.ino

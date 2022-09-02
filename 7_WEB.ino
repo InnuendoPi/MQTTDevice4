@@ -1,11 +1,16 @@
 void handleRoot()
 {
-  server.sendHeader("Location", "/index.html", true); //Redirect to our html web page
-  server.send(302, "text/plain", "");
-  // server.sendHeader(PSTR("Content-Encoding"), "gzip");
-  // server.send(200, "text/html", index_htm_gz, sizeof(index_htm_gz));
+  // server.sendHeader("Location", "/index.html", true); // Redirect to our html web page
+  // server.send(302, "text/plain", "");
+  server.sendHeader(PSTR("Content-Encoding"), "gzip");
+  server.send(200, "text/html", index_htm_gz, sizeof(index_htm_gz));
 }
 
+void handleGetMash()
+{
+  server.sendHeader(PSTR("Content-Encoding"), "gzip");
+  server.send_P(200, "text/html", mash_htm_gz, sizeof(mash_htm_gz));
+}
 void handleWebRequests()
 {
   if (loadFromLittlefs(server.uri()))
@@ -84,6 +89,20 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
   Serial.println(" ");
   */
 
+  // prüfen - Abfrage sollte überflüssig sein, wenn Tickerobjekt TickerSUBPUB gestoppt ist
+  // if (mqttoff)
+  //   return;
+
+  if (mqttoff || TickerPUBSUB.state() != RUNNING)
+  {
+    DEBUG_MSG("WEB: mqttcallback1 ticker pusub %d ticker mqtt %d mqttoff %d\n", TickerPUBSUB.state(), TickerMQTT.state(), mqttoff);
+    return;
+  }
+  // else
+  // {
+  //   DEBUG_MSG("WEB: mqttcallback2 ticker pusub %d ticker mqtt %d mqttoff %d\n", TickerPUBSUB.state(), TickerMQTT.state(), mqttoff );
+  // }
+
   char payload_msg[length];
   for (int i = 0; i < length; i++)
   {
@@ -115,7 +134,7 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
     const char *stepupdate = "cbpi/stepupdate/";
     const char *sensorupdate = "cbpi/sensordata/";
     const char *notificationupdate = "cbpi/notification";
-    
+
     p = strstr(topic, kettleupdate);
     if (p)
     {
@@ -170,8 +189,23 @@ void handleRequestMisc2()
   doc["mqbuz"] = mqttBuzzer;
   doc["display"] = useDisplay;
   doc["alertstate"] = alertState;
-  if (alertState)
-    alertState = false;
+  doc["statePower"] = statePower;
+  doc["statePause"] = statePause;
+  doc["mqttoff"] = mqttoff;
+
+  // if (alertState)
+  //   alertState = false;
+  String response;
+  serializeJson(doc, response);
+  server.send(200, "application/json", response);
+}
+
+void handleRequestMisc3()
+{
+  StaticJsonDocument<128> doc;
+  doc["statePower"] = statePower;
+  doc["statePause"] = statePause;
+
   String response;
   serializeJson(doc, response);
   server.send(200, "application/json", response);
@@ -184,6 +218,7 @@ void handleRequestMisc()
   doc["mqttport"] = mqttport;
   doc["mqttuser"] = mqttuser;
   doc["mqttpass"] = mqttpass;
+  doc["mqttoff"] = mqttoff;
   doc["mdns_name"] = nameMDNS;
   doc["mdns"] = startMDNS;
   doc["buzzer"] = startBuzzer;
@@ -199,6 +234,13 @@ void handleRequestMisc()
   // doc["alertstate"] = alertState;
   // if (alertState)
   //   alertState = false;
+  doc["pidmode"] = pidMode;
+  doc["autotune"] = autoTune;
+  doc["setpoint"] = int(Setpoint);
+  doc["kp"] = Kp;
+  doc["ki"] = Ki;
+  doc["kd"] = Kd;
+  doc["piddelta"] = pidDelta;
 
   String response;
   serializeJson(doc, response);
@@ -270,6 +312,10 @@ void handleSetMisc()
     {
       server.arg(i).toCharArray(mqttpass, maxPassSign);
     }
+    if (server.argName(i) == "mqttoff")
+    {
+      mqttoff = checkBool(server.arg(i));
+    }
     if (server.argName(i) == "buzzer")
     {
       startBuzzer = checkBool(server.arg(i));
@@ -289,7 +335,7 @@ void handleSetMisc()
         startPage = 0;
       }
       else if (server.arg(i) == "KettlePage")
-      {  
+      {
         startPage = 1;
       }
       else if (server.arg(i) == "InductionPage")
@@ -324,15 +370,51 @@ void handleSetMisc()
         wait_on_error_mqtt = server.arg(i).toInt() * 1000;
       }
     if (server.argName(i) == "del_sen_act")
+    {
       if (isValidInt(server.arg(i)))
       {
         wait_on_Sensor_error_actor = server.arg(i).toInt() * 1000;
       }
+    }
     if (server.argName(i) == "del_sen_ind")
+    {
       if (isValidInt(server.arg(i)))
       {
         wait_on_Sensor_error_induction = server.arg(i).toInt() * 1000;
       }
+    }
+    if (server.argName(i) == "pidmode")
+    {
+      pidMode = checkBool(server.arg(i));
+    }
+    if (server.argName(i) == "autotune")
+    {
+      autoTune = checkBool(server.arg(i));
+    }
+    if (server.argName(i) == "setpoint")
+    {
+      if (isValidInt(server.arg(i)))
+      {
+        Setpoint = server.arg(i).toInt();
+      }
+    }
+    if (server.argName(i) == "kp")
+    {
+      Kp = formatDOT(server.arg(i));
+    }
+    if (server.argName(i) == "ki")
+    {
+      Ki = formatDOT(server.arg(i));
+    }
+    if (server.argName(i) == "kd")
+    {
+      Kd = formatDOT(server.arg(i));
+    }
+    if (server.argName(i) == "piddelta")
+    {
+      pidDelta = formatDOT(server.arg(i));
+    }
+
     yield();
   }
   saveConfig();
@@ -364,4 +446,384 @@ void handleRequestPages()
     }
   }
   server.send(200, "text/plain", message);
+}
+
+void handleRequestMash()
+{
+
+  File mashFile = LittleFS.open("/mashplan.json", "r");
+  if (mashFile)
+  {
+    DynamicJsonDocument docIn(sizeRezeptMax);
+    DynamicJsonDocument docOut(sizeRezeptMax);
+    DeserializationError error = deserializeJson(docIn, mashFile);
+    JsonArray mashArray = docIn.as<JsonArray>();
+    int anzahlSchritte = mashArray.size();
+    if (anzahlSchritte > maxSchritte)
+      anzahlSchritte = maxSchritte;
+
+    int i = 0;
+    for (JsonObject mashObj : mashArray)
+    {
+      if (i < anzahlSchritte)
+      {
+        JsonObject responseObj = docOut.createNestedObject();
+        responseObj["name"] = mashObj["step name"].as<String>();
+        responseObj["temperature"] = mashObj["temperature"].as<unsigned short>() | 0;
+        responseObj["duration"] = mashObj["duration"].as<unsigned short>() | 0;
+
+        if (mashObj["autonext"] != "")
+          responseObj["autonext"] = mashObj["autonext"].as<bool>();
+        else
+          responseObj["autonext"] = "false";
+
+        i++;
+      }
+    }
+
+    planResponse = "";
+    serializeJson(docOut, planResponse);
+    mashFile.close();
+  } // read file
+  // DEBUG_MSG("Web: reqMash %s\n", planResponse.c_str());
+  server.send(200, "application/json", planResponse);
+  return;
+}
+
+void handleSetMash()
+{
+  DynamicJsonDocument doc(sizeRezeptMax);
+  // Serial.print("SetMash server arg: ");
+  // Serial.println(server.arg(0));
+
+  DeserializationError error = deserializeJson(doc, server.arg(0));
+  if (error)
+  {
+    DEBUG_MSG("Mash: deserialize Json error %s\n", error.c_str());
+    return;
+  }
+  File mashFile = LittleFS.open("/mashplan.json", "w");
+  if (mashFile)
+  {
+    serializeJson(doc, mashFile);
+    mashFile.close();
+    readMash();
+    server.send(201, "text/plain", "JSON successful");
+    if (startBuzzer)
+      sendAlarm(ALARM_ON);
+  }
+  else
+  {
+    server.send(500, "text/plain", "Server error");
+    if (startBuzzer)
+      sendAlarm(ALARM_ERROR);
+  }
+}
+
+void handleRezeptUp()
+{
+  // DEBUG_MSG("%s\n", "Rezept Import gestartet");
+  int typeRezept = 0;
+  HTTPUpload &upload = server.upload();
+  if (upload.status == UPLOAD_FILE_START)
+  {
+    String filename = "upRezept.json"; // upload.filename;
+    if (!filename.startsWith("/"))
+      filename = "/" + filename;
+    DEBUG_MSG("WEB Import recipe handleFileUpload Name: %s\n", filename.c_str());
+    fsUploadFile = LittleFS.open(filename, "w"); // Open the file for writing in LittleFS (create if it doesn't exist)
+    filename = String();
+  }
+  else if (upload.status == UPLOAD_FILE_WRITE)
+  {
+    if (fsUploadFile)
+      fsUploadFile.write(upload.buf, upload.currentSize); // Write the received bytes to the file
+                                                          // DEBUG_MSG("%s\n", "Rezept wird gespeichert");
+  }
+  else if (upload.status == UPLOAD_FILE_END)
+  {
+    if (fsUploadFile)
+    {                       // If the file was successfully created
+      fsUploadFile.close(); // Close the file again
+      DEBUG_MSG("WEB Import recipe handleFileUpload Size: %d\n", upload.totalSize);
+      server.sendHeader("Location", "/mash.html"); // Redirect the client to the success page
+      server.send(303);                            // Antwort für Post und Put
+
+      fsUploadFile = LittleFS.open("/upRezept.json", "r");
+      DynamicJsonDocument testDoc(sizeImportMax);
+      DeserializationError error = deserializeJson(testDoc, fsUploadFile);
+      fsUploadFile.close();
+
+      if (error)
+      {
+        DEBUG_MSG("WEB: handleRezeptUp Error Json %s\n", error.c_str());
+        if (startBuzzer)
+          sendAlarm(ALARM_ERROR);
+        return;
+      }
+      if (testDoc.containsKey("Global")) // Datenbankversion KBH2
+        typeRezept = 1;
+      else
+        typeRezept = 2;
+
+      server.send(201, "text/plain", "Upload successful");
+    }
+    else
+    {
+      server.send(500, "text/plain", "500: couldn't create file");
+    }
+    if (typeRezept == 1)
+      BtnImportKBH2();
+    else if (typeRezept == 2)
+      BtnImportMMUM();
+    LittleFS.remove("/upRezept.json");
+  }
+}
+
+void handleBtnPower()
+{
+  for (int i = 0; i < server.args(); i++)
+  {
+    if (server.argName(i) == "statePower")
+    {
+      if (server.arg(i) == "true")
+      {
+        if (autoTune)
+        {
+          startAutoTune();
+          statePower = true;
+          DEBUG_MSG("WEB: PowerButton on autoTune: %d Setpoint: %.01f\n", autoTune, Setpoint);
+        }
+        else
+        {
+          statePower = true;
+          actMashStep = 0;
+          pidMode = true;
+
+          ggmPID.SetTunings(Kp, Ki, Kd, PID::P_On::Error);
+          ggmPID.SetOutputLimits(0, 100);
+          ggmPID.SetSampleTime(RUN_PID);
+          // turn the PID on
+          resetPID();
+
+          if (TickerPUBSUB.state() == RUNNING)
+            TickerPUBSUB.stop();
+          if (TickerMQTT.state() == RUNNING)
+            TickerMQTT.stop();
+          if (TickerInd.state() == RUNNING)
+            TickerInd.stop();
+
+          if (structPlan[actMashStep].duration > 0)
+          {
+            Setpoint = structPlan[actMashStep].temp;
+            ggmPID.Start(ggmInput, 0, Setpoint);
+            inductionCooker.inductionNewPower(0);
+            TickerMash.stop(); // stop mash ticker and configure temp and duration
+            TickerMash.config(tickerMashCallback, structPlan[actMashStep].duration * 60 * 1000, 1);
+            DEBUG_MSG("WEB: PowerButton on aktMashStep: %d duration: %lu\n", actMashStep, (structPlan[actMashStep].duration * 60 * 1000));
+          }
+
+          TickerPID.start();
+          if (startBuzzer)
+            sendAlarm(ALARM_ON);
+        }
+      }
+      else
+      {
+        if (autoTune)
+        {
+          statePower = false;
+          autoTune = false;
+          statePause = false;
+          TickerMash.stop();
+          TickerPID.stop();
+          inductionCooker.inductionNewPower(0);
+          handleInduction();
+          if (!mqttoff)
+            TickerPUBSUB.start();
+
+          TickerInd.start();
+          DEBUG_MSG("WEB: PowerButton off autoTune: %d\n", autoTune);
+        }
+        else
+        {
+          pidMode = false;
+          statePower = false;
+          statePause = false;
+          actMashStep = 0;
+          Setpoint = 0.0;
+          ggmPID.Start(ggmInput, 0, Setpoint);
+
+          if (!mqttoff)
+            TickerPUBSUB.start();
+
+          TickerInd.start();
+
+          TickerMash.stop();
+          TickerPID.stop();
+          inductionCooker.inductionNewPower(0);
+          handleInduction();
+          DEBUG_MSG("WEB: PowerButton off aktMashStep: %d duration: %lu\n", actMashStep, (structPlan[actMashStep].duration * 60 * 1000));
+          if (startBuzzer)
+            sendAlarm(ALARM_OFF);
+        }
+      }
+    }
+  }
+  server.send(201, "text/plain", "created");
+}
+void handleBtnPlay()
+{
+  // for (int i = 0; i < server.args(); i++)
+  // {
+  //   if (server.argName(i) == "statePlay")
+  //   {
+  //     if (server.arg(i) == "true")
+  //       statePlay = true; // btn-danger
+  //     else
+  //       statePlay = false; // btn-primary
+  //   }
+  // }
+
+  if (pidMode && statePower && !statePause)
+  {
+    DEBUG_MSG("WEB: Play Button Setpoint: %.02f ggmInput: %.02f\n", Setpoint, ggmInput);
+    TickerMash.start();
+  }
+  server.send(201, "text/plain", "created");
+}
+void handleBtnPause()
+{
+  // for (int i = 0; i < server.args(); i++)
+  // {
+  //   if (server.argName(i) == "statePause")
+  //   {
+  //     if (server.arg(i) == "true")
+  //       statePause = true;
+  //     else
+  //       statePause = false;
+  //   }
+  // }
+  if (!pidMode)
+  {
+    server.send(201, "text/plain", "created");
+    statePause = false;
+    return;
+  }
+
+  if (TickerMash.state() == RUNNING)
+  {
+    DEBUG_MSG("WEB: PauseButton on aktMashStep: %d elapsed: %lu remaining: %lu counter: %d\n", actMashStep, TickerMash.elapsed(), TickerMash.remaining(), TickerMash.counter());
+    statePause = true;
+    TickerMash.pause();
+  }
+  else if (TickerMash.state() == PAUSED)
+  {
+    DEBUG_MSG("WEB: PauseButton off aktMashStep: %d elapsed: %lu remaining: %lu counter: %d\n", actMashStep, TickerMash.elapsed(), TickerMash.remaining(), TickerMash.counter());
+    statePause = false;
+    TickerMash.resume();
+  }
+  else if (TickerMash.state() == STOPPED) // check for last step autonext false?
+  {
+    if (!structPlan[actMashStep - 1].autonext && actMashStep > 0 && statePause)
+    {
+      DEBUG_MSG("WEB: PauseButton1 Setpoint: %.02f ggmInput: %.02f\n", Setpoint, ggmInput);
+      Setpoint = structPlan[actMashStep].temp;
+      ggmPID.Start(ggmInput, 0, Setpoint);
+      // handleInduction();
+
+      statePause = false; // set btn-primary
+    }
+    else if (actMashStep > 0 && !statePause)
+    {
+      Setpoint = ggmInput;
+      ggmPID.Start(ggmInput, 0, Setpoint);
+      // handleInduction();
+      statePause = true;
+      DEBUG_MSG("WEB: PauseButton2 Setpoint: %.02f ggmInput: %.02f\n", Setpoint, ggmInput);
+    }
+  }
+  server.send(201, "text/plain", "created");
+}
+
+void handleBtnNextStep()
+{
+  if (TickerPID.state() != RUNNING || statePause)
+  {
+    server.send(201, "text/plain", "created");
+    return;
+  }
+  
+  if (!structPlan[actMashStep].autonext && TickerMash.state() == PAUSED && TickerMash.counter() >= 1)
+  {
+    if (actMashStep < maxSchritte)
+      actMashStep++;
+
+    DEBUG_MSG("WEB: handleBtnNextStep after autonext false aktMashStep: %d elapsed: %lu remaining: %lu counter: %d\n", actMashStep, TickerMash.elapsed(), TickerMash.remaining(), TickerMash.counter());
+    TickerMash.stop();
+    TickerMash.config(tickerMashCallback, structPlan[actMashStep].duration * 60 * 1000, 1);
+    DEBUG_MSG("WEB: handleBtnNextStep new actMashStep: aktMashStep: %d elapsed: %lu remaining: %lu counter: %d\n", actMashStep, TickerMash.elapsed(), TickerMash.remaining(), TickerMash.counter());
+    server.send(201, "text/plain", "created");
+    return;
+  }
+
+  if (actMashStep < maxSchritte)
+    actMashStep++;
+
+  if (structPlan[actMashStep].duration >= 0 || structPlan[actMashStep].temp > 0)
+  {
+    DEBUG_MSG("WEB: handleBtnNextStep duration aktMashStep: %d elapsed: %lu remaining: %lu counter: %d\n", actMashStep, TickerMash.elapsed(), TickerMash.remaining(), TickerMash.counter());
+    TickerMash.stop();
+    TickerMash.config(tickerMashCallback, structPlan[actMashStep].duration * 60 * 1000, 1);
+    Setpoint = structPlan[actMashStep].temp;
+    inductionCooker.inductionNewPower(int(ggmOutput));
+    handleInduction();
+    ggmPID.Start(ggmInput, ggmOutput, Setpoint);
+  }
+  else // last mash step finished
+  {
+    statePower = false;
+    pidMode = false;
+    actMashStep = 0;
+    Setpoint = 0.0;
+    ggmPID.Start(ggmInput, 0, Setpoint);
+    TickerMash.stop();
+    TickerPID.stop();
+    inductionCooker.inductionNewPower(0);
+    handleInduction();
+    if (startBuzzer)
+      sendAlarm(ALARM_OFF);
+    if (!mqttoff)
+      TickerPUBSUB.start();
+
+    TickerInd.start();
+    DEBUG_MSG("WEB: handleBtnNextStep end aktMashStep: %d elapsed: %lu remaining: %lu counter: %d\n", actMashStep, TickerMash.elapsed(), TickerMash.remaining(), TickerMash.counter());
+  }
+
+  server.send(201, "text/plain", "created");
+}
+
+void handleActorPower()
+{
+  int id = server.arg(0).toInt();
+  if (id < 0 || id > numberOfActorsMax)
+  {
+    server.send(201, "text/plain", "created");
+    return;
+  }
+
+  int statePower = server.arg(1).toInt();
+  if (statePower == 1)
+  {
+    actors[id].isOn = true;
+    actors[id].power_actor = 100;
+  }
+  else
+  {
+    actors[id].isOn = false;
+    actors[id].power_actor = 0;
+  }
+
+  // DEBUG_MSG("Actor ID %d switched to %d\n", id, statePower);
+  server.send(201, "text/plain", "created");
 }

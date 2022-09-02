@@ -1,6 +1,6 @@
 #include "InnuTicker.h"
 
-InnuTicker::InnuTicker() {} 	// Konstruktor
+InnuTicker::InnuTicker() {} // Konstruktor
 
 InnuTicker::InnuTicker(fptr callback, uint32_t timer, uint32_t repeat) // Konstruktor
 {
@@ -12,7 +12,7 @@ InnuTicker::InnuTicker(fptr callback, uint32_t timer, uint32_t repeat) // Konstr
 	counts = 0;
 }
 
-InnuTicker::~InnuTicker() {}	// Destruktor
+InnuTicker::~InnuTicker() {} // Destruktor
 
 void InnuTicker::start()
 {
@@ -101,6 +101,11 @@ void InnuTicker::interval(uint32_t timer)
 uint32_t InnuTicker::elapsed()
 {
 	return millis() - lastTime;
+}
+
+uint32_t InnuTicker::remaining()
+{
+	return timer - elapsed();
 }
 
 status_t InnuTicker::state()
