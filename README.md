@@ -17,7 +17,7 @@ A detailed documentation CraftbeerPi4 is available on github pages:: <https://op
 
 ## Sketch Information
 
-Libraries: Version 4.30, 08.2022
+Libraries: Version 4.30, 09.2022
 
 - ESP8266 3.0.2 (LittleFS)
 - Arduino IDE 1.8.19
@@ -26,7 +26,8 @@ Libraries: Version 4.30, 08.2022
 - ArduinoJSON 6.19.4
 - WiFiManager 2.0.10
 - NextionX2 1.1.2 (NextionX2.h: #define ATTRIBUTE_TEXT_LENGTH 90)
-- QuickPID
+- PID_V2
+- sTune
 
 Board configuration:
 Flash size 4MB (FS:2MB OTA:~1019kB)
