@@ -233,12 +233,13 @@ int activePage = 1;     // die aktuell angeziegte Seite
 
 const unsigned char numberOfPages = 3;
 const String page_names[numberOfPages] = {"BrewPage", "KettlePage", "InductionPage"};
+#define maxTopicSigns 40
 
-char cbpi4steps_topic[45] = "cbpi/stepupdate/+";
-char cbpi4kettle_topic[45] = "cbpi/kettleupdate/+";
-char cbpi4sensor_topic[45] = "cbpi/sensordata/";
-char cbpi4actor_topic[45] = "cbpi/actorupdate/+";
-char cbpi4notification_topic[45] = "cbpi/notification";
+char cbpi4steps_topic[maxTopicSigns] = "cbpi/stepupdate/+";
+char cbpi4kettle_topic[maxTopicSigns] = "cbpi/kettleupdate/+";
+char cbpi4sensor_topic[maxTopicSigns] = "cbpi/sensordata/";
+char cbpi4actor_topic[maxTopicSigns] = "cbpi/actorupdate/+";
+char cbpi4notification_topic[maxTopicSigns] = "cbpi/notification";
 bool current_step = false;
 struct Kettles
 {
@@ -250,7 +251,7 @@ struct Kettles
 };
 struct Kettles structKettles[maxKettles];
 
-#define maxSteps 20
+#define maxSteps 15
 struct Steps
 {
     char id[maxIdSign];
@@ -370,15 +371,15 @@ float outputStep = 100;
 float tempLimit = 75;
 
 // sTune tuner = sTune(&ggmInput, &ggmOutput, tuner.Mixed_PID, tuner.direct5T, tuner.printSUMMARY);
-sTune tuner = sTune(&ggmInput, &ggmOutput, tuner.Mixed_PID, tuner.directIP, tuner.printSUMMARY);
+sTune tuner = sTune(&ggmInput, &ggmOutput, tuner.Mixed_PID, tuner.directIP, tuner.printOFF);
 // sTune tuner = sTune(&ggmInput, &ggmOutput, tuner.NoOvershoot_PID, tuner.directIP, tuner.printDEBUG);
 
 // Maischeplan
 #define MASH_UPDATE 5000    // handleMash
 #define maxSchritte 10
 int maxActMashSteps = 0;    // maxArray
-#define sizeImportMax 2400
-#define sizeRezeptMax 2048
+#define sizeImportMax 2300
+#define sizeRezeptMax 1024
 double pidDelta = 0.3;
 String planResponse;
 int actMashStep = 0;        // active mash step

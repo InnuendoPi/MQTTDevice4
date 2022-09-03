@@ -29,9 +29,11 @@ void setup()
   // Lade Dateisystem
   if (LittleFS.begin())
   {
+
     Serial.printf("*** SYSINFO: setup LittleFS free heap: %d\n", ESP.getFreeHeap());
 
     // Prüfe WebUpdate
+
     updateSys();
 
     // Erstelle Ticker Objekte

@@ -279,106 +279,105 @@ public:
     }
   }
 
-  // Test 202209
-  // void updatePower()
-  // {
-  //   if (power != newPower)  // Neuer Befehl empfangen
-  //   {
-  //     if (newPower > 100)
-  //     {
-  //       newPower = 100; // Nicht > 100
-  //     }
-  //     if (newPower < 0)
-  //     {
-  //       newPower = 0; // Nicht < 0
-  //     }
-  //     power = newPower;
-
-  //     timeTurnedoff = 0;
-  //     isInduon = true;
-  //     if (power == 0)
-  //     {
-  //       CMD_CUR = 0;
-  //       timeTurnedoff = millis();
-  //       isInduon = false;
-  //       powerHigh = powerSampletime;
-  //       powerLow = 0;
-  //     }
-  //     else
-  //     {
-  //       for (int i = 1; i < 7; i++)
-  //       {
-  //         if (power <= PWR_STEPS[i])
-  //         {
-  //           CMD_CUR = i;
-  //           powerLow = powerSampletime * (PWR_STEPS[i] - power) / 20L;
-  //           powerHigh = powerSampletime - powerLow;
-  //           return;
-  //         }
-  //       }
-  //     }
-  //   }
-  // }
-
+  // Test 20220903
   void updatePower()
   {
-    lastCommand = millis();
-    if (power != newPower)
-    { /* Neuer Befehl empfangen */
-
+    if (power != newPower)  // Neuer Befehl empfangen
+    {
       if (newPower > 100)
       {
-        newPower = 100; /* Nicht > 100 */
+        newPower = 100; // Nicht > 100
       }
       if (newPower < 0)
       {
-        newPower = 0; /* Nicht < 0 */
+        newPower = 0; // Nicht < 0
       }
-      Serial.print("Setting Power to ");
-      Serial.println(newPower);
-
       power = newPower;
 
       timeTurnedoff = 0;
       isInduon = true;
-      long difference = 0;
-
       if (power == 0)
       {
         CMD_CUR = 0;
         timeTurnedoff = millis();
         isInduon = false;
-        difference = 0;
-        goto setPowerLevel;
-      }
-
-      for (int i = 1; i < 7; i++)
-      {
-        if (power <= PWR_STEPS[i])
-        {
-          CMD_CUR = i;
-          difference = PWR_STEPS[i] - power;
-          goto setPowerLevel;
-        }
-      }
-
-    setPowerLevel: /* Wie lange "HIGH" oder "LOW" */
-      if (difference != 0)
-      {
-        powerLow = powerSampletime * difference / 20L;
-        powerHigh = powerSampletime - powerLow;
+        /* Wie lange "HIGH" oder "LOW" */
+        powerHigh = powerSampletime;
+        powerLow = 0;
       }
       else
       {
-        powerHigh = powerSampletime;
-        powerLow = 0;
-      };
+        for (int i = 1; i < 7; i++)
+        {
+          if (power <= PWR_STEPS[i])
+          {
+            CMD_CUR = i;
+            /* Wie lange "HIGH" oder "LOW" */
+            powerLow = powerSampletime * (PWR_STEPS[i] - power) / 20L;
+            powerHigh = powerSampletime - powerLow;
+            return;
+          }
+        }
+      }
     }
   }
 
+  // ori
+  // void updatePower()
+  // {
+  //   lastCommand = millis();
+  //   if (power != newPower)
+  //   { /* Neuer Befehl empfangen */
+
+  //     if (newPower > 100)
+  //     {
+  //       newPower = 100; /* Nicht > 100 */
+  //     }
+  //     if (newPower < 0)
+  //     {
+  //       newPower = 0; /* Nicht < 0 */
+  //     }
+  //     power = newPower;
+
+  //     timeTurnedoff = 0;
+  //     isInduon = true;
+  //     long difference = 0;
+
+  //     if (power == 0)
+  //     {
+  //       CMD_CUR = 0;
+  //       timeTurnedoff = millis();
+  //       isInduon = false;
+  //       difference = 0;
+  //       goto setPowerLevel;
+  //     }
+
+  //     for (int i = 1; i < 7; i++)
+  //     {
+  //       if (power <= PWR_STEPS[i])
+  //       {
+  //         CMD_CUR = i;
+  //         difference = PWR_STEPS[i] - power;
+  //         goto setPowerLevel;
+  //       }
+  //     }
+
+  //   setPowerLevel: /* Wie lange "HIGH" oder "LOW" */
+  //     if (difference != 0)
+  //     {
+  //       powerLow = powerSampletime * difference / 20L;
+  //       powerHigh = powerSampletime - powerLow;
+  //     }
+  //     else
+  //     {
+  //       powerHigh = powerSampletime;
+  //       powerLow = 0;
+  //     };
+  //   }
+  // }
+
   void sendCommand(int command[33])
   {
-
     digitalWrite(PIN_YELLOW, HIGH);
     // delay(SIGNAL_START);
     millis2wait(SIGNAL_START);

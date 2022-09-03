@@ -1,4 +1,96 @@
-void upIn()
+// void upIn()
+// {
+//     //    const uint8_t fingerprint[20] = {0xcc, 0xaa, 0x48, 0x48, 0x66, 0x46, 0x0e, 0x91, 0x53, 0x2c, 0x9c, 0x7c, 0x23, 0x2a, 0xb1, 0x74, 0x4d, 0x29, 0x9d, 0x33};
+//     std::unique_ptr<BearSSL::WiFiClientSecure> clientup(new BearSSL::WiFiClientSecure);
+//     //clientup->setFingerprint(fingerprint);
+//     clientup->setInsecure();
+
+//     HTTPClient https;
+//     String indexURL;
+//     if (LittleFS.exists("/dev.txt"))
+//         indexURL = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/index.html";
+//     else
+//         indexURL = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/index.html";
+
+//     // if (https.begin(*clientup, "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/index.html"))
+//     if (https.begin(*clientup, indexURL))
+//     {
+//         int httpCode = https.GET();
+//         if (httpCode > 0)
+//         {
+//             // HTTP header has been send and Server response header has been handled
+//             // Serial.printf("*** SYSINFO: [HTTPS] GET index.html Antwort: %d\n", httpCode);
+
+//             // file found at server
+//             if (httpCode == HTTP_CODE_OK)
+//             {
+
+//                 // get lenght of document (is -1 when Server sends no Content-Length header)
+//                 int len = https.getSize();
+
+//                 // create buffer for read
+//                 static uint8_t buff[128] = {0};
+
+//                 // Open file for write
+//                 fsUploadFile = LittleFS.open("/index.html", "w");
+//                 if (!fsUploadFile)
+//                 {
+//                     //Serial.printf( F("file open failed"));
+//                     Serial.println("Abbruch!");
+//                     Serial.println("*** SYSINFO: error save index.html");
+//                     https.end();
+//                     return;
+//                 }
+
+//                 // read all data from server
+//                 while (https.connected() && (len > 0 || len == -1))
+//                 {
+//                     // get available data size
+//                     size_t size = clientup->available();
+//                     //Serial.printf("*** SYSINFO: [HTTPS] index size avail: %d\n", size);
+
+//                     if (size)
+//                     {
+//                         //read up to 128 byte
+//                         int c = clientup->readBytes(buff, ((size > sizeof(buff)) ? sizeof(buff) : size));
+
+//                         // write it to file
+//                         fsUploadFile.write(buff, c);
+
+//                         if (len > 0)
+//                         {
+//                             len -= c;
+//                         }
+//                     }
+//                     delay(1);
+//                 }
+
+//                 Serial.println("*** SYSINFO: Update index finished");
+//                 fsUploadFile.close();
+//                 LittleFS.remove("/update.txt");
+//                 fsUploadFile = LittleFS.open("/update1.txt", "w");
+//                 int bytesWritten = fsUploadFile.print("0");
+//                 fsUploadFile.close();
+//             }
+//             else
+//                 return;
+//         }
+//         else
+//         {
+//             Serial.println("Cancel update!");
+//             Serial.printf("*** SYSINFO: error update index: %s\n", https.errorToString(httpCode).c_str());
+//             https.end();
+//             LittleFS.end(); // unmount LittleFS
+//             ESP.restart();
+//             return;
+//         }
+//         https.end();
+//         return;
+//     }
+//     return;
+// }
+
+void upFontTTF()
 {
     //    const uint8_t fingerprint[20] = {0xcc, 0xaa, 0x48, 0x48, 0x66, 0x46, 0x0e, 0x91, 0x53, 0x2c, 0x9c, 0x7c, 0x23, 0x2a, 0xb1, 0x74, 0x4d, 0x29, 0x9d, 0x33};
     std::unique_ptr<BearSSL::WiFiClientSecure> clientup(new BearSSL::WiFiClientSecure);
@@ -8,19 +100,15 @@ void upIn()
     HTTPClient https;
     String indexURL;
     if (LittleFS.exists("/dev.txt"))
-        indexURL = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/index.html";
+        indexURL = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/fontawesome-webfont.ttf";
     else
-        indexURL = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/index.html";
+        indexURL = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/fontawesome-webfont.ttf";
 
-    // if (https.begin(*clientup, "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/index.html"))
     if (https.begin(*clientup, indexURL))
     {
         int httpCode = https.GET();
         if (httpCode > 0)
         {
-            // HTTP header has been send and Server response header has been handled
-            // Serial.printf("*** SYSINFO: [HTTPS] GET index.html Antwort: %d\n", httpCode);
-
             // file found at server
             if (httpCode == HTTP_CODE_OK)
             {
@@ -32,12 +120,12 @@ void upIn()
                 static uint8_t buff[128] = {0};
 
                 // Open file for write
-                fsUploadFile = LittleFS.open("/index.html", "w");
+                fsUploadFile = LittleFS.open("/fontawesome-webfont.ttf", "w");
                 if (!fsUploadFile)
                 {
                     //Serial.printf( F("file open failed"));
                     Serial.println("Abbruch!");
-                    Serial.println("*** SYSINFO: error save index.html");
+                    Serial.println("*** SYSINFO: error save font ttf");
                     https.end();
                     return;
                 }
@@ -65,7 +153,182 @@ void upIn()
                     delay(1);
                 }
 
-                Serial.println("*** SYSINFO: Update index finished");
+                Serial.println("*** SYSINFO: Update font ttf finished");
+                fsUploadFile.close();
+                // LittleFS.remove("/update.txt");
+                // fsUploadFile = LittleFS.open("/update1.txt", "w");
+                // int bytesWritten = fsUploadFile.print("0");
+                // fsUploadFile.close();
+            }
+            else
+                return;
+        }
+        else
+        {
+            Serial.println("Cancel update!");
+            Serial.printf("*** SYSINFO: error update font ttf: %s\n", https.errorToString(httpCode).c_str());
+            https.end();
+            LittleFS.end(); // unmount LittleFS
+            ESP.restart();
+            return;
+        }
+        https.end();
+        return;
+    }
+    return;
+}
+void upFontWOFF()
+{
+    //    const uint8_t fingerprint[20] = {0xcc, 0xaa, 0x48, 0x48, 0x66, 0x46, 0x0e, 0x91, 0x53, 0x2c, 0x9c, 0x7c, 0x23, 0x2a, 0xb1, 0x74, 0x4d, 0x29, 0x9d, 0x33};
+    std::unique_ptr<BearSSL::WiFiClientSecure> clientup(new BearSSL::WiFiClientSecure);
+    //clientup->setFingerprint(fingerprint);
+    clientup->setInsecure();
+
+    HTTPClient https;
+    String indexURL;
+    if (LittleFS.exists("/dev.txt"))
+        indexURL = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/fontawesome-webfont.woff";
+    else
+        indexURL = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/fontawesome-webfont.woff";
+
+    if (https.begin(*clientup, indexURL))
+    {
+        int httpCode = https.GET();
+        if (httpCode > 0)
+        {
+            // file found at server
+            if (httpCode == HTTP_CODE_OK)
+            {
+
+                // get lenght of document (is -1 when Server sends no Content-Length header)
+                int len = https.getSize();
+
+                // create buffer for read
+                static uint8_t buff[128] = {0};
+
+                // Open file for write
+                fsUploadFile = LittleFS.open("/fontawesome-webfont.woff", "w");
+                if (!fsUploadFile)
+                {
+                    //Serial.printf( F("file open failed"));
+                    Serial.println("Abbruch!");
+                    Serial.println("*** SYSINFO: error save font woff");
+                    https.end();
+                    return;
+                }
+
+                // read all data from server
+                while (https.connected() && (len > 0 || len == -1))
+                {
+                    // get available data size
+                    size_t size = clientup->available();
+                    //Serial.printf("*** SYSINFO: [HTTPS] index size avail: %d\n", size);
+
+                    if (size)
+                    {
+                        //read up to 128 byte
+                        int c = clientup->readBytes(buff, ((size > sizeof(buff)) ? sizeof(buff) : size));
+
+                        // write it to file
+                        fsUploadFile.write(buff, c);
+
+                        if (len > 0)
+                        {
+                            len -= c;
+                        }
+                    }
+                    delay(1);
+                }
+
+                Serial.println("*** SYSINFO: Update font woff finished");
+                fsUploadFile.close();
+                // LittleFS.remove("/update.txt");
+                // fsUploadFile = LittleFS.open("/update1.txt", "w");
+                // int bytesWritten = fsUploadFile.print("0");
+                // fsUploadFile.close();
+            }
+            else
+                return;
+        }
+        else
+        {
+            Serial.println("Cancel update!");
+            Serial.printf("*** SYSINFO: error update font woff: %s\n", https.errorToString(httpCode).c_str());
+            https.end();
+            LittleFS.end(); // unmount LittleFS
+            ESP.restart();
+            return;
+        }
+        https.end();
+        return;
+    }
+    return;
+}
+
+void upFontWOFF2()
+{
+    //    const uint8_t fingerprint[20] = {0xcc, 0xaa, 0x48, 0x48, 0x66, 0x46, 0x0e, 0x91, 0x53, 0x2c, 0x9c, 0x7c, 0x23, 0x2a, 0xb1, 0x74, 0x4d, 0x29, 0x9d, 0x33};
+    std::unique_ptr<BearSSL::WiFiClientSecure> clientup(new BearSSL::WiFiClientSecure);
+    //clientup->setFingerprint(fingerprint);
+    clientup->setInsecure();
+
+    HTTPClient https;
+    String indexURL;
+    if (LittleFS.exists("/dev.txt"))
+        indexURL = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/fontawesome-webfont.woff2";
+    else
+        indexURL = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/fontawesome-webfont.woff2";
+
+    if (https.begin(*clientup, indexURL))
+    {
+        int httpCode = https.GET();
+        if (httpCode > 0)
+        {
+            // file found at server
+            if (httpCode == HTTP_CODE_OK)
+            {
+
+                // get lenght of document (is -1 when Server sends no Content-Length header)
+                int len = https.getSize();
+
+                // create buffer for read
+                static uint8_t buff[128] = {0};
+
+                // Open file for write
+                fsUploadFile = LittleFS.open("/fontawesome-webfont.woff2", "w");
+                if (!fsUploadFile)
+                {
+                    //Serial.printf( F("file open failed"));
+                    Serial.println("Abbruch!");
+                    Serial.println("*** SYSINFO: error save font woff2");
+                    https.end();
+                    return;
+                }
+
+                // read all data from server
+                while (https.connected() && (len > 0 || len == -1))
+                {
+                    // get available data size
+                    size_t size = clientup->available();
+                    //Serial.printf("*** SYSINFO: [HTTPS] index size avail: %d\n", size);
+
+                    if (size)
+                    {
+                        //read up to 128 byte
+                        int c = clientup->readBytes(buff, ((size > sizeof(buff)) ? sizeof(buff) : size));
+
+                        // write it to file
+                        fsUploadFile.write(buff, c);
+
+                        if (len > 0)
+                        {
+                            len -= c;
+                        }
+                    }
+                    delay(1);
+                }
+
+                Serial.println("*** SYSINFO: Update font woff2 finished");
                 fsUploadFile.close();
                 LittleFS.remove("/update.txt");
                 fsUploadFile = LittleFS.open("/update1.txt", "w");
@@ -78,7 +341,7 @@ void upIn()
         else
         {
             Serial.println("Cancel update!");
-            Serial.printf("*** SYSINFO: error update index: %s\n", https.errorToString(httpCode).c_str());
+            Serial.printf("*** SYSINFO: error update font woff2: %s\n", https.errorToString(httpCode).c_str());
             https.end();
             LittleFS.end(); // unmount LittleFS
             ESP.restart();
@@ -89,6 +352,8 @@ void upIn()
     }
     return;
 }
+
+
 
 void upCSS()
 {
@@ -343,10 +608,10 @@ void upJQ()
 
                 Serial.println("*** SYSINFO: Update JQuery finished");
                 fsUploadFile.close();
-                LittleFS.remove("/update111.txt");
-                fsUploadFile = LittleFS.open("/update2.txt", "w");
-                int bytesWritten = fsUploadFile.print("0");
-                fsUploadFile.close();
+                // LittleFS.remove("/update111.txt");
+                // fsUploadFile = LittleFS.open("/update2.txt", "w");
+                // int bytesWritten = fsUploadFile.print("0");
+                // fsUploadFile.close();
                 bool check = LittleFS.remove("/bootstrap.bundle.min.js");
                 check = LittleFS.remove("/bootstrap.bundle.min.js.map");
                 check = LittleFS.remove("/bootstrap.min.css.map");
@@ -368,6 +633,103 @@ void upJQ()
     }
     return;
 }
+
+void upTableJQ()
+{
+    //    const uint8_t fingerprint[20] = {0xcc, 0xaa, 0x48, 0x48, 0x66, 0x46, 0x0e, 0x91, 0x53, 0x2c, 0x9c, 0x7c, 0x23, 0x2a, 0xb1, 0x74, 0x4d, 0x29, 0x9d, 0x33};
+    std::unique_ptr<BearSSL::WiFiClientSecure> clientup(new BearSSL::WiFiClientSecure);
+    //clientup->setFingerprint(fingerprint);
+    clientup->setInsecure();
+
+    HTTPClient https;
+    String indexURL;
+    if (LittleFS.exists("/dev.txt"))
+        indexURL = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/jquery.tabletojson.min.js";
+    else
+        indexURL = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/jquery.tabletojson.min.js";
+
+    // if (https.begin(*clientup, "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/index.html"))
+    if (https.begin(*clientup, indexURL))
+    {
+        int httpCode = https.GET();
+        if (httpCode > 0)
+        {
+            // HTTP header has been send and Server response header has been handled
+            // Serial.printf("*** SYSINFO: [HTTPS] GET index.html Antwort: %d\n", httpCode);
+
+            // file found at server
+            if (httpCode == HTTP_CODE_OK)
+            {
+
+                // get lenght of document (is -1 when Server sends no Content-Length header)
+                int len = https.getSize();
+
+                // create buffer for read
+                static uint8_t buff[128] = {0};
+
+                // Open file for write
+                fsUploadFile = LittleFS.open("/jquery.tabletojson.min.js", "w");
+                if (!fsUploadFile)
+                {
+                    //Serial.printf( F("file open failed"));
+                    Serial.println("Abbruch!");
+                    Serial.println("*** SYSINFO: error save TableJSON JQuery");
+                    https.end();
+                    return;
+                }
+
+                // read all data from server
+                while (https.connected() && (len > 0 || len == -1))
+                {
+                    // get available data size
+                    size_t size = clientup->available();
+                    //Serial.printf("*** SYSINFO: [HTTPS] index size avail: %d\n", size);
+
+                    if (size)
+                    {
+                        //read up to 128 byte
+                        int c = clientup->readBytes(buff, ((size > sizeof(buff)) ? sizeof(buff) : size));
+
+                        // write it to file
+                        fsUploadFile.write(buff, c);
+
+                        if (len > 0)
+                        {
+                            len -= c;
+                        }
+                    }
+                    delay(1);
+                }
+
+                Serial.println("*** SYSINFO: Update TableJSON JQuery finished");
+                fsUploadFile.close();
+                LittleFS.remove("/update111.txt");
+                fsUploadFile = LittleFS.open("/update2.txt", "w");
+                int bytesWritten = fsUploadFile.print("0");
+                fsUploadFile.close();
+
+                // bool check = LittleFS.remove("/bootstrap.bundle.min.js");
+                // check = LittleFS.remove("/bootstrap.bundle.min.js.map");
+                // check = LittleFS.remove("/bootstrap.min.css.map");
+            }
+            else
+                return;
+        }
+        else
+        {
+            Serial.println("Cancel update!");
+            Serial.printf("*** SYSINFO: error update JQuery: %s\n", https.errorToString(httpCode).c_str());
+            https.end();
+            LittleFS.end(); // unmount LittleFS
+            ESP.restart();
+            return;
+        }
+        https.end();
+        return;
+    }
+    return;
+}
+
 
 
 void upCerts()
@@ -515,9 +877,12 @@ void updateSys()
         fsUploadFile = LittleFS.open("/log.txt", "w");
         bytesWritten = fsUploadFile.print((i));
         fsUploadFile.close();
-        Serial.print("*** SYSINFO: Update index started - free heap: ");
+        Serial.print("*** SYSINFO: Update 1. step fonts started - free heap: ");
         Serial.println(ESP.getFreeHeap());
-        upIn();
+        // upIn();
+        upFontTTF();
+        upFontWOFF();
+        upFontWOFF2();
     }
     if (LittleFS.exists("/update1.txt"))
     {
@@ -599,6 +964,7 @@ void updateSys()
         Serial.print("*** SYSINFO: Update JQuery started - free heap: ");
         Serial.println(ESP.getFreeHeap());
         upJQ();
+        upTableJQ();
     }
     if (LittleFS.exists("/update2.txt"))
     {
