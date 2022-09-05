@@ -14,6 +14,9 @@ bool upTools(String url, String fname)
                 int len = https.getSize();
                 uint8_t buff[128] = {0};
                 bool check = LittleFS.remove("/" + fname);
+                if (!check)
+                    Serial.printf("*** SYSINFO: error remove %s\n", fname.c_str());
+
                 fsUploadFile = LittleFS.open("/" + fname, "w");
                 if (!fsUploadFile)
                 {
@@ -29,6 +32,8 @@ bool upTools(String url, String fname)
                     if (!c)
                     {
                         Serial.println("read timeout");
+                        https.end();
+                        return false;
                     }
                     fsUploadFile.write(buff, c);
                     if (len > 0)
@@ -38,7 +43,11 @@ bool upTools(String url, String fname)
                 }
 
                 fsUploadFile.close();
+                // bool check = LittleFS.remove("/" + fname);
+                // check = LittleFS.rename("/" + fname + ".new", "/" + fname);
+
                 Serial.printf("*** SYSINFO: %s update finished.\n", fname.c_str());
+                https.end();
                 return true;
             }
             else
@@ -50,10 +59,9 @@ bool upTools(String url, String fname)
             https.end();
             return false;
         }
-        https.end();
-        return true;
     }
-    return true;
+    else
+        return false;
 }
 void upFirm()
 {
@@ -106,9 +114,9 @@ void upFirm()
 
 void updateTools()
 {
-    if (LittleFS.exists("/updateTools.log"))
+    if (LittleFS.exists("/updateTools.txt"))
     {
-        fsUploadFile = LittleFS.open("/updateTools.log", "r");
+        fsUploadFile = LittleFS.open("/updateTools.txt", "r");
         int anzahlVersuche = 0;
         if (fsUploadFile)
         {
@@ -117,49 +125,49 @@ void updateTools()
         fsUploadFile.close();
         if (anzahlVersuche > 3)
         {
-            LittleFS.remove("/updateTools.log");
+            LittleFS.remove("/updateTools.txt");
             Serial.printf("*** SYSINFO: ERROR update tools - %d\n", anzahlVersuche);
             return;
         }
-        fsUploadFile = LittleFS.open("/updateTools.log", "w");
         anzahlVersuche++;
+        fsUploadFile = LittleFS.open("/updateTools.txt", "w");
         uint8_t bytesWritten = fsUploadFile.print(anzahlVersuche);
         // bytesWritten = fsUploadFile.print(statusUpdate);
         fsUploadFile.close();
-        fsUploadFile = LittleFS.open("/logTools.log", "w");
+        fsUploadFile = LittleFS.open("/updateTools.log", "w");
         bytesWritten = fsUploadFile.print((anzahlVersuche));
         // bytesWritten = fsUploadFile.print(statusUpdate);
         fsUploadFile.close();
         Serial.print("*** SYSINFO: Update tools started - free heap: ");
         Serial.println(ESP.getFreeHeap());
         bool test;
-        if (devBranch)
+        if (LittleFS.exists("/dev.txt"))
         {
-            test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/Info/", "bootstrap.min.css");
-            test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/Info/", "bootstrap.min.js");
-            test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/Info/", "jquery.min.js");
-            test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/Info/", "jquery.tabletojson.min.js");
-            test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/Info/", "mqttfont.ttf");
-            test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/Info/", "mqttstyle.css");
+            test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "mqttfont.ttf");
+            test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "mqttstyle.css");
+            test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "bootstrap.min.css");
+            test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "bootstrap.min.js");
+            test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "jquery.min.js");
+            test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "jquery.tabletojson.min.js");
         }
         else
         {
-            test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/Info/", "bootstrap.min.css");
-            test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/Info/", "bootstrap.min.js");
-            test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/Info/", "jquery.min.js");
-            test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/Info/", "jquery.tabletojson.min.js");
-            test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/Info/", "mqttfont.ttf");
-            test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/Info/", "mqttstyle.css");
+            test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "mqttfont.ttf");
+            test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "mqttstyle.css");
+            test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "bootstrap.min.css");
+            test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "bootstrap.min.js");
+            test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "jquery.min.js");
+            test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "jquery.tabletojson.min.js");
         }
-        test = LittleFS.remove("/updateTools.log");
+        LittleFS.remove("/updateTools.txt");
         cbpiEventSystem(EM_REBOOT);
     }
 }
 void updateSys()
 {
-    if (LittleFS.exists("/updateSys.log"))
+    if (LittleFS.exists("/updateSys.txt"))
     {
-        fsUploadFile = LittleFS.open("/updateSys.log", "r");
+        fsUploadFile = LittleFS.open("/updateSys.txt", "r");
 
         int anzahlVersuche = 0;
         if (fsUploadFile)
@@ -169,7 +177,7 @@ void updateSys()
         fsUploadFile.close();
         if (anzahlVersuche > 3)
         {
-            LittleFS.remove("/updateSys.log");
+            LittleFS.remove("/updateSys.txt");
             Serial.println("*** SYSINFO: ERROR update firmware");
             return;
         }
@@ -186,7 +194,7 @@ void updateSys()
 
 void startToolsUpdate()
 {
-    fsUploadFile = LittleFS.open("/updateTools.log", "w");
+    fsUploadFile = LittleFS.open("/updateTools.txt", "w");
     if (!fsUploadFile)
     {
         DEBUG_MSG("%s\n", "*** Error WebUpdate create file (LittleFS)");
@@ -223,7 +231,7 @@ void startToolsUpdate()
 void startHTTPUpdate()
 {
     // Starte Updates
-    fsUploadFile = LittleFS.open("/updateSys.txt", "w");
+    fsUploadFile = LittleFS.open("/updateSys.log", "w");
     if (!fsUploadFile)
     {
         DEBUG_MSG("%s\n", "*** Error WebUpdate create file (LittleFS)");
@@ -269,6 +277,7 @@ void update_started()
 void update_finished()
 {
     Serial.println("*** SYSINFO:  Firmware Update beendet");
+    LittleFS.remove("/updateSys.txt");
 }
 
 void update_error(int err)

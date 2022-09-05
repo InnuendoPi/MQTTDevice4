@@ -185,47 +185,49 @@ void listenerSystem(int event, int parm) // System event listener
     ggmPID.Compute();
     break;
   case EM_LOG:
-    if (LittleFS.exists("/logSys.log")) // WebUpdate Firmware
+    if (LittleFS.exists("/updateSys.log")) // WebUpdate Firmware
     {
-      fsUploadFile = LittleFS.open("/logSys.log", "r");
-      String line;
-      while (fsUploadFile.available())
+      fsUploadFile = LittleFS.open("/updateSys.log", "r");
+      int anzahlSys = 0;
+      if (fsUploadFile)
       {
-        line = char(fsUploadFile.read());
+        anzahlSys = char(fsUploadFile.read()) - '0';
       }
       fsUploadFile.close();
-      bool check = LittleFS.remove("/logSys.log");
+      bool check = LittleFS.remove("/updateSys.log");
       if (LittleFS.exists("/dev.txt")) // WebUpdate Firmware
       {
-        Serial.printf("*** SYSINFO: Update development firmware retries count %s\n", line.c_str());
+        Serial.printf("*** SYSINFO: Update development firmware retries count %d\n", anzahlSys);
         check = LittleFS.remove("/dev.txt");
       }
       else
       {
-        Serial.printf("*** SYSINFO: Update firmware retries count %s\n", line.c_str());
+        Serial.printf("*** SYSINFO: Update firmware retries count %d\n", anzahlSys);
       }
       alertState = true;
     }
-    if (LittleFS.exists("/logTools.log")) // WebUpdate Firmware
+
+    if (LittleFS.exists("/updateTools.log")) // WebUpdate Firmware
     {
-      fsUploadFile = LittleFS.open("/logTools.log", "r");
-      String line;
-      while (fsUploadFile.available())
+      fsUploadFile = LittleFS.open("/updateTools.log", "r");
+      int anzahlTools = 0;
+      if (fsUploadFile)
       {
-        line = char(fsUploadFile.read());
+        anzahlTools = char(fsUploadFile.read()) - '0';
       }
       fsUploadFile.close();
-      bool check = LittleFS.remove("/logTools.log");
+      
+      bool check = LittleFS.remove("/updateTools.log");
       if (LittleFS.exists("/dev.txt")) // WebUpdate Firmware
       {
-        Serial.printf("*** SYSINFO: Update development tools retries count %s\n", line.c_str());
+        Serial.printf("*** SYSINFO: Update development tools retries count %d\n", anzahlTools);
         check = LittleFS.remove("/dev.txt");
       }
       else
       {
-        Serial.printf("*** SYSINFO: Update tools retries count %s\n", line.c_str());
+        Serial.printf("*** SYSINFO: Update tools retries count %d\n", anzahlTools);
       }
-      alertState = true;
+      alertState = false;
     }
     break;
   default:
@@ -238,190 +240,190 @@ void listenerSensors(int event, int parm) // Sensor event listener
   // 1:= Sensor on Err
   // if (TickerPUBSUB.state() == RUNNING)
   // {
-    switch (parm)
+  switch (parm)
+  {
+  case EM_OK:
+    // all sensors ok
+    lastSenInd = 0; // Delete induction timestamp after event
+    lastSenAct = 0; // Delete actor timestamp after event
+    // if (WiFi.status() == WL_CONNECTED && pubsubClient.connected() && mqtt_state)
+    if (WiFi.status() == WL_CONNECTED && TickerPUBSUB.state() == RUNNING && mqtt_state)
+    // if (WiFi.status() == WL_CONNECTED && !mqttoff && mqtt_state)
     {
-    case EM_OK:
-      // all sensors ok
-      lastSenInd = 0; // Delete induction timestamp after event
-      lastSenAct = 0; // Delete actor timestamp after event
-      // if (WiFi.status() == WL_CONNECTED && pubsubClient.connected() && mqtt_state)
-      if (WiFi.status() == WL_CONNECTED && TickerPUBSUB.state() == RUNNING && mqtt_state)
-      // if (WiFi.status() == WL_CONNECTED && !mqttoff && mqtt_state)
+      for (int i = 0; i < numberOfActors; i++)
       {
-        for (int i = 0; i < numberOfActors; i++)
+        if (actors[i].switchable && !actors[i].actor_state) // Sensor in normal mode: check actor in error state
         {
-          if (actors[i].switchable && !actors[i].actor_state) // Sensor in normal mode: check actor in error state
-          {
-            DEBUG_MSG("EM SenOK: %s isOnBeforeError: %d power level: %d\n", actors[i].name_actor.c_str(), actors[i].isOnBeforeError, actors[i].power_actor);
-            actors[i].isOn = actors[i].isOnBeforeError;
-            actors[i].actor_state = true;
-            actors[i].Update();
-            lastSenAct = 0; // Delete actor timestamp after event
-          }
-          yield();
+          DEBUG_MSG("EM SenOK: %s isOnBeforeError: %d power level: %d\n", actors[i].name_actor.c_str(), actors[i].isOnBeforeError, actors[i].power_actor);
+          actors[i].isOn = actors[i].isOnBeforeError;
+          actors[i].actor_state = true;
+          actors[i].Update();
+          lastSenAct = 0; // Delete actor timestamp after event
         }
+        yield();
+      }
 
+      if (!inductionCooker.induction_state)
+      {
+        DEBUG_MSG("EM SenOK: Induction power: %d powerLevelOnError: %d powerLevelBeforeError: %d\n", inductionCooker.power, inductionCooker.powerLevelOnError, inductionCooker.powerLevelBeforeError);
         if (!inductionCooker.induction_state)
         {
-          DEBUG_MSG("EM SenOK: Induction power: %d powerLevelOnError: %d powerLevelBeforeError: %d\n", inductionCooker.power, inductionCooker.powerLevelOnError, inductionCooker.powerLevelBeforeError);
-          if (!inductionCooker.induction_state)
-          {
-            inductionCooker.newPower = inductionCooker.powerLevelBeforeError;
-            inductionCooker.isInduon = true;
-            inductionCooker.induction_state = true;
-            inductionCooker.Update();
-            DEBUG_MSG("EM SenOK: Induction restore old value: %d\n", inductionCooker.newPower);
-            lastSenInd = 0; // Delete induction timestamp after event
-          }
+          inductionCooker.newPower = inductionCooker.powerLevelBeforeError;
+          inductionCooker.isInduon = true;
+          inductionCooker.induction_state = true;
+          inductionCooker.Update();
+          DEBUG_MSG("EM SenOK: Induction restore old value: %d\n", inductionCooker.newPower);
+          lastSenInd = 0; // Delete induction timestamp after event
         }
       }
-      break;
-    case EM_CRCER:
-      // Sensor CRC ceck failed
-    case EM_DEVER:
-      // -127°C device error
-    case EM_UNPL:
-      // sensor unpluged
-    case EM_SENER:
-      // all other errors
-      // if (WiFi.status() == WL_CONNECTED && pubsubClient.connected() && mqtt_state)
-      if (WiFi.status() == WL_CONNECTED && TickerPUBSUB.state() == RUNNING && mqtt_state)
-      // if (WiFi.status() == WL_CONNECTED && !mqttoff && mqtt_state)
-      {
-        for (int i = 0; i < numberOfSensors; i++)
-        {
-          if (!sensors[i].getState())
-          {
-            switch (parm)
-            {
-            case EM_CRCER:
-              // Sensor CRC ceck failed
-              DEBUG_MSG("EM CRCER: Sensor %s crc check failed\n", sensors[i].getName().c_str());
-              break;
-            case EM_DEVER:
-              // -127°C device error
-              DEBUG_MSG("EM DEVER: Sensor %s device error\n", sensors[i].getName().c_str());
-              break;
-            case EM_UNPL:
-              // sensor unpluged
-              DEBUG_MSG("EM UNPL: Sensor %s unplugged\n", sensors[i].getName().c_str());
-              break;
-            default:
-              break;
-            }
-          }
-
-          if (sensors[i].getSw() && !sensors[i].getState())
-          {
-            if (lastSenAct == 0)
-            {
-              lastSenAct = millis(); // Timestamp on error
-              DEBUG_MSG("EM SENER: timestamp actors due to sensor error: %l Wait on error actors: %d\n", lastSenAct, wait_on_Sensor_error_actor / 1000);
-            }
-            if (lastSenInd == 0)
-            {
-              lastSenInd = millis(); // Timestamp on error
-              DEBUG_MSG("EM SENER: timestamp induction due to sensor error: %l Wait on error induction: %d\n", lastSenInd, wait_on_Sensor_error_induction / 1000);
-            }
-            if (millis() - lastSenAct >= wait_on_Sensor_error_actor) // Wait bevor Event handling
-              cbpiEventActors(EM_ACTER);
-
-            if (millis() - lastSenInd >= wait_on_Sensor_error_induction) // Wait bevor Event handling
-            {
-              if (inductionCooker.isInduon && inductionCooker.powerLevelOnError < 100 && inductionCooker.induction_state)
-                cbpiEventInduction(EM_INDER);
-            }
-          } // Switchable
-          yield();
-        } // Iterate sensors
-      }   // wlan und mqtt state
-      break;
-    default:
-      break;
     }
+    break;
+  case EM_CRCER:
+    // Sensor CRC ceck failed
+  case EM_DEVER:
+    // -127°C device error
+  case EM_UNPL:
+    // sensor unpluged
+  case EM_SENER:
+    // all other errors
+    // if (WiFi.status() == WL_CONNECTED && pubsubClient.connected() && mqtt_state)
+    if (WiFi.status() == WL_CONNECTED && TickerPUBSUB.state() == RUNNING && mqtt_state)
+    // if (WiFi.status() == WL_CONNECTED && !mqttoff && mqtt_state)
+    {
+      for (int i = 0; i < numberOfSensors; i++)
+      {
+        if (!sensors[i].getState())
+        {
+          switch (parm)
+          {
+          case EM_CRCER:
+            // Sensor CRC ceck failed
+            DEBUG_MSG("EM CRCER: Sensor %s crc check failed\n", sensors[i].getName().c_str());
+            break;
+          case EM_DEVER:
+            // -127°C device error
+            DEBUG_MSG("EM DEVER: Sensor %s device error\n", sensors[i].getName().c_str());
+            break;
+          case EM_UNPL:
+            // sensor unpluged
+            DEBUG_MSG("EM UNPL: Sensor %s unplugged\n", sensors[i].getName().c_str());
+            break;
+          default:
+            break;
+          }
+        }
+
+        if (sensors[i].getSw() && !sensors[i].getState())
+        {
+          if (lastSenAct == 0)
+          {
+            lastSenAct = millis(); // Timestamp on error
+            DEBUG_MSG("EM SENER: timestamp actors due to sensor error: %l Wait on error actors: %d\n", lastSenAct, wait_on_Sensor_error_actor / 1000);
+          }
+          if (lastSenInd == 0)
+          {
+            lastSenInd = millis(); // Timestamp on error
+            DEBUG_MSG("EM SENER: timestamp induction due to sensor error: %l Wait on error induction: %d\n", lastSenInd, wait_on_Sensor_error_induction / 1000);
+          }
+          if (millis() - lastSenAct >= wait_on_Sensor_error_actor) // Wait bevor Event handling
+            cbpiEventActors(EM_ACTER);
+
+          if (millis() - lastSenInd >= wait_on_Sensor_error_induction) // Wait bevor Event handling
+          {
+            if (inductionCooker.isInduon && inductionCooker.powerLevelOnError < 100 && inductionCooker.induction_state)
+              cbpiEventInduction(EM_INDER);
+          }
+        } // Switchable
+        yield();
+      } // Iterate sensors
+    }   // wlan und mqtt state
+    break;
+  default:
+    break;
+  }
   // }
   handleSensors();
 }
 
 void listenerActors(int event, int parm) // Actor event listener
 {
-    switch (parm)
+  switch (parm)
+  {
+  case EM_OK:
+    break;
+  case 1:
+    break;
+  case 2:
+    break;
+  case EM_ACTER:
+    for (int i = 0; i < numberOfActors; i++)
     {
-    case EM_OK:
-      break;
-    case 1:
-      break;
-    case 2:
-      break;
-    case EM_ACTER:
-      for (int i = 0; i < numberOfActors; i++)
+      if (actors[i].switchable && actors[i].actor_state && actors[i].isOn)
       {
-        if (actors[i].switchable && actors[i].actor_state && actors[i].isOn)
-        {
-          actors[i].isOnBeforeError = actors[i].isOn;
-          actors[i].isOn = false;
-          actors[i].actor_state = false;
-          actors[i].Update();
-          DEBUG_MSG("EM ACTER: Aktor: %s : %d isOnBeforeError: %d\n", actors[i].name_actor.c_str(), actors[i].actor_state, actors[i].isOnBeforeError);
-        }
-        yield();
+        actors[i].isOnBeforeError = actors[i].isOn;
+        actors[i].isOn = false;
+        actors[i].actor_state = false;
+        actors[i].Update();
+        DEBUG_MSG("EM ACTER: Aktor: %s : %d isOnBeforeError: %d\n", actors[i].name_actor.c_str(), actors[i].actor_state, actors[i].isOnBeforeError);
       }
-      break;
-    case EM_ACTOFF:
-      for (int i = 0; i < numberOfActors; i++)
-      {
-        if (actors[i].isOn)
-        {
-          actors[i].isOn = false;
-          actors[i].Update();
-          DEBUG_MSG("EM ACTER: Aktor: %s  switched off\n", actors[i].name_actor.c_str());
-        }
-        yield();
-      }
-      break;
-    default:
-      break;
+      yield();
     }
+    break;
+  case EM_ACTOFF:
+    for (int i = 0; i < numberOfActors; i++)
+    {
+      if (actors[i].isOn)
+      {
+        actors[i].isOn = false;
+        actors[i].Update();
+        DEBUG_MSG("EM ACTER: Aktor: %s  switched off\n", actors[i].name_actor.c_str());
+      }
+      yield();
+    }
+    break;
+  default:
+    break;
+  }
   handleActors();
 }
 void listenerInduction(int event, int parm) // Induction event listener
 {
-    switch (parm)
+  switch (parm)
+  {
+  case EM_OK: // Induction off
+    break;
+  case 1: // Induction on
+    break;
+  case 2:
+    // DBG_PRINTLN("EM IND2: received induction event"); // bislang keine Verwendung
+    break;
+  case EM_INDER:
+    if (inductionCooker.isInduon && inductionCooker.powerLevelOnError < 100 && inductionCooker.induction_state) // powerlevelonerror == 100 -> kein event handling
     {
-    case EM_OK: // Induction off
-      break;
-    case 1: // Induction on
-      break;
-    case 2:
-      // DBG_PRINTLN("EM IND2: received induction event"); // bislang keine Verwendung
-      break;
-    case EM_INDER:
-      if (inductionCooker.isInduon && inductionCooker.powerLevelOnError < 100 && inductionCooker.induction_state) // powerlevelonerror == 100 -> kein event handling
-      {
-        inductionCooker.powerLevelBeforeError = inductionCooker.power;
-        DEBUG_MSG("EM INDER: Induktion powerlevel: %d reduce power to: %d\n", inductionCooker.power, inductionCooker.powerLevelOnError);
-        if (inductionCooker.powerLevelOnError == 0)
-          inductionCooker.isInduon = false;
-        else
-          inductionCooker.newPower = inductionCooker.powerLevelOnError;
-
-        inductionCooker.newPower = inductionCooker.powerLevelOnError;
-        inductionCooker.induction_state = false;
-        inductionCooker.Update();
-      }
-      break;
-    case EM_INDOFF:
-      if (inductionCooker.isInduon)
-      {
-        DEBUG_MSG("%s\n", "EM INDOFF: induction switched off");
-        inductionCooker.newPower = 0;
+      inductionCooker.powerLevelBeforeError = inductionCooker.power;
+      DEBUG_MSG("EM INDER: Induktion powerlevel: %d reduce power to: %d\n", inductionCooker.power, inductionCooker.powerLevelOnError);
+      if (inductionCooker.powerLevelOnError == 0)
         inductionCooker.isInduon = false;
-        inductionCooker.Update();
-      }
-      break;
-    default:
-      break;
+      else
+        inductionCooker.newPower = inductionCooker.powerLevelOnError;
+
+      inductionCooker.newPower = inductionCooker.powerLevelOnError;
+      inductionCooker.induction_state = false;
+      inductionCooker.Update();
     }
+    break;
+  case EM_INDOFF:
+    if (inductionCooker.isInduon)
+    {
+      DEBUG_MSG("%s\n", "EM INDOFF: induction switched off");
+      inductionCooker.newPower = 0;
+      inductionCooker.isInduon = false;
+      inductionCooker.Update();
+    }
+    break;
+  default:
+    break;
+  }
   handleInduction();
 }
 

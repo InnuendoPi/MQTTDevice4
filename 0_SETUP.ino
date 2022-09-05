@@ -99,7 +99,7 @@ void setup()
   cbpiEventSystem(EM_MQTTCON); // MQTT Verbindung
   cbpiEventSystem(EM_MQTTSUB); // MQTT Subscribe
 
-  // cbpiEventSystem(EM_LOG); // webUpdate log
+  cbpiEventSystem(EM_LOG); // webUpdate log
 
   if (!mqttoff)
     TickerPUBSUB.start(); // PubSubClient loop ticker
