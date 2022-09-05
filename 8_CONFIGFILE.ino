@@ -161,13 +161,13 @@ void saveConfigCallback()
 
   if (LittleFS.begin())
   {
-    saveConfig();
+    // saveConfig();
     shouldSaveConfig = true;
   }
-  else
-  {
-    Serial.println("*** SYSINFO: WiFiManager failed to save MQTT broker IP");
-  }
+  // else
+  // {
+  //   Serial.println("*** SYSINFO: WiFiManager failed to save MQTT broker IP");
+  // }
 }
 
 bool saveConfig()

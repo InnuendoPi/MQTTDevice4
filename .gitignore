@@ -26,5 +26,6 @@ tools/buildFirm.cmd
 web/
 test/
 Display/
+data/certs.ar
 992_autoPID.ino
 993_Maischeplan.ino

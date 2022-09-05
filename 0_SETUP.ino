@@ -32,8 +32,8 @@ void setup()
     Serial.printf("*** SYSINFO: setup LittleFS free heap: %d\n", ESP.getFreeHeap());
 
     // Prüfe WebUpdate
-    updateSys();
     updateTools();
+    updateSys();
 
     // Erstelle Ticker Objekte
     setTicker();
@@ -99,7 +99,7 @@ void setup()
   cbpiEventSystem(EM_MQTTCON); // MQTT Verbindung
   cbpiEventSystem(EM_MQTTSUB); // MQTT Subscribe
 
-  cbpiEventSystem(EM_LOG); // webUpdate log
+  // cbpiEventSystem(EM_LOG); // webUpdate log
 
   if (!mqttoff)
     TickerPUBSUB.start(); // PubSubClient loop ticker
