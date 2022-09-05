@@ -231,7 +231,7 @@ void startToolsUpdate()
 void startHTTPUpdate()
 {
     // Starte Updates
-    fsUploadFile = LittleFS.open("/updateSys.log", "w");
+    fsUploadFile = LittleFS.open("/updateSys.txt", "w");
     if (!fsUploadFile)
     {
         DEBUG_MSG("%s\n", "*** Error WebUpdate create file (LittleFS)");
