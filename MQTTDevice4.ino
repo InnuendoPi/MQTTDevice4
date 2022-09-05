@@ -54,7 +54,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.30"
+#define Version "4.30a"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -77,7 +77,7 @@ PubSubClient pubsubClient(espClient);
 ESP8266HTTPUpdateServer httpUpdate;
 MDNSResponder mdns;
 
-// Induktion Signallaufzeiten
+// // Induktion Signallaufzeiten
 const int SIGNAL_HIGH = 5120;
 const int SIGNAL_HIGH_TOL = 1500;
 const int SIGNAL_LOW = 1280;
@@ -96,7 +96,7 @@ int CMD[6][33] = {
     {1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0},  // P3
     {1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0},  // P4
     {1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0}}; // P5
-unsigned char PWR_STEPS[] = {0, 20, 40, 60, 80, 100};                                                     // Prozentuale Abstufung zwischen den Stufen
+unsigned char PWR_STEPS[6] = {0, 20, 40, 60, 80, 100};                                                     // Prozentuale Abstufung zwischen den Stufen
 
 bool pins_used[17];
 const unsigned char numberOfPins = 9;
@@ -110,7 +110,7 @@ unsigned char addressesFound[numberOfSensorsMax][8];
 unsigned char numberOfSensorsFound = 0;
 unsigned char numberOfActors = 0; // Gesamtzahl der Aktoren
 #define numberOfActorsMax 8       // Maximale Anzahl an Aktoren
-#define maxHostSign 16
+#define maxHostSign 15
 #define maxUserSign 10
 #define maxPassSign 10
 char mqtthost[maxHostSign];                // MQTT Server
@@ -221,8 +221,8 @@ enum { MSG_OK, CUSTOM, NOT_FOUND, BAD_REQUEST, ERROR };
 #define maxKettles 4
 #define maxKettleSign 15
 #define maxIdSign 23
-#define maxSensorSign 23
-#define maxStepSign 30
+#define maxSensorSign 23    
+#define maxStepSign 30      
 #define maxRemainSign 10
 #define maxNotifySign 52
 #define maxTempSign 10
@@ -233,13 +233,20 @@ int activePage = 1;     // die aktuell angeziegte Seite
 
 const unsigned char numberOfPages = 3;
 const String page_names[numberOfPages] = {"BrewPage", "KettlePage", "InductionPage"};
-#define maxTopicSigns 40
+#define maxTopicSigns 42
 
-char cbpi4steps_topic[maxTopicSigns] = "cbpi/stepupdate/+";
-char cbpi4kettle_topic[maxTopicSigns] = "cbpi/kettleupdate/+";
-char cbpi4sensor_topic[maxTopicSigns] = "cbpi/sensordata/";
-char cbpi4actor_topic[maxTopicSigns] = "cbpi/actorupdate/+";
-char cbpi4notification_topic[maxTopicSigns] = "cbpi/notification";
+// char cbpi4steps_topic[maxTopicSigns] = "cbpi/stepupdate/+";     // SmqhKAMS6Z6ExTj9wa7y68
+// char cbpi4kettle_topic[maxTopicSigns] = "cbpi/kettleupdate/+";  // BGAEZHXmHUfT44SLNV2xbF
+// char cbpi4sensor_topic[maxTopicSigns] = "cbpi/sensordata/";     // mKdeC6LjHZmz9Sa2mVf5SV
+// char cbpi4actor_topic[maxTopicSigns] = "cbpi/actorupdate/+";
+// char cbpi4notification_topic[maxTopicSigns] = "cbpi/notification";
+
+#define cbpi4steps_topic "cbpi/stepupdate/+"     // SmqhKAMS6Z6ExTj9wa7y68
+#define cbpi4kettle_topic "cbpi/kettleupdate/+"  // BGAEZHXmHUfT44SLNV2xbF
+#define cbpi4sensor_topic "cbpi/sensordata/"     // mKdeC6LjHZmz9Sa2mVf5SV
+#define cbpi4actor_topic "cbpi/actorupdate/+"
+#define cbpi4notification_topic "cbpi/notification"
+
 bool current_step = false;
 struct Kettles
 {
@@ -251,7 +258,7 @@ struct Kettles
 };
 struct Kettles structKettles[maxKettles];
 
-#define maxSteps 15
+#define maxSteps 12
 struct Steps
 {
     char id[maxIdSign];
@@ -350,7 +357,6 @@ float ggmInput, ggmOutput, Setpoint;
 //PID_v2 ggmPID(&ggmInput, &ggmOutput, &Setpoint, Kp, Ki, Kd, PID::Direction::Direct);
 PID_v2 ggmPID(Kp, Ki, Kd, PID::Direction::Direct);
 
-
 // modes
 bool pidMode = false;
 bool autoTune = false;
@@ -370,15 +376,16 @@ float outputStart = 0;
 float outputStep = 100;
 float tempLimit = 75;
 
-// sTune tuner = sTune(&ggmInput, &ggmOutput, tuner.Mixed_PID, tuner.direct5T, tuner.printSUMMARY);
 sTune tuner = sTune(&ggmInput, &ggmOutput, tuner.Mixed_PID, tuner.directIP, tuner.printOFF);
-// sTune tuner = sTune(&ggmInput, &ggmOutput, tuner.NoOvershoot_PID, tuner.directIP, tuner.printDEBUG);
+// tuner.printDEBUG
+// tuner.printSUMMARY
+// tuner.direct5T
 
 // Maischeplan
 #define MASH_UPDATE 5000    // handleMash
 #define maxSchritte 10
 int maxActMashSteps = 0;    // maxArray
-#define sizeImportMax 2300
+#define sizeImportMax 3072
 #define sizeRezeptMax 1024
 double pidDelta = 0.3;
 String planResponse;

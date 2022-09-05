@@ -107,6 +107,8 @@ bool loadConfig()
 
   useDisplay = miscObj["display"] | 0;
   startPage = miscObj["page"] | 1;
+  devBranch = miscObj["devbranch"] | 0;
+  
   DEBUG_MSG("Display: %d startPage: %d\n", useDisplay, startPage);
 
   strlcpy(nameMDNS, miscObj["mdns_name"] | "", maxHostSign);

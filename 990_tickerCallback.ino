@@ -207,7 +207,8 @@ void tickerPIDCallback() // Ticker helper function calling Event WLAN Error
   {
     ggmOutput = ggmPID.Run(ggmInput);
     inductionCooker.inductionNewPower(int(ggmOutput));
-    handleInduction();
+    // handleInduction();
+    TickerInd.updatenow();
     DEBUG_MSG("Ticker PID ggmInput: %.02f ggmOutput: %.02f intOutput %d Setpoint: %.02f\n", ggmInput, ggmOutput, int(ggmOutput), Setpoint);
   }
   

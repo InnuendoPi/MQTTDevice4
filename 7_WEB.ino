@@ -192,9 +192,8 @@ void handleRequestMisc2()
   doc["statePower"] = statePower;
   doc["statePause"] = statePause;
   doc["mqttoff"] = mqttoff;
-
-  // if (alertState)
-  //   alertState = false;
+  if (alertState)
+    alertState = false;
   String response;
   serializeJson(doc, response);
   server.send(200, "application/json", response);
@@ -638,7 +637,8 @@ void handleBtnPower()
           TickerMash.stop();
           TickerPID.stop();
           inductionCooker.inductionNewPower(0);
-          handleInduction();
+          // handleInduction();
+          TickerInd.updatenow();
           if (!mqttoff)
             TickerPUBSUB.start();
 
@@ -662,7 +662,8 @@ void handleBtnPower()
           TickerMash.stop();
           TickerPID.stop();
           inductionCooker.inductionNewPower(0);
-          handleInduction();
+          // handleInduction();
+          TickerInd.updatenow();
           DEBUG_MSG("WEB: PowerButton off aktMashStep: %d duration: %lu\n", actMashStep, (structPlan[actMashStep].duration * 60 * 1000));
           if (startBuzzer)
             sendAlarm(ALARM_OFF);
@@ -777,7 +778,8 @@ void handleBtnNextStep()
     TickerMash.config(tickerMashCallback, structPlan[actMashStep].duration * 60 * 1000, 1);
     Setpoint = structPlan[actMashStep].temp;
     inductionCooker.inductionNewPower(int(ggmOutput));
-    handleInduction();
+    // handleInduction();
+    TickerInd.updatenow();
     ggmPID.Start(ggmInput, ggmOutput, Setpoint);
   }
   else // last mash step finished
@@ -790,7 +792,8 @@ void handleBtnNextStep()
     TickerMash.stop();
     TickerPID.stop();
     inductionCooker.inductionNewPower(0);
-    handleInduction();
+    // handleInduction();
+    TickerInd.updatenow();
     if (startBuzzer)
       sendAlarm(ALARM_OFF);
     if (!mqttoff)

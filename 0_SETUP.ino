@@ -29,12 +29,11 @@ void setup()
   // Lade Dateisystem
   if (LittleFS.begin())
   {
-
     Serial.printf("*** SYSINFO: setup LittleFS free heap: %d\n", ESP.getFreeHeap());
 
     // Prüfe WebUpdate
-
     updateSys();
+    updateTools();
 
     // Erstelle Ticker Objekte
     setTicker();
@@ -104,7 +103,7 @@ void setup()
 
   if (!mqttoff)
     TickerPUBSUB.start(); // PubSubClient loop ticker
-
+  
   // Verarbeite alle Events Setup
   gEM.processAllEvents();
 }
@@ -139,6 +138,7 @@ void setupServer()
   server.on("/reqFirm", handleRequestFirm);       // Firmware version
   server.on("/setMisc", handleSetMisc);           // Misc ändern
   server.on("/startHTTPUpdate", startHTTPUpdate); // Firmware WebUpdate
+  server.on("/startToolsUpdate", startToolsUpdate); // Firmware WebUpdate
   server.on("/reqMash", handleRequestMash);
   server.on("/setMash", handleSetMash);
   server.on("/Btn-Power", handleBtnPower);

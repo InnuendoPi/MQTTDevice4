@@ -185,84 +185,45 @@ void listenerSystem(int event, int parm) // System event listener
     ggmPID.Compute();
     break;
   case EM_LOG:
-    if (LittleFS.exists("/log.txt")) // WebUpdate Zertifikate
+    if (LittleFS.exists("/logsys.txt")) // WebUpdate Firmware
     {
-      fsUploadFile = LittleFS.open("/log.txt", "r");
+      fsUploadFile = LittleFS.open("/logsys.txt", "r");
       String line;
       while (fsUploadFile.available())
       {
         line = char(fsUploadFile.read());
       }
       fsUploadFile.close();
-      Serial.printf("*** SYSINFO: Update index retries count %s\n", line.c_str());
-      LittleFS.remove("/log.txt");
-    }
-    if (LittleFS.exists("/log1.txt")) // css Zertifikate
-    {
-      fsUploadFile = LittleFS.open("/log1.txt", "r");
-      String line;
-      while (fsUploadFile.available())
-      {
-        line = char(fsUploadFile.read());
-      }
-      fsUploadFile.close();
-      Serial.printf("*** SYSINFO: Update css retries count %s\n", line.c_str());
-      LittleFS.remove("/log1.txt");
-    }
-    if (LittleFS.exists("/log11.txt")) // js Zertifikate
-    {
-      fsUploadFile = LittleFS.open("/log11.txt", "r");
-      String line;
-      while (fsUploadFile.available())
-      {
-        line = char(fsUploadFile.read());
-      }
-      fsUploadFile.close();
-      Serial.printf("*** SYSINFO: Update JS retries count %s\n", line.c_str());
-      LittleFS.remove("/log11.txt");
-    }
-    if (LittleFS.exists("/log111.txt")) // qj Zertifikate
-    {
-      fsUploadFile = LittleFS.open("/log111.txt", "r");
-      String line;
-      while (fsUploadFile.available())
-      {
-        line = char(fsUploadFile.read());
-      }
-      fsUploadFile.close();
-      Serial.printf("*** SYSINFO: Update JQuery retries count %s\n", line.c_str());
-      LittleFS.remove("/log111.txt");
-    }
-    if (LittleFS.exists("/log2.txt")) // certs
-    {
-      fsUploadFile = LittleFS.open("/log2.txt", "r");
-      String line;
-      while (fsUploadFile.available())
-      {
-        line = char(fsUploadFile.read());
-      }
-      fsUploadFile.close();
-      Serial.printf("*** SYSINFO: Update certificate retries count %s\n", line.c_str());
-      LittleFS.remove("/log2.txt");
-    }
-    if (LittleFS.exists("/log3.txt")) // WebUpdate Firmware
-    {
-      fsUploadFile = LittleFS.open("/log3.txt", "r");
-      String line;
-      while (fsUploadFile.available())
-      {
-        line = char(fsUploadFile.read());
-      }
-      fsUploadFile.close();
-      LittleFS.remove("/log3.txt");
+      bool check = LittleFS.remove("/logsys.txt");
       if (LittleFS.exists("/dev.txt")) // WebUpdate Firmware
       {
         Serial.printf("*** SYSINFO: Update development firmware retries count %s\n", line.c_str());
-        LittleFS.remove("/dev.txt");
+        check = LittleFS.remove("/dev.txt");
       }
       else
       {
         Serial.printf("*** SYSINFO: Update firmware retries count %s\n", line.c_str());
+      }
+      alertState = true;
+    }
+    if (LittleFS.exists("/logtools.txt")) // WebUpdate Firmware
+    {
+      fsUploadFile = LittleFS.open("/logtools.txt", "r");
+      String line;
+      while (fsUploadFile.available())
+      {
+        line = char(fsUploadFile.read());
+      }
+      fsUploadFile.close();
+      bool check = LittleFS.remove("/logtools.txt");
+      if (LittleFS.exists("/dev.txt")) // WebUpdate Firmware
+      {
+        Serial.printf("*** SYSINFO: Update development tools retries count %s\n", line.c_str());
+        check = LittleFS.remove("/dev.txt");
+      }
+      else
+      {
+        Serial.printf("*** SYSINFO: Update tools retries count %s\n", line.c_str());
       }
       alertState = true;
     }

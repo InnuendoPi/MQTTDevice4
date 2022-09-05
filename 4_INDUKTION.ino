@@ -282,7 +282,7 @@ public:
   // Test 20220903
   void updatePower()
   {
-    if (power != newPower)  // Neuer Befehl empfangen
+    if (power != newPower) // Neuer Befehl empfangen
     {
       if (newPower > 100)
       {
