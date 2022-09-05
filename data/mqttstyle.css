@@ -3,9 +3,7 @@
   src:  url('./mqttfont.eot?v7u1py');
     src:  url('./mqttfont.eot?v7u1py#iefix') format('embedded-opentype'),
     url('./mqttfont.ttf?v7u1py') format('truetype');
-    /* url('./mqttfont.woff?v7u1py') format('woff'), */
-    /* url('./mqttfont.svg?v7u1py#icomoon') format('svg'); */
-  
+      
   font-weight: normal;
   font-style: normal;
   font-display: block;

@@ -106,9 +106,9 @@ void upFirm()
 
 void updateTools()
 {
-    if (LittleFS.exists("/updateTools.txt"))
+    if (LittleFS.exists("/updateTools.log"))
     {
-        fsUploadFile = LittleFS.open("/updateTools.txt", "r");
+        fsUploadFile = LittleFS.open("/updateTools.log", "r");
         int anzahlVersuche = 0;
         if (fsUploadFile)
         {
@@ -117,19 +117,19 @@ void updateTools()
         fsUploadFile.close();
         if (anzahlVersuche > 3)
         {
-            LittleFS.remove("/updateTools.txt");
+            LittleFS.remove("/updateTools.log");
             Serial.printf("*** SYSINFO: ERROR update tools - %d\n", anzahlVersuche);
             return;
         }
-        fsUploadFile = LittleFS.open("/updateTools.txt", "w");
+        fsUploadFile = LittleFS.open("/updateTools.log", "w");
         anzahlVersuche++;
         uint8_t bytesWritten = fsUploadFile.print(anzahlVersuche);
         // bytesWritten = fsUploadFile.print(statusUpdate);
         fsUploadFile.close();
-        // fsUploadFile = LittleFS.open("/logTools.txt", "w");
-        // bytesWritten = fsUploadFile.print((anzahlVersuche));
-        // // bytesWritten = fsUploadFile.print(statusUpdate);
-        // fsUploadFile.close();
+        fsUploadFile = LittleFS.open("/logTools.log", "w");
+        bytesWritten = fsUploadFile.print((anzahlVersuche));
+        // bytesWritten = fsUploadFile.print(statusUpdate);
+        fsUploadFile.close();
         Serial.print("*** SYSINFO: Update tools started - free heap: ");
         Serial.println(ESP.getFreeHeap());
         bool test;
@@ -151,15 +151,15 @@ void updateTools()
             test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/Info/", "mqttfont.ttf");
             test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/Info/", "mqttstyle.css");
         }
-        test = LittleFS.remove("/updateTools.txt");
+        test = LittleFS.remove("/updateTools.log");
         cbpiEventSystem(EM_REBOOT);
     }
 }
 void updateSys()
 {
-    if (LittleFS.exists("/updateSys.txt"))
+    if (LittleFS.exists("/updateSys.log"))
     {
-        fsUploadFile = LittleFS.open("/updateSys.txt", "r");
+        fsUploadFile = LittleFS.open("/updateSys.log", "r");
 
         int anzahlVersuche = 0;
         if (fsUploadFile)
@@ -169,24 +169,24 @@ void updateSys()
         fsUploadFile.close();
         if (anzahlVersuche > 3)
         {
-            LittleFS.remove("/updateSys.txt");
+            LittleFS.remove("/updateSys.log");
             Serial.println("*** SYSINFO: ERROR update firmware");
             return;
         }
-        fsUploadFile = LittleFS.open("/updateSys.txt", "w");
+        fsUploadFile = LittleFS.open("/updateSys.log", "w");
         anzahlVersuche++;
         int bytesWritten = fsUploadFile.print(anzahlVersuche);
         fsUploadFile.close();
         Serial.print("*** SYSINFO: Update firmware started - free heap: ");
         Serial.println(ESP.getFreeHeap());
-        if (LittleFS.exists("/certs.ar"))
+        if (LittleFS.exists("/ce.rts"))
             upFirm();
     }
 }
 
 void startToolsUpdate()
 {
-    fsUploadFile = LittleFS.open("/updateTools.txt", "w");
+    fsUploadFile = LittleFS.open("/updateTools.log", "w");
     if (!fsUploadFile)
     {
         DEBUG_MSG("%s\n", "*** Error WebUpdate create file (LittleFS)");

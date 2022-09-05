@@ -185,16 +185,16 @@ void listenerSystem(int event, int parm) // System event listener
     ggmPID.Compute();
     break;
   case EM_LOG:
-    if (LittleFS.exists("/logSys.txt")) // WebUpdate Firmware
+    if (LittleFS.exists("/logSys.log")) // WebUpdate Firmware
     {
-      fsUploadFile = LittleFS.open("/logSys.txt", "r");
+      fsUploadFile = LittleFS.open("/logSys.log", "r");
       String line;
       while (fsUploadFile.available())
       {
         line = char(fsUploadFile.read());
       }
       fsUploadFile.close();
-      bool check = LittleFS.remove("/logSys.txt");
+      bool check = LittleFS.remove("/logSys.log");
       if (LittleFS.exists("/dev.txt")) // WebUpdate Firmware
       {
         Serial.printf("*** SYSINFO: Update development firmware retries count %s\n", line.c_str());
@@ -206,16 +206,16 @@ void listenerSystem(int event, int parm) // System event listener
       }
       alertState = true;
     }
-    if (LittleFS.exists("/logTools.txt")) // WebUpdate Firmware
+    if (LittleFS.exists("/logTools.log")) // WebUpdate Firmware
     {
-      fsUploadFile = LittleFS.open("/logTools.txt", "r");
+      fsUploadFile = LittleFS.open("/logTools.log", "r");
       String line;
       while (fsUploadFile.available())
       {
         line = char(fsUploadFile.read());
       }
       fsUploadFile.close();
-      bool check = LittleFS.remove("/logTools.txt");
+      bool check = LittleFS.remove("/logTools.log");
       if (LittleFS.exists("/dev.txt")) // WebUpdate Firmware
       {
         Serial.printf("*** SYSINFO: Update development tools retries count %s\n", line.c_str());

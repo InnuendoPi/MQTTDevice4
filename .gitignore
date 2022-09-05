@@ -17,7 +17,6 @@ includes.cache
 local.eagle.flash.ld
 local.eagle.app.v6.common.ld
 data/config.txt
-data/certs.ar
 tools/MQTTDevice4.ino.bin
 tools/MQTTDevice4.spiffs.bin
 tools/esptool.exe
@@ -30,6 +29,5 @@ test/index.htm
 test/index.htm.gz
 web/
 Display/
-data/certs.ar
 992_autoPID.ino
 993_Maischeplan.ino
