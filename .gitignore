@@ -23,8 +23,12 @@ tools/MQTTDevice4.spiffs.bin
 tools/esptool.exe
 tools/Flashen.cmd
 tools/buildFirm.cmd
-web/
 test/
+test/mash.htm
+test/mash.htm.gz
+test/index.htm
+test/index.htm.gz
+web/
 Display/
 data/certs.ar
 992_autoPID.ino
