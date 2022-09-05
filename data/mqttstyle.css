@@ -35,9 +35,6 @@
 .icon-cog:before {
   content: "\f013";
 }
-.icon-gear:before {
-  content: "\f013";
-}
 .icon-trash-o:before {
   content: "\f014";
 }
@@ -46,9 +43,6 @@
 }
 .icon-download:before {
   content: "\f019";
-}
-.icon-refresh:before {
-  content: "\f021";
 }
 .icon-pencil:before {
   content: "\f040";
@@ -68,17 +62,11 @@
 .icon-cogs:before {
   content: "\f085";
 }
-.icon-gears:before {
-  content: "\f085";
-}
 .icon-eraser:before {
   content: "\f12d";
 }
 .icon-bullseye:before {
   content: "\f140";
-}
-.icon-thermometer-3:before {
-  content: "\f2c8";
 }
 .icon-thermometer-three-quarters:before {
   content: "\f2c8";
