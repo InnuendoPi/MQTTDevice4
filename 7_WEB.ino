@@ -189,8 +189,9 @@ void handleRequestMisc2()
   doc["mqbuz"] = mqttBuzzer;
   doc["display"] = useDisplay;
   doc["alertstate"] = alertState;
-  doc["statePower"] = statePower;
-  doc["statePause"] = statePause;
+  // doc["statePower"] = statePower;
+  // doc["statePause"] = statePause;
+  // doc["statePlay"] = statePlay;
   doc["mqttoff"] = mqttoff;
   if (alertState)
     alertState = false;
@@ -204,6 +205,7 @@ void handleRequestMisc3()
   StaticJsonDocument<128> doc;
   doc["statePower"] = statePower;
   doc["statePause"] = statePause;
+  doc["statePlay"] = statePlay;
 
   String response;
   serializeJson(doc, response);
@@ -634,6 +636,7 @@ void handleBtnPower()
           statePower = false;
           autoTune = false;
           statePause = false;
+          statePlay = false;
           TickerMash.stop();
           TickerPID.stop();
           inductionCooker.inductionNewPower(0);
@@ -650,6 +653,7 @@ void handleBtnPower()
           pidMode = false;
           statePower = false;
           statePause = false;
+          statePlay = false;
           actMashStep = 0;
           Setpoint = 0.0;
           ggmPID.Start(ggmInput, 0, Setpoint);
@@ -675,36 +679,52 @@ void handleBtnPower()
 }
 void handleBtnPlay()
 {
-  // for (int i = 0; i < server.args(); i++)
+  // Änderung play
+  // if (pidMode && statePower && !statePause)
   // {
-  //   if (server.argName(i) == "statePlay")
-  //   {
-  //     if (server.arg(i) == "true")
-  //       statePlay = true; // btn-danger
-  //     else
-  //       statePlay = false; // btn-primary
-  //   }
+  //   DEBUG_MSG("WEB: Play Button Setpoint: %.02f ggmInput: %.02f\n", Setpoint, ggmInput);
+  //   TickerMash.start();
   // }
 
-  if (pidMode && statePower && !statePause)
+  // Änderung play
+  if (pidMode && statePower && !statePause && !statePlay && TickerMash.state() == STOPPED)
   {
     DEBUG_MSG("WEB: Play Button Setpoint: %.02f ggmInput: %.02f\n", Setpoint, ggmInput);
     TickerMash.start();
+  }
+  if (TickerMash.state() == STOPPED && actMashStep > 0) // check for last step autonext false?
+  {
+    if (!structPlan[actMashStep - 1].autonext && statePlay)
+    {
+      DEBUG_MSG("WEB: PlayButton1 Setpoint: %.02f ggmInput: %.02f\n", Setpoint, ggmInput);
+      Setpoint = structPlan[actMashStep].temp;
+      ggmPID.Start(ggmInput, 0, Setpoint);
+      // handleInduction(); -> Funktion geändert!
+      statePlay = false;
+    }
+    else if (actMashStep > 0 && !statePlay)
+    {
+      Setpoint = ggmInput;
+      ggmPID.Start(ggmInput, 0, Setpoint);
+      // handleInduction(); -> Funktion geändert!
+      statePlay = true;
+      DEBUG_MSG("WEB: PlayButton2 Setpoint: %.02f ggmInput: %.02f\n", Setpoint, ggmInput);
+    }
+  }
+  else if (TickerMash.state() == RUNNING && actMashStep > 0)
+  {
+    server.send(201, "text/plain", "created");
+    return;
+  }
+  else if (TickerMash.state() == PAUSED && actMashStep > 0)
+  {
+    server.send(201, "text/plain", "created");
+    return;
   }
   server.send(201, "text/plain", "created");
 }
 void handleBtnPause()
 {
-  // for (int i = 0; i < server.args(); i++)
-  // {
-  //   if (server.argName(i) == "statePause")
-  //   {
-  //     if (server.arg(i) == "true")
-  //       statePause = true;
-  //     else
-  //       statePause = false;
-  //   }
-  // }
   if (!pidMode)
   {
     server.send(201, "text/plain", "created");
@@ -724,26 +744,27 @@ void handleBtnPause()
     statePause = false;
     TickerMash.resume();
   }
-  else if (TickerMash.state() == STOPPED) // check for last step autonext false?
-  {
-    if (!structPlan[actMashStep - 1].autonext && actMashStep > 0 && statePause)
-    {
-      DEBUG_MSG("WEB: PauseButton1 Setpoint: %.02f ggmInput: %.02f\n", Setpoint, ggmInput);
-      Setpoint = structPlan[actMashStep].temp;
-      ggmPID.Start(ggmInput, 0, Setpoint);
-      // handleInduction();
+  // Änderung play
+  // else if (TickerMash.state() == STOPPED) // check for last step autonext false?
+  // {
+  //   if (!structPlan[actMashStep - 1].autonext && actMashStep > 0 && statePause)
+  //   {
+  //     DEBUG_MSG("WEB: PauseButton1 Setpoint: %.02f ggmInput: %.02f\n", Setpoint, ggmInput);
+  //     Setpoint = structPlan[actMashStep].temp;
+  //     ggmPID.Start(ggmInput, 0, Setpoint);
+  //     // handleInduction();
 
-      statePause = false; // set btn-primary
-    }
-    else if (actMashStep > 0 && !statePause)
-    {
-      Setpoint = ggmInput;
-      ggmPID.Start(ggmInput, 0, Setpoint);
-      // handleInduction();
-      statePause = true;
-      DEBUG_MSG("WEB: PauseButton2 Setpoint: %.02f ggmInput: %.02f\n", Setpoint, ggmInput);
-    }
-  }
+  //     statePause = false; // set btn-primary
+  //   }
+  //   else if (actMashStep > 0 && !statePause)
+  //   {
+  //     Setpoint = ggmInput;
+  //     ggmPID.Start(ggmInput, 0, Setpoint);
+  //     // handleInduction();
+  //     statePause = true;
+  //     DEBUG_MSG("WEB: PauseButton2 Setpoint: %.02f ggmInput: %.02f\n", Setpoint, ggmInput);
+  //   }
+  // }
   server.send(201, "text/plain", "created");
 }
 
@@ -754,7 +775,7 @@ void handleBtnNextStep()
     server.send(201, "text/plain", "created");
     return;
   }
-  
+
   if (!structPlan[actMashStep].autonext && TickerMash.state() == PAUSED && TickerMash.counter() >= 1)
   {
     if (actMashStep < maxSchritte)

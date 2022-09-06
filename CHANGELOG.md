@@ -1,63 +1,16 @@
 # Changelog
 
-Version 4.30
+Version 4.30b
 
+- Changed:  moved manual autonext start from pause to play button
+- Changed:  play button toggles to red, if waiting for autonext
+- changed:  behavior play button: start mash step regardless of target temp
+- changed:  behavior play button: no action if last mash step
+- changed:  behavior play button: no action if mash step active
+- changed:  behavior play button: no action if mash step paused
+- Optimze:  bootstrap.min.css pured (from 160kb to 26kb)
+- Optimze:  awefont pured to only in use glyphs
+- Fixed:    MMum import
+- Changed:  VSCode 1.71
+- Added:    Mash webpage
 - Added:    PID Controller
-- Update:   VSCode 1.70.2
-- Added:    two-point calibration
-- Fixed:    sensor offset
-- Update:   VSCode 1.69.2
-- Update:   Arduino plugin 0.4.12
-- Update:   Arduino libs
-- Fixed:    bug displaying wrong or none target temperature on kettlePage
-- Fixed:    bug displaying wrong or none target temperature on brewPage
-- Fixed:    bug crashing device display mode
-- Reworked: Alarm
-- Added:    MQTTBuzzer (thx to pascal1404)
-- Added:    config option mqttBuzzer
-- Fixed:    bug crashing device when serialize Json to request CBPi4 to update hardware information
-- Added:    Display startPage (BrewPage, KettlePage or InductionPage)
-- Replaced: Scrolling text display (performance)
-- Reworked: Step information handling
-- Added:    MQTT request CBPi4 update kettle, actor and sensor informations
-- Reworked: CBPi4 informations (kettle, actors, sonsors) CBPi 4.0.1.11
-- Fixed:    nullptr when no timer information availible
-- Fixed:    Missing kettle information (mqtt)
-- Added:    CBPi4 sensor ID (optional attribute, required on KettlePage)
-- Added:    MQTTPort
-- Removed:  MQTTHost from WLAN setup
-- Added:    Induction mode
-- Reworked: Callback functions display touch/release
-- Fixed:    Sensor offset incorrect read
-- Fixed:    Sensor offset incorrect display (digits)
-- Reworked: gitpages
-- Reworked: WebUpdate updates bootstrap and jquery
-- Reworked: WebUpdate removes old map files
-- Reworked: File Explorer
-- Added:    MQTT basic authentication (passwordfile)
-- Update:   Bootstrap 4.6.1
-- Optimize: config handling
-- Optimize: memory usage
-- Optimize: MQTT error handling
-- Added:    development branch option
-- Reworked: WebIf
-- Reworked: actorshandle
-- Reworked: inductionhandle
-- Removed:  Inervall configuration
-- Fixed:    pulse cycle actors
-- Optimize: memory usage
-- Optimize: CPU usage
-- Optimize: Display information
-- Fixed:    Crash null pointer
-- Optimize: Deserialize JSON
-- Fixed:    step notifications
-- Fixed:    active step (CBPi4.0.1a11)
-- Fixed:    stepstate pause, resume
-- Fixed:    stepstate stop
-- Fixed:    stepstate completed
-- Added:    Touchdisplay
-- Optimize: MQTT handling CraftbeerPi4
-- Optimize: WebIf
-- Removed:  WLAN events
-- Fixed:    null pointer error
-- Update:   translation english

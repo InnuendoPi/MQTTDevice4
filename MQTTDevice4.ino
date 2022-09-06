@@ -54,7 +54,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.30a"
+#define Version "4.30b"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -339,15 +339,6 @@ bool mqttBuzzer = false;   // MQTTBuzzer
 #define PID_UPDATE 3000     // checkTemp and send newPower
 #define RUN_PID 1000        // PID SetSampleTime
 
-// float Kp, Ki, Kd;
-// float Setpoint = 0.0, ggmInput = 0.0, ggmOutput = 0.0;
-// QuickPID ggmPID(&ggmInput, &ggmOutput, &Setpoint);
-// QuickPID ggmPID(&ggmInput, &ggmOutput, &Setpoint, Kp, Ki, Kd,
-//                ggmPID.pMode::pOnError,
-//                ggmPID.dMode::dOnMeas,
-//                ggmPID.iAwMode::iAwCondition,
-//                ggmPID.Action::direct);
-
 float Kp = 2, Ki = 5, Kd = 1;
 float ggmInput, ggmOutput, Setpoint;
 
@@ -363,12 +354,12 @@ bool autoTune = false;
 // button states
 bool statePower = false;
 bool statePause = false;
-// bool statePlay = false;
+bool statePlay = false;
 // bool stateForward = false;
 
 // autoTune user settings
 uint32_t settleTimeSec = 10;
-uint32_t testTimeSec = 500; //100; //PID_UPDATE???
+uint32_t testTimeSec = 500;
 const uint16_t samples = 500;
 const float inputSpan = 100;
 const float outputSpan = 100;
