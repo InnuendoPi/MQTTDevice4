@@ -24,6 +24,9 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-loop:before {
+  content: "\e900";
+}
 .icon-plus:before {
   content: "\f067";
 }

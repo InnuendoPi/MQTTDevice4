@@ -32,13 +32,6 @@ public:
     sensorsStatus = 0;
     sens_state = true;
 
-    // if (pidMode)
-    // {
-    //   ggmInput = DS18B20.getTempCByIndex(0);
-    //   // ggmPID.Compute();
-    //   // inductionCooker.handleInductionPage(int(ggmOutput));
-    // }
-
     if (OneWire::crc8(sens_address, 7) != sens_address[7])
     {
       sensorsStatus = EM_CRCER;

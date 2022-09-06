@@ -3,7 +3,8 @@ void brewCallback()
   activePage = 0;
   nextion.command("page 0");
   // DEBUG_MSG("Ticker: brewCallback activePage: %d\n", activePage);
-  BrewPage();
+  if (!mqttoff)
+    BrewPage();
   TickerDisp.updatenow();
 }
 void kettleCallback()
@@ -11,7 +12,8 @@ void kettleCallback()
   activePage = 1;
   nextion.command("page 1");
   // DEBUG_MSG("Ticker: kettleCallback activePage: %d\n", activePage);
-  KettlePage();
+  if (!mqttoff)
+    KettlePage();
   TickerDisp.updatenow();
 }
 void inductionCallback()
@@ -35,23 +37,81 @@ void tickerDispCallback()
 
   switch (activePage)
   {
-  case 0:            // BrewPage
-    if (!activeBrew) // aktiver Step vorhanden?
-      strlcpy(currentStepName, "BrewPage", maxStepSign);
+  case 0: // BrewPage
 
-    uhrzeit_text.attribute("txt", uhrzeit);
-    mqttDevice.attribute("txt", ipMQTT);
+    if (mqttoff)
+    {
+      currentStepName_text.attribute("txt", structPlan[actMashStep].name.c_str());
+      currentStepRemain_text.attribute("txt", calcRemaining().c_str());
+      if (actMashStep < maxActMashSteps)
+      {
+        nextStepRemain_text.attribute("txt", structPlan[actMashStep + 1].duration);
+        nextStepName_text.attribute("txt", structPlan[actMashStep + 1].name.c_str());
+      }
+      else
+      {
+        nextStepRemain_text.attribute("txt", "");
+        nextStepName_text.attribute("txt", "");
+      }
+      kettleName1_text.attribute("txt", "GGM IDS2");
+      if (ids2Setpoint > 0)
+        kettleSoll1_text.attribute("txt", String(int(ids2Setpoint * 10) / 10.0).c_str());
+      else
+        kettleSoll1_text.attribute("txt", String(int(structPlan[actMashStep].temp * 10) / 10.0).c_str());
+      
+      kettleIst1_text.attribute("txt", String(int(ids2Input * 10) / 10.0).c_str());
+      uhrzeit_text.attribute("txt", uhrzeit);
+      mqttDevice.attribute("txt", ipMQTT);
+      int sliderval = TickerMash.remaining() / 1000 * 100 / structPlan[actMashStep].duration;
+      slider.value(sliderval);
+    }
+    else
+    {
+      if (!activeBrew) // aktiver Step vorhanden?
+        strlcpy(currentStepName, "BrewPage", maxStepSign);
 
-    BrewPage();
+      uhrzeit_text.attribute("txt", uhrzeit);
+      mqttDevice.attribute("txt", ipMQTT);
+
+      BrewPage();
+    }
     break;
-  case 1:            // KettlePage
-    if (!activeBrew) // aktiver Step vorhanden?
-      strlcpy(currentStepName, sensors[0].getName().c_str(), maxStepSign);
+  case 1: // KettlePage
+    if (mqttoff)
+    {
+      p1temp_text.attribute("txt", String(int(ids2Input * 10) / 10.0).c_str());
+      if (ids2Setpoint > 0)
+        p1target_text.attribute("txt", String(int(ids2Setpoint * 10) / 10.0).c_str());
+      else
+        p1target_text.attribute("txt", String(int(structPlan[actMashStep].temp * 10) / 10.0).c_str());
+      p1current_text.attribute("txt", structPlan[actMashStep].name.c_str());
+      p1remain_text.attribute("txt", calcRemaining().c_str());
+      p1mqttDevice.attribute("txt", ipMQTT);
+      p1uhrzeit_text.attribute("txt", uhrzeit);
 
-    strlcpy(structKettles[0].current_temp, sensors[0].getTotalValueString(), maxTempSign);
-    p1mqttDevice.attribute("txt", ipMQTT);
-    p1uhrzeit_text.attribute("txt", uhrzeit);
-    KettlePage();
+      unsigned long allSeconds = TickerMash.remaining() / 1000;
+      int secsRemaining = allSeconds % 3600;
+
+      int sliderval = 100;
+      if (TickerMash.state() == RUNNING)
+        p1slider.value(secsRemaining * 100 / structPlan[actMashStep].duration / 60);
+      else
+        p1slider.value(100);
+
+      break;
+    }
+    else
+    {
+      if (!activeBrew) // aktiver Step vorhanden?
+        strlcpy(currentStepName, sensors[0].getName().c_str(), maxStepSign);
+
+      strlcpy(structKettles[0].current_temp, sensors[0].getTotalValueString(), maxTempSign);
+
+      p1mqttDevice.attribute("txt", ipMQTT);
+      p1uhrzeit_text.attribute("txt", uhrzeit);
+
+      KettlePage();
+    }
     break;
   case 2: // Induction mode
     strlcpy(structKettles[0].current_temp, sensors[0].getTotalValueString(), maxTempSign);
@@ -201,17 +261,17 @@ void tickerPIDCallback() // Ticker helper function calling Event WLAN Error
   sensors[0].Update();
   float val = sensors[0].getTotalValueFloat();
   if (val != -127.00)
-    ggmInput = val;
+    ids2Input = val;
 
-  if (!isnan(ggmInput))
+  if (!isnan(ids2Input))
   {
-    ggmOutput = ggmPID.Run(ggmInput);
-    inductionCooker.inductionNewPower(int(ggmOutput));
+    ids2Output = ids2PID.Run(ids2Input);
+    inductionCooker.inductionNewPower(int(ids2Output));
     // handleInduction();
     TickerInd.updatenow();
-    DEBUG_MSG("Ticker PID ggmInput: %.02f ggmOutput: %.02f intOutput %d Setpoint: %.02f\n", ggmInput, ggmOutput, int(ggmOutput), Setpoint);
+    DEBUG_MSG("Ticker PID ids2Input: %.02f ids2Output: %.02f intOutput %d ids2Setpoint: %.02f\n", ids2Input, ids2Output, int(ids2Output), ids2Setpoint);
   }
-  
+
   if (autoTune)
     return;
 

@@ -119,15 +119,9 @@ void InductionPage()
   // p2temp_text
   // 316 = 0°C - 360 = 44°C - 223 = 100°C -- 53,4 je 20°C
 
-  // if (pidMode)
-  // {
-  //     // ggmPID.Compute();
-  //     inductionCooker.handleInductionPage(int(ggmOutput));
-  // }
-
   if (pidMode || autoTune)
   {
-    p2slider.value(ggmOutput);
+    p2slider.value(ids2Output);
   }
   else
   {

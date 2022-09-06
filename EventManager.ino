@@ -181,9 +181,6 @@ void listenerSystem(int event, int parm) // System event listener
         Serial.printf("*** SYSINFO: error start mDNS! IP Adresse: %s Time: %s RSSI: %d\n", WiFi.localIP().toString().c_str(), timeClient.getFormattedTime().c_str(), WiFi.RSSI());
     }
     break;
-  case PID_COMPUTE:
-    ggmPID.Compute();
-    break;
   case EM_LOG:
     if (LittleFS.exists("/updateSys.log")) // WebUpdate Firmware
     {

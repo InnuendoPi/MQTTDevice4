@@ -490,7 +490,7 @@ void handleRequestInduction()
   doc["tempvalue"] = sensors[0].getTotalValueString();
   if (autoTune)
   {
-    doc["target"] = Setpoint;
+    doc["target"] = ids2Setpoint;
     doc["step"] = "AutoTune";
   }
   else

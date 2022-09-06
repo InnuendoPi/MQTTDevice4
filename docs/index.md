@@ -24,6 +24,7 @@ MQTTDevice4 is an Arduino sketch for the ESP8266 Wemos D1 mini modules. MQTTDevi
 * Update firmware and LittleFS via file upload
 * Event handling
 * File explorer
+* Brew without CraftbeerPi4 (standalone) *NEW*
 
 This project was started in the hobbybrauer forum and serves the exchange of information.
 Forum: <https://hobbybrauer.de/forum/viewtopic.php?f=58&t=23509>
@@ -281,6 +282,9 @@ Sensor setting
     On this page you have to enter IP address, Port and credentials of your MQTT broker. In most cases, this is likely to be mosquitto on the CBPi. The default port is 1883.
     Important: the firmware MQTTDevice tries constantly to establish a connection with the MQTT broker. If the MQTT broker is not available, this will severely affect the speed of the MQTT device (web interface).
 
+    New configuration parameter: Disable MQTT (brew without CBPi4)
+    If enabled MQTT communication is disabled. Disabled MQTT is requiered for brewing without CBPi4.
+
 3. Event manager
 
     The event manager handles events and misconduct. Handling of malfunctions (event handling) is deactivated in the standard setting!
@@ -314,6 +318,10 @@ Sensor setting
     * Agitator actor event handling is disabled
 
     This easy example prevents the mash kettle from uncontrolled heating, when MQTT connection drops or DS18B20 sensor suddenly reports device unplugged.
+
+4. PIDmanager
+
+    Configuration page P I D controller. For best results autoTune should find optimale PID values. Requires disabled mqtt.
 
 ---
 

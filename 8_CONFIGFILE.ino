@@ -126,11 +126,11 @@ bool loadConfig()
   JsonArray pidArray = doc["pid"];
   JsonObject pidObj = pidArray[0];
 
-  Kp = pidObj["kp"] | 2.0;
-  Ki = pidObj["ki"] | 0.5;
-  Kd = pidObj["kd"] | 1.0;
+  ids2Kp = pidObj["kp"] | 2.0;
+  ids2Ki = pidObj["ki"] | 0.5;
+  ids2Kd = pidObj["kd"] | 1.0;
   pidDelta = pidObj["piddelta"] | 0.0;
-  DEBUG_MSG("PIDs: Kp: %.03f Ki: %.03f Kd: %.03f delta: %.03f\n", Kp, Ki, Kd, pidDelta);
+  DEBUG_MSG("PIDs: Kp: %.03f Ki: %.03f Kd: %.03f delta: %.03f\n", ids2Kp, ids2Ki, ids2Kd, pidDelta);
 
   DEBUG_MSG("%s\n", "------ loadConfig finished ------");
 
@@ -271,12 +271,12 @@ bool saveConfig()
   JsonArray pidArray = doc.createNestedArray("pid");
   JsonObject pidObj = pidArray.createNestedObject();
 
-  pidObj["kp"] = Kp;
-  pidObj["ki"] = Ki;
-  pidObj["kd"] = Kd;
+  pidObj["kp"] = ids2Kp;
+  pidObj["ki"] = ids2Ki;
+  pidObj["kd"] = ids2Kd;
   pidObj["piddelta"] = (int(pidDelta * 100)) / 100.0;
 
-  DEBUG_MSG("PIDs: Kp: %.03f Ki: %.03f Kd: %.03f pidDelta: %.01f autoTune: %d Setpoint: %.01f\n", Kp, Ki, Kd, pidDelta, autoTune, Setpoint);
+  DEBUG_MSG("PIDs: Kp: %.03f Ki: %.03f Kd: %.03f pidDelta: %.01f autoTune: %d Setpoint: %.01f\n", ids2Kp, ids2Ki, ids2Kd, pidDelta, autoTune, ids2Setpoint);
 
   size_t len = measureJson(doc);
   int memoryUsed = doc.memoryUsage();

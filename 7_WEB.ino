@@ -237,10 +237,10 @@ void handleRequestMisc()
   //   alertState = false;
   doc["pidmode"] = pidMode;
   doc["autotune"] = autoTune;
-  doc["setpoint"] = int(Setpoint);
-  doc["kp"] = Kp;
-  doc["ki"] = Ki;
-  doc["kd"] = Kd;
+  doc["Setpoint"] = int(ids2Setpoint);
+  doc["kp"] = ids2Kp;
+  doc["ki"] = ids2Ki;
+  doc["kd"] = ids2Kd;
   doc["piddelta"] = pidDelta;
 
   String response;
@@ -392,24 +392,24 @@ void handleSetMisc()
     {
       autoTune = checkBool(server.arg(i));
     }
-    if (server.argName(i) == "setpoint")
+    if (server.argName(i) == "ids2Setpoint")
     {
       if (isValidInt(server.arg(i)))
       {
-        Setpoint = server.arg(i).toInt();
+        ids2Setpoint = server.arg(i).toInt();
       }
     }
     if (server.argName(i) == "kp")
     {
-      Kp = formatDOT(server.arg(i));
+      ids2Kp = formatDOT(server.arg(i));
     }
     if (server.argName(i) == "ki")
     {
-      Ki = formatDOT(server.arg(i));
+      ids2Ki = formatDOT(server.arg(i));
     }
     if (server.argName(i) == "kd")
     {
-      Kd = formatDOT(server.arg(i));
+      ids2Kd = formatDOT(server.arg(i));
     }
     if (server.argName(i) == "piddelta")
     {
@@ -593,7 +593,7 @@ void handleBtnPower()
         {
           startAutoTune();
           statePower = true;
-          DEBUG_MSG("WEB: PowerButton on autoTune: %d Setpoint: %.01f\n", autoTune, Setpoint);
+          DEBUG_MSG("WEB: PowerButton on autoTune: %d ids2Setpoint: %.01f\n", autoTune, ids2Setpoint);
         }
         else
         {
@@ -601,9 +601,9 @@ void handleBtnPower()
           actMashStep = 0;
           pidMode = true;
 
-          ggmPID.SetTunings(Kp, Ki, Kd, PID::P_On::Error);
-          ggmPID.SetOutputLimits(0, 100);
-          ggmPID.SetSampleTime(RUN_PID);
+          ids2PID.SetTunings(ids2Kp, ids2Ki, ids2Kd, PID::P_On::Error);
+          ids2PID.SetOutputLimits(0, 100);
+          ids2PID.SetSampleTime(RUN_PID);
           // turn the PID on
           resetPID();
 
@@ -616,8 +616,8 @@ void handleBtnPower()
 
           if (structPlan[actMashStep].duration > 0)
           {
-            Setpoint = structPlan[actMashStep].temp;
-            ggmPID.Start(ggmInput, 0, Setpoint);
+            ids2Setpoint = structPlan[actMashStep].temp;
+            ids2PID.Start(ids2Input, 0, ids2Setpoint);
             inductionCooker.inductionNewPower(0);
             TickerMash.stop(); // stop mash ticker and configure temp and duration
             TickerMash.config(tickerMashCallback, structPlan[actMashStep].duration * 60 * 1000, 1);
@@ -655,8 +655,8 @@ void handleBtnPower()
           statePause = false;
           statePlay = false;
           actMashStep = 0;
-          Setpoint = 0.0;
-          ggmPID.Start(ggmInput, 0, Setpoint);
+          ids2Setpoint = 0.0;
+          ids2PID.Start(ids2Input, 0, ids2Setpoint);
 
           if (!mqttoff)
             TickerPUBSUB.start();
@@ -682,33 +682,33 @@ void handleBtnPlay()
   // Änderung play
   // if (pidMode && statePower && !statePause)
   // {
-  //   DEBUG_MSG("WEB: Play Button Setpoint: %.02f ggmInput: %.02f\n", Setpoint, ggmInput);
+  //   DEBUG_MSG("WEB: Play Button ids2Setpoint: %.02f ids2Input: %.02f\n", ids2Setpoint, ids2Input);
   //   TickerMash.start();
   // }
 
   // Änderung play
   if (pidMode && statePower && !statePause && !statePlay && TickerMash.state() == STOPPED)
   {
-    DEBUG_MSG("WEB: Play Button Setpoint: %.02f ggmInput: %.02f\n", Setpoint, ggmInput);
+    DEBUG_MSG("WEB: Play Button ids2Setpoint: %.02f ids2Input: %.02f\n", ids2Setpoint, ids2Input);
     TickerMash.start();
   }
   if (TickerMash.state() == STOPPED && actMashStep > 0) // check for last step autonext false?
   {
     if (!structPlan[actMashStep - 1].autonext && statePlay)
     {
-      DEBUG_MSG("WEB: PlayButton1 Setpoint: %.02f ggmInput: %.02f\n", Setpoint, ggmInput);
-      Setpoint = structPlan[actMashStep].temp;
-      ggmPID.Start(ggmInput, 0, Setpoint);
+      DEBUG_MSG("WEB: PlayButton1 ids2Setpoint: %.02f ids2Input: %.02f\n", ids2Setpoint, ids2Input);
+      ids2Setpoint = structPlan[actMashStep].temp;
+      ids2PID.Start(ids2Input, 0, ids2Setpoint);
       // handleInduction(); -> Funktion geändert!
       statePlay = false;
     }
     else if (actMashStep > 0 && !statePlay)
     {
-      Setpoint = ggmInput;
-      ggmPID.Start(ggmInput, 0, Setpoint);
+      ids2Setpoint = ids2Input;
+      ids2PID.Start(ids2Input, 0, ids2Setpoint);
       // handleInduction(); -> Funktion geändert!
       statePlay = true;
-      DEBUG_MSG("WEB: PlayButton2 Setpoint: %.02f ggmInput: %.02f\n", Setpoint, ggmInput);
+      DEBUG_MSG("WEB: PlayButton2 ids2Setpoint: %.02f ids2Input: %.02f\n", ids2Setpoint, ids2Input);
     }
   }
   else if (TickerMash.state() == RUNNING && actMashStep > 0)
@@ -749,20 +749,20 @@ void handleBtnPause()
   // {
   //   if (!structPlan[actMashStep - 1].autonext && actMashStep > 0 && statePause)
   //   {
-  //     DEBUG_MSG("WEB: PauseButton1 Setpoint: %.02f ggmInput: %.02f\n", Setpoint, ggmInput);
-  //     Setpoint = structPlan[actMashStep].temp;
-  //     ggmPID.Start(ggmInput, 0, Setpoint);
+  //     DEBUG_MSG("WEB: PauseButton1 ids2Setpoint: %.02f ids2Input: %.02f\n", ids2Setpoint, ids2Input);
+  //     ids2Setpoint = structPlan[actMashStep].temp;
+  //     ids2PID.Start(ids2Input, 0, ids2Setpoint);
   //     // handleInduction();
 
   //     statePause = false; // set btn-primary
   //   }
   //   else if (actMashStep > 0 && !statePause)
   //   {
-  //     Setpoint = ggmInput;
-  //     ggmPID.Start(ggmInput, 0, Setpoint);
+  //     ids2Setpoint = ids2Input;
+  //     ids2PID.Start(ids2Input, 0, ids2Setpoint);
   //     // handleInduction();
   //     statePause = true;
-  //     DEBUG_MSG("WEB: PauseButton2 Setpoint: %.02f ggmInput: %.02f\n", Setpoint, ggmInput);
+  //     DEBUG_MSG("WEB: PauseButton2 ids2Setpoint: %.02f ids2Input: %.02f\n", ids2Setpoint, ids2Input);
   //   }
   // }
   server.send(201, "text/plain", "created");
@@ -778,7 +778,7 @@ void handleBtnNextStep()
 
   if (!structPlan[actMashStep].autonext && TickerMash.state() == PAUSED && TickerMash.counter() >= 1)
   {
-    if (actMashStep < maxSchritte)
+    if (actMashStep < maxActMashSteps)
       actMashStep++;
 
     DEBUG_MSG("WEB: handleBtnNextStep after autonext false aktMashStep: %d elapsed: %lu remaining: %lu counter: %d\n", actMashStep, TickerMash.elapsed(), TickerMash.remaining(), TickerMash.counter());
@@ -789,7 +789,7 @@ void handleBtnNextStep()
     return;
   }
 
-  if (actMashStep < maxSchritte)
+  if (actMashStep < maxActMashSteps)
     actMashStep++;
 
   if (structPlan[actMashStep].duration >= 0 || structPlan[actMashStep].temp > 0)
@@ -797,19 +797,19 @@ void handleBtnNextStep()
     DEBUG_MSG("WEB: handleBtnNextStep duration aktMashStep: %d elapsed: %lu remaining: %lu counter: %d\n", actMashStep, TickerMash.elapsed(), TickerMash.remaining(), TickerMash.counter());
     TickerMash.stop();
     TickerMash.config(tickerMashCallback, structPlan[actMashStep].duration * 60 * 1000, 1);
-    Setpoint = structPlan[actMashStep].temp;
-    inductionCooker.inductionNewPower(int(ggmOutput));
+    ids2Setpoint = structPlan[actMashStep].temp;
+    inductionCooker.inductionNewPower(int(ids2Output));
     // handleInduction();
     TickerInd.updatenow();
-    ggmPID.Start(ggmInput, ggmOutput, Setpoint);
+    ids2PID.Start(ids2Input, ids2Output, ids2Setpoint);
   }
   else // last mash step finished
   {
     statePower = false;
     pidMode = false;
     actMashStep = 0;
-    Setpoint = 0.0;
-    ggmPID.Start(ggmInput, 0, Setpoint);
+    ids2Setpoint = 0.0;
+    ids2PID.Start(ids2Input, 0, ids2Setpoint);
     TickerMash.stop();
     TickerPID.stop();
     inductionCooker.inductionNewPower(0);

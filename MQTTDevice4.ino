@@ -54,7 +54,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.30b"
+#define Version "4.30c"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -148,7 +148,6 @@ EventManager gEM; //  Eventmanager Objekt Queues
 #define EM_MQTTCON 27
 #define EM_MQTTSUB 28
 #define EM_SETNTP 29
-#define PID_COMPUTE 34
 #define EM_LOG 35
 
 
@@ -339,14 +338,14 @@ bool mqttBuzzer = false;   // MQTTBuzzer
 #define PID_UPDATE 3000     // checkTemp and send newPower
 #define RUN_PID 1000        // PID SetSampleTime
 
-float Kp = 2, Ki = 5, Kd = 1;
-float ggmInput, ggmOutput, Setpoint;
+float ids2Kp = 2, ids2Ki = 5, ids2Kd = 1;
+float ids2Input, ids2Output, ids2Setpoint;
 
 
-// PID_v2 ggmPID(Kp, Ki, Kd, PID::Direct);
+// PID_v2 ids2PID(Kp, Ki, Kd, PID::Direct);
 //PID::P_On::Measurement
-//PID_v2 ggmPID(&ggmInput, &ggmOutput, &Setpoint, Kp, Ki, Kd, PID::Direction::Direct);
-PID_v2 ggmPID(Kp, Ki, Kd, PID::Direction::Direct);
+//PID_v2 ids2PID(&ids2Input, &ids2Output, &Setpoint, Kp, Ki, Kd, PID::Direction::Direct);
+PID_v2 ids2PID(ids2Kp, ids2Ki, ids2Kd, PID::Direction::Direct);
 
 // modes
 bool pidMode = false;
@@ -367,7 +366,7 @@ float outputStart = 0;
 float outputStep = 100;
 float tempLimit = 75;
 
-sTune tuner = sTune(&ggmInput, &ggmOutput, tuner.Mixed_PID, tuner.directIP, tuner.printOFF);
+sTune tuner = sTune(&ids2Input, &ids2Output, tuner.Mixed_PID, tuner.directIP, tuner.printOFF);
 // tuner.printDEBUG
 // tuner.printSUMMARY
 // tuner.direct5T
