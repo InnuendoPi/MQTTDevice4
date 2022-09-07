@@ -9,7 +9,7 @@ MQTTDevice4 is an Arduino sketch for the ESP8266 Wemos D1 mini modules. MQTTDevi
 *NEW*
 Brewing without CraftbeerPi as simpel as possible.
 
-![mash](img/mashplan_2.jpg)
+![mash](img/Mashplan_2.jpg)
 
 **What does this firmware offer?**
 
@@ -343,7 +343,7 @@ Sensor setting
 
 Brewing without CraftbeerPi as simpel as possible. This modes requires disabled MQTT. See misc settings.
 
-![mash](img/mashplan_2.jpg)
+![mash](img/Mashplan_2.jpg)
 
 Main features of this half automatic mash control are:
 

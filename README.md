@@ -8,7 +8,7 @@ MQTTDevice4 is an Arduino sketch for the ESP8266 Wemos D1 mini modules. This mak
 
 Brewing without CraftbeerPi as simpel as possible. *NEW*
 
-![mash](docs/img/mashplan_2.jpg)
+![mash](docs/img/Mashplan_2.jpg)
 
 ## MQTTDevice2 or MQTTDevice4?
 
