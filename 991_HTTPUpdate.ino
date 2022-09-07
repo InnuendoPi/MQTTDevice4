@@ -159,8 +159,11 @@ void updateTools()
             test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "jquery.min.js");
             test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "jquery.tabletojson.min.js");
         }
+
         LittleFS.remove("/updateTools.txt");
-        cbpiEventSystem(EM_REBOOT);
+        LittleFS.end();
+        Serial.print("*** SYSINFO: Update tools finished\n");
+        ESP.restart();
     }
 }
 void updateSys()
@@ -225,7 +228,8 @@ void startToolsUpdate()
         bool check = LittleFS.remove("/dev.txt");
         // url = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/";
     }
-    cbpiEventSystem(EM_REBOOT);
+    LittleFS.end(); // unmount LittleFS
+    ESP.restart();
 }
 
 void startHTTPUpdate()
@@ -261,7 +265,8 @@ void startHTTPUpdate()
         if (LittleFS.exists("/dev.txt"))
             bool check = LittleFS.remove("/dev.txt");
     }
-    cbpiEventSystem(EM_REBOOT);
+    LittleFS.end();
+    ESP.restart();
 }
 
 void update_progress(int cur, int total)
@@ -278,6 +283,7 @@ void update_finished()
 {
     Serial.println("*** SYSINFO:  Firmware Update beendet");
     LittleFS.remove("/updateSys.txt");
+    LittleFS.end();
 }
 
 void update_error(int err)

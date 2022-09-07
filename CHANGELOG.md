@@ -2,6 +2,7 @@
 
 Version 4.30d
 
+- Fixed:    Bug WebUpdate: Filesystem not closed
 - Added:    Import MQTTDevice mashplan format
 - Added:    Export mashplan to download file (json)
 - Added:    Reload button mashplan table
