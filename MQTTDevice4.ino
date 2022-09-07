@@ -54,7 +54,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.30c"
+#define Version "4.30d"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000

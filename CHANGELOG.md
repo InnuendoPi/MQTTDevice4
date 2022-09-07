@@ -1,7 +1,12 @@
 # Changelog
 
-Version 4.30c
+Version 4.30d
 
+- Added:    Import MQTTDevice mashplan format
+- Added:    Export mashplan to download file (json)
+- Added:    Reload button mashplan table
+- Added:    Mashplan table move row up/down
+- Fixed:    AutoTune starts only if IDS2 is enabled
 - Added:    Display output KettlePage while mqttoff is enabled
 - Added:    Display output BrewPage while mqttoff is enabled
 - Changed:  play button toggles to red, if waiting for autonext

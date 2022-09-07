@@ -508,6 +508,7 @@ void handleSetMash()
   {
     serializeJson(doc, mashFile);
     mashFile.close();
+    initMashPlan();
     readMash();
     server.send(201, "text/plain", "JSON successful");
     if (startBuzzer)
@@ -524,7 +525,7 @@ void handleSetMash()
 void handleRezeptUp()
 {
   // DEBUG_MSG("%s\n", "Rezept Import gestartet");
-  int typeRezept = 0;
+  int typeRezept = -1;
   HTTPUpload &upload = server.upload();
   if (upload.status == UPLOAD_FILE_START)
   {
@@ -562,21 +563,43 @@ void handleRezeptUp()
           sendAlarm(ALARM_ERROR);
         return;
       }
-      if (testDoc.containsKey("Global")) // Datenbankversion KBH2
-        typeRezept = 1;
-      else
-        typeRezept = 2;
 
+      if (testDoc.containsKey("Global")) // Datenbankversion KBH2
+      {
+        typeRezept = 1;
+      }
+      else
+      {
+        JsonArray testArray = testDoc.as<JsonArray>();
+        JsonObject testObj = testArray[0];
+        if (testObj.containsKey("autonext")) // MQTTDevice
+          typeRezept = 0;
+        else if (testObj.containsKey("Sorte")) // MMum
+          typeRezept = 2;
+      }
       server.send(201, "text/plain", "Upload successful");
     }
     else
     {
       server.send(500, "text/plain", "500: couldn't create file");
     }
-    if (typeRezept == 1)
+
+    if (typeRezept == 0)
+    {
+      bool check = false;
+      if (LittleFS.exists("/mashplan.json"))
+        check = LittleFS.remove("/mashplan.json");
+
+      check = LittleFS.rename("/upRezept.json", "/mashplan.json");
+      initMashPlan();
+      readMash();
+      return;
+    }
+    else if (typeRezept == 1)
       BtnImportKBH2();
     else if (typeRezept == 2)
       BtnImportMMUM();
+
     LittleFS.remove("/upRezept.json");
   }
 }

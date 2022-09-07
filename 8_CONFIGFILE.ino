@@ -164,10 +164,6 @@ void saveConfigCallback()
     // saveConfig();
     shouldSaveConfig = true;
   }
-  // else
-  // {
-  //   Serial.println("*** SYSINFO: WiFiManager failed to save MQTT broker IP");
-  // }
 }
 
 bool saveConfig()

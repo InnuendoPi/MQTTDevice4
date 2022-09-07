@@ -60,6 +60,12 @@
 .icon-fire:before {
   content: "\f06d";
 }
+.icon-chevron-up:before {
+  content: "\f077";
+}
+.icon-chevron-down:before {
+  content: "\f078";
+}
 .icon-cogs:before {
   content: "\f085";
 }
@@ -68,6 +74,9 @@
 }
 .icon-bullseye:before {
   content: "\f140";
+}
+.icon-database:before {
+  content: "\f1c0";
 }
 .icon-thermometer-three-quarters:before {
   content: "\f2c8";
