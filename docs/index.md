@@ -11,6 +11,8 @@ Brewing without CraftbeerPi as simpel as possible.
 
 ![mash](img/Mashplan_2.jpg)
 
+An easy but reliable PID based mash controller without the hassle of setting up, configuring and updating a raspberrypi for CBPi4.
+
 **What does this firmware offer?**
 
 * A configuration web interface (WebIf)
