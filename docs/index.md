@@ -6,6 +6,11 @@ MQTTDevice4 is an Arduino sketch for the ESP8266 Wemos D1 mini modules. MQTTDevi
 
 ![Startseite](img/startseite.jpg)
 
+*NEW*
+Brewing without CraftbeerPi as simpel as possible.
+
+![mash](img/mashplan_2.jpg)
+
 **What does this firmware offer?**
 
 * A configuration web interface (WebIf)
@@ -321,7 +326,50 @@ Sensor setting
 
 4. PIDmanager
 
-    Configuration page P I D controller. For best results autoTune should find optimale PID values. Requires disabled mqtt.
+    PID controller configuration page. For best results autoTune should find optimale PID values Kp, Ki and Kd. Keep in mind: brewing without CBPi requires MQTT disabled (see MQTTsettings!).
+    Run Autotune only with a normale average amount of water in your kettle. The value AutoTune setpoint is a target temperature. AutoTune setpointshould be minimum 10 better 20 degrees above actual water temperature in your kettle. If done enable chekcbox "Start PID autotune now". Switch to webpage mash and press the power button. Autotune takes aprox 5min. PID values are saved automatically.
+
+    ![misc](img/pidmanager.jpg)
+
+    Temperature delta to target is a defined gap beetween measured temperature and mash step target temperature. Within this gap next mash step will start. The main taks of this parameter is to shorten the delay due to PID calculations in the last tenth of degrees before reaching target (slope of the temperature graph flats down).
+    Example:
+    Target temperature: 64°C
+    Temperature delta to target: 0.3
+    Mash step will be started, when measured temperature reaches 63.7°C
+
+---
+
+## Brewing without CBPi
+
+Brewing without CraftbeerPi as simpel as possible. This modes requires disabled MQTT. See misc settings.
+
+![mash](img/mashplan_2.jpg)
+
+Main features of this half automatic mash control are:
+
+* Import recipes from kbh2, MMum and MQTTDevice files
+* Export mash scheme to file download
+
+Table mash scheme:
+
+* column name: mash step name
+* column temperature: define the mash step target temprature
+* column duratiuon: define the mash step timer
+* column autonext: define start next mash step automatically when timer ends
+* edit mash scheme in a table. Each line is a mash step
+* column actions: add, edit or delete a mash step eg. a line
+* column actions: move a mash step up or down
+
+Buttons:
+
+* Power: On / Off brewing
+* Play: starts the timer regardless the gap between measured and target temperature
+* Play: will change to red, when autonext is disabled. While waiting on click GGM IDS2 turns off.
+* Pause: will change to red, when mash step is paused. While pausing actual temperature is kept.
+* Skip forward: skip to next mash step
+
+actors:
+Configured actors are listed with a simple on/off button.
 
 ---
 

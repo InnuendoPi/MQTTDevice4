@@ -6,6 +6,10 @@ MQTTDevice4 is an Arduino sketch for the ESP8266 Wemos D1 mini modules. This mak
 
 ![Startseite](docs/img/startseite.jpg)
 
+Brewing without CraftbeerPi as simpel as possible. *NEW*
+
+![mash](docs/img/mashplan_2.jpg)
+
 ## MQTTDevice2 or MQTTDevice4?
 
 MQTTDevice2 (firmware versions 2.5x and earlier) was developed using CraftbeerPi version 3. MQTTDevice4 (firmware version 4.x and above) is CraftbeerPi 4 optimzed.
