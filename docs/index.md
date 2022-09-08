@@ -190,6 +190,10 @@ The firmware offers two options for installing updates very easily.
 
 The WebUpdate can take a few minutes, depending on your internet connection. The web interface is not available during the web update. If only a very slow internet connection is available, the message "Browser not responding" is displayed after approx. 60 seconds. Please wait and let the WebUpdate run through.
 
+WebUpdate Changed
+
+Version 4.30 and up WebUpdate is divided into firmware and tools update. In most cases only firmware update is needed. CSS, fonts and js files are updated via tools.
+
 **Backup and Restore:**
 
 The file explorer can be reached via the web browser <http://mqttdevice/edit>
@@ -329,7 +333,7 @@ Sensor setting
 4. PIDmanager
 
     PID controller configuration page. For best results autoTune should find optimale PID values Kp, Ki and Kd. Keep in mind: brewing without CBPi requires MQTT disabled (see MQTTsettings!).
-    Run Autotune only with a normale average amount of water in your kettle. The value AutoTune setpoint is a target temperature. AutoTune setpointshould be minimum 10 better 20 degrees above actual water temperature in your kettle. If done enable chekcbox "Start PID autotune now". Switch to webpage mash and press the power button. Autotune takes aprox 5min. PID values are saved automatically.
+    Run Autotune only with a normale average amount of water in your kettle. The value AutoTune setpoint is a target temperature. AutoTune setpointshould be minimum 10 better 20 degrees above actual water temperature in your kettle. If done enable chekcbox "Start PID autotune now". Switch to webpage mash and press the power button. Autotune takes approx 5min. PID values are saved automatically.
 
     ![misc](img/pidmanager.jpg)
 

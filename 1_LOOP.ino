@@ -6,7 +6,6 @@ void loop()
   {
     if (!mqttoff)
       TickerPUBSUB.update(); // Check MQTT PubSubClient
-    // cbpiEventSystem(EM_MQTT); // Check MQTT
 
     if (startMDNS) // MDNS handle
       mdns.update();

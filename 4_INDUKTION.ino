@@ -515,22 +515,17 @@ void handleRequestInduction()
     char buf[21];
     if (runHours > 0)
       runMinutes += runHours * 60;
-    //   sprintf(buf, "%02d:%02d:%02d", runHours, runMinutes, runSeconds);
-    // else
     sprintf(buf, "%02d:%02d", runMinutes, runSeconds);
     doc["timer"] = buf;
-    // Serial.println(buf);
   }
   else if (TickerMash.state() == STOPPED)
   {
-    // if (!structPlan[actMashStep - 1].autonext && actMashStep > 0 && statePause) // check for last step autonext false?
-    if (actMashStep > 0 && statePause) // check for last step autonext false?
+    if (actMashStep > 0 && statePause)
     {
       doc["timer"] = "pause to continue";
     }
     else
     {
-      // doc["timer"] = structPlan[actMashStep].duration;
       unsigned long allSeconds = structPlan[actMashStep].duration * 60;
       int runHours = allSeconds / 3600;
       int secsRemaining = allSeconds % 3600;
@@ -539,8 +534,6 @@ void handleRequestInduction()
       char buf[21];
       if (runHours > 0)
         runMinutes += runHours * 60;
-      //   sprintf(buf, "%02d:%02d:%02d", runHours, runMinutes, runSeconds);
-      // else
       sprintf(buf, "%02d:%02d", runMinutes, runSeconds);
       doc["timer"] = buf;
     }
