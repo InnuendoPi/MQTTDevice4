@@ -15,7 +15,7 @@ public:
   bool switchable;              // actors switchable on error events?
   bool isOnBeforeError = false; // isOn status before error event
   bool actor_state = true;      // Error state actor
-
+  
   // MQTT Publish
   char actor_mqtttopic[50]; // Für MQTT Kommunikation
 
@@ -26,6 +26,14 @@ public:
 
   void Update()
   {
+    int type = pinType(pin_actor);
+    int pcf_actor = type - GPIOPINS;
+
+    // GPIO 0-16 Wemos PINs
+    // GPIO 17-25 PCF PINs -> pin_actor to pcf_actor transform
+    // ACT ON Update isPin 1 pin_actor 17 pcf_actor 0 pinType 9 power 100  -> D9 => P0
+    // ACT ON Update isPin 1 pin_actor 18 pcf_actor 1 pinType 10 power 100 -> D10 => P1
+    
     if (isPin(pin_actor))
     {
       if (isOn && power_actor > 0)
@@ -36,16 +44,29 @@ public:
         }
         if (millis() > powerLast + (dutycycle_actor * power_actor / 100L))
         {
-          digitalWrite(pin_actor, OFF);
+          if (type != -100 && type < 9)
+            digitalWrite(pin_actor, OFF);
+          else if (type >= 9)
+          {
+            pcf8574.write(pcf_actor, OFF);
+            // DEBUG_MSG("ACT PCF OFF Update isPin %d actor id %d pinType %d power %d\n", isPin(pin_actor), pin_actor, pinType(pin_actor), power_actor);
+          }
         }
         else
         {
-          digitalWrite(pin_actor, ON);
+          if (type != -100 && type < 9)
+            digitalWrite(pin_actor, ON);
+          else if (type >= 9)
+            pcf8574.write(pcf_actor, ON);
+          // DEBUG_MSG("ACT ON Update isPin %d pin_actor %d pcf_actor %d pinType %d power %d\n", isPin(pin_actor), pin_actor, pcf_actor, pinType(pin_actor), power_actor);
         }
       }
       else
       {
-        digitalWrite(pin_actor, OFF);
+        if (type != -100 && type < 9)
+          digitalWrite(pin_actor, OFF);
+        else if (type >= 9)
+          pcf8574.write(pcf_actor, OFF);
       }
     }
   }
@@ -53,18 +74,36 @@ public:
   void change(const String &pin, const String &argument, const String &aname, const bool &ainverted, const bool &aswitchable)
   {
     // Set PIN
+    int type = pinType(pin_actor);
+    int pcf_actor = type - GPIOPINS;
+
     if (isPin(pin_actor))
     {
-      digitalWrite(pin_actor, HIGH);
+      if (type != -100 && type < 9)
+        digitalWrite(pin_actor, HIGH);
+      else if (type >= 9) // PCF PIN
+        pcf8574.write(pcf_actor, HIGH);
+
       pins_used[pin_actor] = false;
       millis2wait(10);
     }
 
     pin_actor = StringToPin(pin);
+    
+    type = pinType(pin_actor);
+    pcf_actor = type - GPIOPINS;
+
     if (isPin(pin_actor))
     {
-      pinMode(pin_actor, OUTPUT);
-      digitalWrite(pin_actor, HIGH);
+      if (type != -100 && type < 9)
+      {
+        pinMode(pin_actor, OUTPUT);
+        digitalWrite(pin_actor, HIGH);
+      }
+      else if (type >= 9)
+      {
+        pcf8574.write(pcf_actor, HIGH);
+      }
       pins_used[pin_actor] = true;
     }
 
@@ -75,9 +114,6 @@ public:
       mqtt_unsubscribe();
       argument_actor = argument;
       mqtt_subscribe();
-
-      // MQTT Publish
-      // argument.toCharArray(actor_mqtttopic, argument.length() + 1);
     }
     if (ainverted)
     {
@@ -96,26 +132,6 @@ public:
     isOnBeforeError = false;
   }
 
-  /* MQTT Publish
-  void publishmqtt() {
-    if (client.connected()) {
-      StaticJsonDocument<256> doc;
-      JsonObject actorObj = doc.createNestedObject("Actor");
-      if (isOn) {
-        doc["State"] = "on";
-        doc["power"] = String(power_actor);
-      }
-      else
-        doc["State"] = "off";
-
-      char jsonMessage[100];
-      serializeJson(doc, jsonMessage);
-      char new_argument_actor[50];
-      new_argument_actor.toCharArray(argument_actor, new_argument_actor.length() + 1);
-      client.publish(new_argument_actor, jsonMessage);
-    }
-  }
-  */
   void mqtt_subscribe()
   {
     if (pubsubClient.connected())
@@ -140,7 +156,7 @@ public:
 
   void handlemqtt(char *payload)
   {
-    StaticJsonDocument<256> doc;
+    DynamicJsonDocument doc(256);
     DeserializationError error = deserializeJson(doc, (const char *)payload);
     if (error)
     {
@@ -155,10 +171,13 @@ public:
     }
     if (doc["state"] == "on")
     {
-      int newpower = doc["power"];
       isOn = true;
-      power_actor = min(100, newpower);
-      power_actor = max(0, newpower);
+      int newPower = doc["power"];
+      if (newPower > 100)
+        newPower = 100; // Nicht > 100
+      if (newPower < 0)
+        newPower = 0; // Nicht < 0
+      power_actor = newPower;
       return;
     }
   }
@@ -166,6 +185,8 @@ public:
 
 // Initialisierung des Arrays max 8
 Actor actors[numberOfActorsMax] = {
+    Actor("", "", "", false, false),
+    Actor("", "", "", false, false),
     Actor("", "", "", false, false),
     Actor("", "", "", false, false),
     Actor("", "", "", false, false),
@@ -189,7 +210,7 @@ void handleActors()
 void handleRequestActors()
 {
   int id = server.arg(0).toInt();
-  StaticJsonDocument<1024> doc;
+  DynamicJsonDocument doc(1024);
   if (id == -1) // fetch all sensors
   {
     JsonArray actorsArray = doc.to<JsonArray>();
@@ -199,7 +220,7 @@ void handleRequestActors()
       JsonObject actorsObj = doc.createNestedObject();
 
       actorsObj["name"] = actors[i].name_actor;
-      actorsObj["status"] = actors[i].isOn;
+      actorsObj["ison"] = actors[i].isOn;
       actorsObj["power"] = actors[i].power_actor;
       actorsObj["mqtt"] = actors[i].argument_actor;
       actorsObj["pin"] = PinToString(actors[i].pin_actor);
@@ -345,9 +366,21 @@ bool isPin(unsigned char pinbyte)
     if (pins[i] == pinbyte)
     {
       returnValue = true;
-      goto Ende;
+      break;
     }
   }
-Ende:
   return returnValue;
+}
+
+int pinType(unsigned char pinbyte)
+{
+  for (int i = 0; i < numberOfPins; i++)
+  {
+    if (pins[i] == pinbyte)
+    {
+      return i;
+      break;
+    }
+  }
+  return -100;
 }

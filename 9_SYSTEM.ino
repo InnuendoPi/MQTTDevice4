@@ -20,6 +20,7 @@ void micros2wait(const int &value)
 // Prüfe WebIf Eingaben
 float formatDOT(String str)
 {
+  str.trim();
   str.replace(',', '.');
   if (isValidFloat(str))
     return str.toFloat();
@@ -102,6 +103,7 @@ void setTicker()
   // Ticker Objekte
   TickerSen.config(tickerSenCallback, SEN_UPDATE, 0);
   TickerInd.config(tickerIndCallback, IND_UPDATE, 0);
+  TickerHlt.config(tickerHltCallback, HLT_UPDATE, 0);
   TickerMQTT.config(tickerMQTTCallback, tickerMQTT, 0);
   TickerPUBSUB.config(tickerPUBSUBCallback, tickerPUSUB, 0);
   TickerWLAN.config(tickerWLANCallback, tickerWLAN, 0);
@@ -109,6 +111,7 @@ void setTicker()
   TickerDisp.config(tickerDispCallback, DISP_UPDATE, 0);
   TickerMash.config(tickerMashCallback, MASH_UPDATE, 1);
   TickerPID.config(tickerPIDCallback, PID_UPDATE, 0);
+  TickerHltPID.config(tickerHltPIDCallback, PID_UPDATE, 0);
   TickerMQTT.stop();
   TickerWLAN.stop();
   TickerMash.stop();

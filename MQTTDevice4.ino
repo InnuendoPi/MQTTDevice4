@@ -39,6 +39,7 @@
 #include <FS.h>
 #include <PID_v2.h>
 #include <sTune.h>
+#include <PCF8574.h>
 
 extern "C"
 {
@@ -54,7 +55,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.30"
+#define Version "4.31"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -68,6 +69,9 @@ extern "C"
 #define ONE_WIRE_BUS D3
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature DS18B20(&oneWire);
+
+// I2C Port expander
+PCF8574 pcf8574(0x20);
 
 // WiFi und MQTT
 ESP8266WebServer server(80);
@@ -98,10 +102,31 @@ int CMD[6][33] = {
     {1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0}}; // P5
 unsigned char PWR_STEPS[6] = {0, 20, 40, 60, 80, 100};                                                     // Prozentuale Abstufung zwischen den Stufen
 
-bool pins_used[17];
-const unsigned char numberOfPins = 9;
-const unsigned char pins[numberOfPins] = {D0, D1, D2, D3, D4, D5, D6, D7, D8};
-const String pin_names[numberOfPins] = {"D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8"};
+bool useI2C = false;
+// bool pins_used[17]; // GPIO
+// const unsigned char numberOfPins = 9;
+// const unsigned char pins[numberOfPins] = {D0, D1, D2, D3, D4, D5, D6, D7, D8};
+// const String pin_names[numberOfPins] = {"D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8"};
+
+// bool ppins_used[8]; // GPIO
+// const unsigned char pnumberOfPins = 8;
+// const unsigned char ppins[pnumberOfPins] = {P0, P1, P2, P3, P4, P5, P6, P7};
+// const String ppin_names[pnumberOfPins] = {"P0", "P1", "P2", "P3", "P4", "P5", "P6", "P7"};
+#define D9 17
+#define D10 18
+#define D11 19
+#define D12 20
+#define D13 21
+#define D14 22
+#define D15 23
+#define D16 24
+#define ALLPINS 17
+#define GPIOPINS 9
+#define PCFPINS 8
+bool pins_used[25]; // GPIO
+unsigned char numberOfPins = ALLPINS;
+const unsigned char pins[ALLPINS] = {D0, D1, D2, D3, D4, D5, D6, D7, D8, D9, D10, D11, D12, D13, D14, D15, D16};
+const String pin_names[ALLPINS] = {"D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9*", "D10*", "D11*", "D12*", "D13*", "D14*", "D15*", "D16*"};
 
 // Variablen
 unsigned char numberOfSensors = 0; // Gesamtzahl der Sensoren
@@ -109,7 +134,7 @@ unsigned char numberOfSensors = 0; // Gesamtzahl der Sensoren
 unsigned char addressesFound[numberOfSensorsMax][8];
 unsigned char numberOfSensorsFound = 0;
 unsigned char numberOfActors = 0; // Gesamtzahl der Aktoren
-#define numberOfActorsMax 8       // Maximale Anzahl an Aktoren
+#define numberOfActorsMax 10       // Maximale Anzahl an Aktoren
 #define maxHostSign 15
 #define maxUserSign 10
 #define maxPassSign 10
@@ -184,6 +209,7 @@ unsigned long wait_on_Sensor_error_induction = 120000; // How long should induct
 // Ticker Objekte
 InnuTicker TickerSen;
 InnuTicker TickerInd;
+InnuTicker TickerHlt;
 InnuTicker TickerMQTT;
 InnuTicker TickerPUBSUB;
 InnuTicker TickerWLAN;
@@ -191,11 +217,13 @@ InnuTicker TickerNTP;
 InnuTicker TickerDisp;
 InnuTicker TickerMash;
 InnuTicker TickerPID;
+InnuTicker TickerHltPID;
 
 // Update Intervalle für Ticker Objekte
 int SEN_UPDATE = 4000; //  sensors update
 int IND_UPDATE = 2000; //  sensors update
-int DISP_UPDATE = 2000;
+#define HLT_UPDATE 2000 //  sensors update
+#define DISP_UPDATE 1000
 
 // Systemstart
 bool startMDNS = true; // Standard mDNS Name ist ESP8266- mit mqtt_chip_key
@@ -208,6 +236,7 @@ unsigned long lastSenInd = 0; // Timestamp induction on sensor error
 int sensorsStatus = 0;
 int actorsStatus = 0;
 int inductionStatus = 0;
+int hltStatus = 0;
 
 // FSBrowser
 File fsUploadFile; // a File object to temporarily store the received file
@@ -227,8 +256,8 @@ enum { MSG_OK, CUSTOM, NOT_FOUND, BAD_REQUEST, ERROR };
 #define maxTempSign 10
 
 bool useDisplay = false;
-int startPage = 1;      // Startseite: BrewPage = 0 Kettlepage = 1
-int activePage = 1;     // die aktuell angeziegte Seite
+int startPage = 0;      // Startseite: BrewPage = 0 Kettlepage = 1 InductionPage = 2
+int activePage = 0;     // die aktuell angezeigte Seite
 
 const unsigned char numberOfPages = 3;
 const String page_names[numberOfPages] = {"BrewPage", "KettlePage", "InductionPage"};
@@ -277,14 +306,20 @@ char notify[maxNotifySign]; //= "Waiting for data - start brewing";
 int sliderval = 0;
 char uhrzeit[6] ="00:00";
 
-SoftwareSerial softSerial(D1, D2);
+// SoftwareSerial softSerial(D1, D2);
+SoftwareSerial softSerial;
 NextionComPort nextion;
-NextionComponent p0kettleButton(nextion, 0, 19);
-NextionComponent p0indButton(nextion, 0, 21);
-NextionComponent p1indButton(nextion, 1, 9);
-NextionComponent p1brewButton(nextion, 1, 7);
-NextionComponent p2brewButton(nextion, 2, 10);
-NextionComponent p2kettleButton(nextion, 2, 2);
+
+// Steuerung Buttons
+NextionComponent page0(nextion, 0, 0);
+NextionComponent p0ForButton(nextion, 0, 19);
+NextionComponent p0BackButton(nextion, 0, 21);
+
+NextionComponent p1ForButton(nextion, 1, 9);
+NextionComponent p1BackButton(nextion, 1, 7);
+
+NextionComponent p2ForButton(nextion, 2, 10);
+NextionComponent p2BackButton(nextion, 2, 2);
 
 // BrewPage
 NextionComponent uhrzeit_text(nextion, 0, 10);
@@ -304,7 +339,7 @@ NextionComponent kettleSoll3_text(nextion, 0, 17);
 NextionComponent kettleName4_text(nextion, 0, 4);
 NextionComponent kettleIst4_text(nextion, 0, 14);
 NextionComponent kettleSoll4_text(nextion, 0, 18);
-NextionComponent slider(nextion, 0, 9);
+NextionComponent progress(nextion, 0, 9);
 NextionComponent mqttDevice(nextion, 0, 20);
 NextionComponent notification(nextion, 0, 22);
 // KettlePage
@@ -313,7 +348,7 @@ NextionComponent p1current_text(nextion, 1, 4);
 NextionComponent p1remain_text(nextion, 1, 5);
 NextionComponent p1temp_text(nextion, 1, 1);
 NextionComponent p1target_text(nextion, 1, 2);
-NextionComponent p1slider(nextion, 1, 6);
+NextionComponent p1progress(nextion, 1, 6);
 NextionComponent p1mqttDevice(nextion, 1, 8);
 NextionComponent p1notification(nextion, 1, 10);
 // InductionPage
@@ -339,17 +374,21 @@ bool mqttBuzzer = false;   // MQTTBuzzer
 #define RUN_PID 1000        // PID SetSampleTime
 
 float ids2Kp = 2, ids2Ki = 5, ids2Kd = 1;
-float ids2Input, ids2Output, ids2Setpoint;
+float ids2Input = 0, ids2Output = 0, ids2Setpoint = 0;
 
+float hltKp = 2, hltKi = 5, hltKd = 1;
+float hltInput = 0, hltOutput = 0, hltSetpoint = 78;
 
 // PID_v2 ids2PID(Kp, Ki, Kd, PID::Direct);
 //PID::P_On::Measurement
 //PID_v2 ids2PID(&ids2Input, &ids2Output, &Setpoint, Kp, Ki, Kd, PID::Direction::Direct);
 PID_v2 ids2PID(ids2Kp, ids2Ki, ids2Kd, PID::Direction::Direct);
+PID_v2 hltPID(hltKp, hltKi, hltKd, PID::Direction::Direct);
 
 // modes
 bool pidMode = false;
-bool autoTune = false;
+bool ids2AutoTune = false;
+bool hltAutoTune = false;
 // button states
 bool statePower = false;
 bool statePause = false;
@@ -367,6 +406,8 @@ float outputStep = 100;
 float tempLimit = 75;
 
 sTune tuner = sTune(&ids2Input, &ids2Output, tuner.Mixed_PID, tuner.directIP, tuner.printOFF);
+sTune hltTuner = sTune(&hltInput, &hltOutput, tuner.Mixed_PID, tuner.directIP, tuner.printOFF);
+
 // tuner.printDEBUG
 // tuner.printSUMMARY
 // tuner.direct5T

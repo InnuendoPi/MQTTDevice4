@@ -347,7 +347,7 @@ Sensor setting
 
 ## Brewing without CBPi
 
-Brewing without CraftbeerPi as simpel as possible. This modes requires disabled MQTT. See misc settings.
+Brewing without CraftbeerPi as simpel as possible. This modes requires disabled MQTT (misc settings)
 
 ![mash](img/Mashplan_2.jpg)
 
@@ -374,8 +374,18 @@ Buttons:
 * Pause: will change to red, when mash step is paused. While pausing actual temperature is kept.
 * Skip forward: skip to next mash step
 
+Hot liquid tank
+
+Version 4.31 an up a new object HLT was implemented. HLT or sparge water can be configured like an actor plus PID control settings. Use autotune to get best results. On webpage mash HLT is displayed in a single row table behind. Use the edit pencil to set target temperature.
+
 actors:
 Configured actors are listed with a simple on/off button.
+
+There are some limitations in brew without CBPi mode:
+
+1. the first configured sensor is reserved for the mash tune (no config options yet)
+2. the second configured sensor should be used for HLT (config option availible)
+3. In an environment without a mash tune the first sensor can be used for HLT
 
 ---
 
@@ -510,21 +520,21 @@ When selecting LevelShifter (Logic Level Converter), the assignment must be obse
 
 The resistor R 4.7kOhm for the temperature sensors DS18B20 is placed under the Wemos D1 mini. Therefore the Wemos has to be socketed. The sockets also offer the advantage that the Wemos can be removed from the circuit board at any time, e.g. for flashing or testing. The DS18B20 are supplied with 5V at VCC. This ensures a stable supply even with longer supply lines. The resistance is from Data (PIN D3) to 3V3. The JST-HX socket and the J4 jumper for the induction hob are optional.
 
-## Connection of induction hob
+## Connecting MQTTDevice to induction GGM IDS2
 
 *The following description deletes the guarantee claims for the induction hob*
 *Use this manual at your own risk*
 
-The GGM IDS2 induction hob can **optionally** be connected to the circuit board. The GGM IDS2 is supplied with an external control unit. When the control panel is opened, the cable connection from the control panel to the induction hob can be removed. All you have to do is pull the cable out of the socket in the control panel.
-The exact same socket (JST-HX) is located on the MQTTDevice board.
+The GGM IDS2 induction hob can be connected to the circuit board. The GGM IDS2 is supplied with an external control unit. When the control panel is opened, the cable connection from the control panel to the induction hob can be removed. All you have to do is pull the cable out of the socket in the control panel.
+The same socket (JST-HX) is located on the MQTTDevice board. This makes the electrical connection very easy.
 
-The connections must be configured via the web interface as follows:
+The connections must be configured via the web interface:
 
-* White (relay) is permanently connected to PIN D7
-* Yellow (Command Channel) is permanently connected to pin D6
-* Blue (back channel) is permanently connected to pin D5
+* PIN White (relay) connected to PIN D7 (Interrupt!)
+* PIN Yellow (Command Channel) connected to pin D6
+* PIN Blue (back channel) connected to pin D5
 
-A separate power supply is not required for the MQTT device when using the GGM IDS2.
+A separate power supply is not required for the MQTT device when using the GGM IDS2. GPIOs D5, D6 and D7 are strongly recommended!
 
 ## Connecting sensors DS18B20
 
@@ -534,6 +544,78 @@ Temperature sensors of type DS18B20 with 3 connection cables (data, VCC and GND)
 
 In addition to a GPIO, relay boards require a 5V power supply. 5V can be tapped at one of the three connections for the temperature sensors DS18B20 at VCC and GND.
 
+## Advanced topics: too much actors or too few free PINs
+
+This topic is optional!
+MQTTDevice supports a PCF8574 I2C port expander. A PCF8574 shield offers 8 additional PINs. But there are some limitations:
+
+1. PCF8574 must be connected to D5 and D6 (fixed, no config options)
+    SDA D5
+    SCL D6
+2. If you are using a a PCF8574 shield and a GGM IDS2 you must connect PIN relay (White cable to GGM IDS2) to PIN D7 (Interrupt)
+3. PCF8574 address set to 0x20 (fixed, no config options)
+4. Starting with version 4.31 only one port expander shield is supported
+5. Due to limited memory (free heap) maximum number of actors is set to 10
+
+PCF8574 offers only some microampers at output pins. A suitable power supply must be used. Environment depending a second MQTTDevice may be a reliable solution.
+Only Output (ON/OFF) is supported. PCF8574 shields interrupt mode is not implemented.
+
+## Technical information
+
+Wemos D1 min GPIOs
+
+  0   D3                                      OK        OnewWire Dallas temp
+
+  1   TX        HIGH at boot  TX pin          (ok)
+
+  2   D4        HIGH at boot                  OK        Agitator, onboard LED
+
+  3   RX        HIGH at boot  (ok)            RX pin
+
+  4   D2        SCA           OK              OK        Display, the most safe GPIO to operate with relays
+
+  5   D1        SCL           OK              OK        Display, the most safe GPIO to operate with relays
+
+  6   -                                                 GPIO6 to GPIO11 connected to flash (not useable)
+
+  7   -
+
+  8   -
+
+  9   -
+
+  10  -
+
+  11  -
+
+  12  D6        SPI MISO      ok              ok        GGM IDS2 Commandchannel(yellow)     SDL PCF8574
+
+  13  D7        SPI MOSI      ok              ok        GGM IDS2 Relais(white)              digitalPinToInterrupt
+  
+  14  D5        SPI SCLK      ok              ok        GGM IDS2 Backchannel(blue)          SDA PCF8574
+
+  15  D8        SPI CS        -               (ok)      Buzzer
+
+  16  D0        HIGH at boot  No interrupt    No PWM    Pump
+  
+*** PCF Pins Shield PCF8574 I2C port expander
+
+  17  D9*
+
+  18  D10*
+
+  19  D11*
+
+  20  D12*
+
+  21  D13*
+
+  22  D14*
+
+  23  D15*
+
+  24  D16*
+  
 ---
 
 ## Case 3D print

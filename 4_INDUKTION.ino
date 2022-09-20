@@ -44,16 +44,27 @@ public:
   {
     if (isEnabled)
     {
+      int type = pinType(PIN_WHITE);
+      int pcf_pin = type - GPIOPINS;
       // aktuelle PINS deaktivieren
       if (isPin(PIN_WHITE))
       {
-        digitalWrite(PIN_WHITE, HIGH);
+        if (type != -100 && type < 9)
+          digitalWrite(PIN_WHITE, HIGH);
+        else
+          pcf8574.write(pcf_pin, HIGH);
         pins_used[PIN_WHITE] = false;
       }
 
+      type = pinType(PIN_YELLOW);
+      pcf_pin = type - GPIOPINS;
+
       if (isPin(PIN_YELLOW))
       {
-        digitalWrite(PIN_YELLOW, HIGH);
+        if (type != -100 && type < 9)
+          digitalWrite(PIN_YELLOW, HIGH);
+        else
+          pcf8574.write(pcf_pin, HIGH);
         pins_used[PIN_YELLOW] = false;
       }
 
@@ -77,33 +88,52 @@ public:
     delayAfteroff = delayoff;
     powerLevelOnError = powerLevel;
     induction_state = true;
-
-    // MQTT Publish
-    // mqtttopic.toCharArray(induction_mqtttopic, mqtttopic.length() + 1);
-
     isEnabled = is_enabled;
     if (isEnabled)
     {
+      int type = pinType(PIN_WHITE);
+      int pcf_pin = type - GPIOPINS;
       // neue PINS aktiveren
       if (isPin(PIN_WHITE))
       {
-        pinMode(PIN_WHITE, OUTPUT);
-        digitalWrite(PIN_WHITE, LOW);
+        if (type != -100 && type < 9)
+        {
+          pinMode(PIN_WHITE, OUTPUT);
+          digitalWrite(PIN_WHITE, HIGH);
+        }
+        else if (type >= 9)
+        {
+          pcf8574.write(pcf_pin, HIGH);
+        }
+
+        // pinMode(PIN_WHITE, OUTPUT);
+        // digitalWrite(PIN_WHITE, LOW);
         pins_used[PIN_WHITE] = true;
       }
 
+      type = pinType(PIN_YELLOW);
+      pcf_pin = type - GPIOPINS;
+
       if (isPin(PIN_YELLOW))
       {
-        pinMode(PIN_YELLOW, OUTPUT);
-        digitalWrite(PIN_YELLOW, LOW);
+        if (type != -100 && type < 9)
+        {
+          pinMode(PIN_YELLOW, OUTPUT);
+          digitalWrite(PIN_YELLOW, HIGH);
+        }
+        else if (type >= 9)
+        {
+          // pcf8574.pinMode(pcf_pin, OUTPUT);
+          pcf8574.write(pcf_pin, HIGH);
+        }
+        // pinMode(PIN_YELLOW, OUTPUT);
+        // digitalWrite(PIN_YELLOW, LOW);
         pins_used[PIN_YELLOW] = true;
       }
 
-      if (isPin(PIN_INTERRUPT))
+      if (isPin(PIN_INTERRUPT)) // D7
       {
         attachInterrupt(digitalPinToInterrupt(PIN_INTERRUPT), readInputWrap, CHANGE);
-
-        // pinMode(PIN_INTERRUPT, INPUT_PULLUP);
         pins_used[PIN_INTERRUPT] = true;
       }
       mqtt_subscribe();
@@ -135,31 +165,9 @@ public:
     }
   }
 
-  /*
-          // MQTT Publish
-          void publishmqtt() {
-            if (client.connected()) {
-              StaticJsonBuffer<256> jsonBuffer;
-              JsonObject& json = jsonBuffer.createObject();
-              if (isInduon) {
-                json["state"] = "on";
-                json["power"] = String(power);
-              }
-              else
-                json["state"] = "off";
-
-              char jsonMessage[100];
-              json.printTo(jsonMessage);
-              client.publish(induction_mqtttopic, jsonMessage);
-              DBG_PRINT("MQTT pub message: ");
-              DBG_PRINTLN(jsonMessage);
-            }
-          }
-    */
-
   void handlemqtt(char *payload)
   {
-    StaticJsonDocument<128> doc;
+    DynamicJsonDocument doc(128);
     DeserializationError error = deserializeJson(doc, (const char *)payload);
     if (error)
     {
@@ -197,14 +205,16 @@ public:
 
   void inductionNewPower(int value)
   {
-    if (value > 0)
-    {
-      newPower = value;
-    }
-    else
-    {
-      newPower = 0;
-    }
+    newPower = min(100, value);
+    newPower = max(0, newPower);
+    // if (value > 0)
+    // {
+    //   newPower = value;
+    // }
+    // else
+    // {
+    //   newPower = 0;
+    // }
   }
 
   void setupCommands()
@@ -227,9 +237,15 @@ public:
 
   bool updateRelay()
   {
+    int type = pinType(PIN_WHITE);
+    int pcf_pin = type - GPIOPINS;
     if (isInduon == true && isRelayon == false)
     { /* Relais einschalten */
-      digitalWrite(PIN_WHITE, HIGH);
+      if (type != -100 && type < 9)
+        digitalWrite(PIN_WHITE, HIGH);
+      else if (type >= 9)
+        pcf8574.write(pcf_pin, HIGH);
+      // digitalWrite(PIN_WHITE, HIGH);
       return true;
     }
 
@@ -237,7 +253,11 @@ public:
     { /* Relais ausschalten */
       if (millis() > timeTurnedoff + delayAfteroff)
       {
-        digitalWrite(PIN_WHITE, LOW);
+        if (type != -100 && type < 9)
+          digitalWrite(PIN_WHITE, LOW);
+        else if (type >= 9)
+          pcf8574.write(pcf_pin, LOW);
+        // digitalWrite(PIN_WHITE, LOW);
         return false;
       }
     }
@@ -285,15 +305,11 @@ public:
     if (power != newPower) // Neuer Befehl empfangen
     {
       if (newPower > 100)
-      {
         newPower = 100; // Nicht > 100
-      }
       if (newPower < 0)
-      {
         newPower = 0; // Nicht < 0
-      }
-      power = newPower;
 
+      power = newPower;
       timeTurnedoff = 0;
       isInduon = true;
       if (power == 0)
@@ -322,78 +338,40 @@ public:
     }
   }
 
-  // ori
-  // void updatePower()
-  // {
-  //   lastCommand = millis();
-  //   if (power != newPower)
-  //   { /* Neuer Befehl empfangen */
-
-  //     if (newPower > 100)
-  //     {
-  //       newPower = 100; /* Nicht > 100 */
-  //     }
-  //     if (newPower < 0)
-  //     {
-  //       newPower = 0; /* Nicht < 0 */
-  //     }
-  //     power = newPower;
-
-  //     timeTurnedoff = 0;
-  //     isInduon = true;
-  //     long difference = 0;
-
-  //     if (power == 0)
-  //     {
-  //       CMD_CUR = 0;
-  //       timeTurnedoff = millis();
-  //       isInduon = false;
-  //       difference = 0;
-  //       goto setPowerLevel;
-  //     }
-
-  //     for (int i = 1; i < 7; i++)
-  //     {
-  //       if (power <= PWR_STEPS[i])
-  //       {
-  //         CMD_CUR = i;
-  //         difference = PWR_STEPS[i] - power;
-  //         goto setPowerLevel;
-  //       }
-  //     }
-
-  //   setPowerLevel: /* Wie lange "HIGH" oder "LOW" */
-  //     if (difference != 0)
-  //     {
-  //       powerLow = powerSampletime * difference / 20L;
-  //       powerHigh = powerSampletime - powerLow;
-  //     }
-  //     else
-  //     {
-  //       powerHigh = powerSampletime;
-  //       powerLow = 0;
-  //     };
-  //   }
-  // }
-
   void sendCommand(int command[33])
   {
-    digitalWrite(PIN_YELLOW, HIGH);
-    // delay(SIGNAL_START);
+    int type = pinType(PIN_YELLOW);
+    int pcf_pin = type - GPIOPINS;
+
+    if (type != -100 && type < 9)
+      digitalWrite(PIN_YELLOW, HIGH);
+    else if (type >= 9)
+      pcf8574.write(pcf_pin, HIGH);
+    // digitalWrite(PIN_YELLOW, HIGH);
     millis2wait(SIGNAL_START);
-    digitalWrite(PIN_YELLOW, LOW);
-    // delay(SIGNAL_WAIT);
+
+    if (type != -100 && type < 9)
+      digitalWrite(PIN_YELLOW, LOW);
+    else if (type >= 9)
+      pcf8574.write(pcf_pin, LOW);
+    // digitalWrite(PIN_YELLOW, LOW);
     millis2wait(SIGNAL_WAIT);
 
     // PIN_YELLOW := Ausgabe an IDS2
     for (int i = 0; i < 33; i++)
     {
-      digitalWrite(PIN_YELLOW, HIGH);
-      // delayMicroseconds(command[i]);
+      if (type != -100 && type < 9)
+        digitalWrite(PIN_YELLOW, HIGH);
+      else if (type >= 9)
+        pcf8574.write(pcf_pin, HIGH);
+      // digitalWrite(PIN_YELLOW, HIGH);
       micros2wait(command[i]);
-      digitalWrite(PIN_YELLOW, LOW);
+      if (type != -100 && type < 9)
+        digitalWrite(PIN_YELLOW, LOW);
+      else if (type >= 9)
+        pcf8574.write(pcf_pin, LOW);
+      // digitalWrite(PIN_YELLOW, LOW);
       micros2wait(SIGNAL_LOW);
-      // delayMicroseconds(SIGNAL_LOW);
     }
   }
 
@@ -464,15 +442,15 @@ void handleInduction()
 
 void handleRequestInduction()
 {
-  StaticJsonDocument<256> doc;
+  DynamicJsonDocument doc(512);
   doc["enabled"] = inductionCooker.isEnabled;
+  doc["power"] = 0;
   if (inductionCooker.isEnabled)
   {
     doc["relayOn"] = inductionCooker.isRelayon;
     doc["power"] = inductionCooker.power;
     doc["relayOn"] = inductionCooker.isRelayon;
     doc["state"] = inductionCooker.induction_state;
-
     if (inductionCooker.isPower)
     {
       doc["powerLevel"] = inductionCooker.CMD_CUR;
@@ -482,23 +460,37 @@ void handleRequestInduction()
       doc["powerLevel"] = max(0, inductionCooker.CMD_CUR - 1);
     }
   }
+
   doc["topic"] = inductionCooker.mqtttopic;
   doc["delay"] = inductionCooker.delayAfteroff / 1000;
   doc["pl"] = inductionCooker.powerLevelOnError;
 
   // PID mode values
   doc["tempvalue"] = sensors[0].getTotalValueString();
-  if (autoTune)
+  if (hltAutoTune)
+  {
+    doc["power"] = kettleHLT.power;
+    doc["target"] = hltSetpoint;
+    doc["step"] = "AutoTune HLT";
+  }
+  else if (ids2AutoTune)
   {
     doc["target"] = ids2Setpoint;
-    doc["step"] = "AutoTune";
+    doc["step"] = "AutoTune IDS2";
   }
   else
   {
     doc["target"] = structPlan[actMashStep].temp;
     doc["step"] = structPlan[actMashStep].name;
   }
-  if (autoTune)
+  if (hltAutoTune)
+  {
+    if (kettleHLT.isOn)
+      doc["timer"] = "in progress";
+    else
+      doc["timer"] = "press power";
+  }
+  else if (ids2AutoTune)
   {
     if (statePower)
       doc["timer"] = "in progress";
@@ -548,6 +540,10 @@ void handleRequestInduction()
   String response;
   serializeJson(doc, response);
   server.send(200, "application/json", response);
+  // size_t len = measureJson(doc);
+  // int memoryUsed = doc.memoryUsage();
+  // DEBUG_MSG("Ind JSON config length: %d\n", len);
+  // DEBUG_MSG("Ind JSON memory usage: %d\n", memoryUsed);
 }
 
 void handleRequestIndu()
@@ -588,10 +584,10 @@ void handleRequestIndu()
       }
       yield();
     }
-    goto SendMessage;
+    // goto SendMessage;
   }
 
-SendMessage:
+  // SendMessage:
   server.send(200, "text/plain", message);
 }
 

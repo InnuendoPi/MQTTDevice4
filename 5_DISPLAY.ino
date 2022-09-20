@@ -1,37 +1,43 @@
 void initDisplay()
 {
-  // nextion.command("rest");
-  p0indButton.touch(inductionCallback);
-  p1indButton.touch(inductionCallback);
-  p0kettleButton.touch(kettleCallback);
-  p2kettleButton.touch(kettleCallback);
-  p1brewButton.touch(brewCallback);
-  p2brewButton.touch(brewCallback);
-  powerButton.touch(powerButtonCallback);
+  p0ForButton.touch(pageCallback);       // BrewPage forward to KettlePage
+  p0BackButton.touch(pageCallback);      // BrewPage backward to InductionPage
+  p1ForButton.touch(pageCallback);      // KelltlePage forward to InductionPage
+  p1BackButton.touch(pageCallback);      // KettlePage backward to BrewPage
+  p2ForButton.touch(pageCallback);      // InductionPage forward to BrewPage
+  p2BackButton.touch(pageCallback);     // InductionPage backward to KettlePage
+  
+  powerButton.release(powerButtonCallback); // buttonBack auf induction page backward auf page 1
+    
   activePage = startPage;
-
-  switch (startPage)
+  switch (activePage)
   {
   case 0:
+    activePage = 0;
     nextion.command("page 0");
     break;
   case 1:
+    activePage = 1;
     nextion.command("page 1");
     break;
   case 2:
+    activePage = 2;
     nextion.command("page 2");
     break;
   default:
-    nextion.command("page 1");
+    activePage = 0;
+    nextion.command("page 0");
     break;
   }
+  nextion.update();
+  // DEBUG_MSG("Setup: activePage %d\n", activePage);
 }
 
 void dispPublishmqtt()
 {
   if (pubsubClient.connected())
   {
-    StaticJsonDocument<64> doc;
+    DynamicJsonDocument doc(128);
     char jsonMessage[48];
     serializeJson(doc, jsonMessage);
     DEBUG_MSG("%s\n", "Disp: Request CBPi4 configuration");
@@ -79,7 +85,7 @@ void BrewPage()
     kettleSoll4_text.attribute("txt", structKettles[3].target_temp);
     kettleIst4_text.attribute("txt", structKettles[3].current_temp);
   }
-  slider.value(sliderval);
+  progress.value(sliderval);
   notification.attribute("txt", notify);
 }
 
@@ -107,7 +113,7 @@ void KettlePage()
 
   p1current_text.attribute("txt", currentStepName);
   p1remain_text.attribute("txt", currentStepRemain);
-  p1slider.value(sliderval);
+  p1progress.value(sliderval);
   p1notification.attribute("txt", notify);
 }
 
@@ -119,15 +125,18 @@ void InductionPage()
   // p2temp_text
   // 316 = 0°C - 360 = 44°C - 223 = 100°C -- 53,4 je 20°C
 
-  if (pidMode || autoTune)
+  if (pidMode || ids2AutoTune)
   {
     p2slider.value(ids2Output);
+    p2temp_text.attribute("txt", sensors[0].getTotalValueString());
   }
   else
   {
     int32_t aktSlider = p2slider.value();
     if (aktSlider >= 0 && aktSlider <= 100)
       inductionCooker.handleInductionPage(aktSlider);
+    // String aktTemp = strcat(structKettles[0].current_temp, "°C");
+    p2temp_text.attribute("txt", String(structKettles[0].current_temp).c_str());
   }
   // if ((sensors[0].getValue() + sensors[0].getOffset1()) < 16.0)
   if (sensors[0].calcOffset() < 16.0)
@@ -140,7 +149,9 @@ void InductionPage()
     // p2gauge.attribute("val", (int)((sensors[0].getValue() + sensors[0].getOffset1()) * 2.7 - 44));
     p2gauge.attribute("val", (int)(sensors[0].calcOffset() * 2.7 - 44));
   }
-  p2temp_text.attribute("txt", strcat(structKettles[0].current_temp, "°C"));
+  
+
+  // p2temp_text.attribute("txt", strcat(structKettles[0].current_temp, "°C"));
 }
 
 void cbpi4kettle_subscribe()
@@ -201,7 +212,8 @@ void cbpi4notification_unsubscribe()
 
 void cbpi4kettle_handlemqtt(char *payload)
 {
-  StaticJsonDocument<1024> doc;
+  // StaticJsonDocument<1024> doc;
+  DynamicJsonDocument doc(1024);
   DeserializationError error = deserializeJson(doc, (const char *)payload);
   if (error)
   {
@@ -274,7 +286,8 @@ void cbpi4kettle_handlemqtt(char *payload)
 
 void cbpi4sensor_handlemqtt(char *payload)
 {
-  StaticJsonDocument<256> doc;
+  // StaticJsonDocument<256> doc;
+  DynamicJsonDocument doc(256);
   DeserializationError error = deserializeJson(doc, (const char *)payload);
   if (error)
   {
@@ -318,7 +331,8 @@ void cbpi4sensor_handlemqtt(char *payload)
 
 void cbpi4steps_handlemqtt(char *payload)
 {
-  StaticJsonDocument<1024> doc;
+  // StaticJsonDocument<1024> doc;
+  DynamicJsonDocument doc(1024);
   DeserializationError error = deserializeJson(doc, (const char *)payload);
   if (error)
   {
@@ -463,17 +477,17 @@ void cbpi4steps_handlemqtt(char *payload)
       {
         sliderval = (valTimer * 60 - (min * 60 + sec)) * 100 / (valTimer * 60);
         if (activePage == 0)
-          slider.value(sliderval);
+          progress.value(sliderval);
         if (activePage == 1)
-          p1slider.value(sliderval);
+          p1progress.value(sliderval);
       }
       else
       {
         sliderval = 0;
         if (activePage == 0)
-          slider.value(0);
+          progress.value(0);
         if (activePage == 1)
-          p1slider.value(0);
+          p1progress.value(0);
       }
       // DEBUG_MSG("DISP stephandle 5 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
       /*
@@ -509,9 +523,9 @@ void cbpi4steps_handlemqtt(char *payload)
       }
       sliderval = 0;
       if (activePage == 0)
-        slider.value(sliderval);
+        progress.value(sliderval);
       if (activePage == 1)
-        p1slider.value(sliderval);
+        p1progress.value(sliderval);
       // DEBUG_MSG("DISP stephandle 9 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
     }
     return;
@@ -520,7 +534,8 @@ void cbpi4steps_handlemqtt(char *payload)
 
 void cbpi4notification_handlemqtt(char *payload)
 {
-  StaticJsonDocument<384> doc;
+  // StaticJsonDocument<384> doc;
+  DynamicJsonDocument doc(384);
   DeserializationError error = deserializeJson(doc, (const char *)payload);
   if (error)
   {

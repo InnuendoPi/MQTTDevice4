@@ -84,6 +84,31 @@ bool loadConfig()
   }
   DEBUG_MSG("%s\n", "--------------------");
 
+  JsonArray hltArray = doc["hlt"];
+  JsonObject hltObj = hltArray[0];
+  kettleHLT.isEnabled = hltObj["ENABLED"] | 0;
+  hltStatus = kettleHLT.isEnabled;
+  DEBUG_MSG("HLT: hltStatus %d\n", hltStatus);
+
+  if (kettleHLT.isEnabled)
+  {
+    hltStatus = 1;
+    hltKp = hltObj["kp"] | 2.0;
+    hltKi = hltObj["ki"] | 0.5;
+    hltKd = hltObj["kd"] | 1.0;
+    hltSetpoint = hltObj["SETP"] | 78.0;
+
+    kettleHLT.change(hltObj["ENABLED"] | 0, hltObj["PIN"] | "", hltObj["INV"] | 0, hltObj["SENID"] | 1);
+    DEBUG_MSG("HLT: %d PIN: %s invert GPIO: %d SenID: %d\n", hltStatus, hltObj["PIN"].as<const char *>(), hltObj["INV"].as<int>(), hltObj["SENID"].as<int>());
+  }
+  else
+  {
+    hltStatus = 0;
+    DEBUG_MSG("HLT: %d\n", hltStatus);
+  }
+  DEBUG_MSG("HLT: Kp %.02f Ki %.02f Kd %.02f Setpoint %.02f\n", hltKp, hltKi, hltKd, hltSetpoint);
+  DEBUG_MSG("%s\n", "--------------------");
+
   // Misc Settings
   JsonArray miscArray = doc["misc"];
   JsonObject miscObj = miscArray[0];
@@ -106,20 +131,21 @@ bool loadConfig()
   DEBUG_MSG("Buzzer: %d mqttBuzzer: %d\n", startBuzzer, mqttBuzzer);
 
   useDisplay = miscObj["display"] | 0;
-  startPage = miscObj["page"] | 1;
+  startPage = miscObj["page"] | 0;
   devBranch = miscObj["devbranch"] | 0;
-  
+
   DEBUG_MSG("Display: %d startPage: %d\n", useDisplay, startPage);
 
   strlcpy(nameMDNS, miscObj["mdns_name"] | "", maxHostSign);
   startMDNS = miscObj["mdns"] | 0;
-  DEBUG_MSG("mDNS: %d name: %s\n", startMDNS, nameMDNS);
+  useI2C = miscObj["i2c"] | 0;
+  DEBUG_MSG("I2C: %d mDNS: %d name: %s\n", useI2C, startMDNS, nameMDNS);
   strlcpy(mqtthost, miscObj["MQTTHOST"] | "", maxHostSign);
   strlcpy(mqttuser, miscObj["MQTTUSER"] | "", maxUserSign);
   strlcpy(mqttpass, miscObj["MQTTPASS"] | "", maxPassSign);
   mqttport = miscObj["MQTTPORT"] | 1883;
   mqttoff = miscObj["MQTTOFF"] | 0;
-  
+
   DEBUG_MSG("MQTT server IP: %s Port: %d User: %s Pass: %s Off: %d\n", mqtthost, mqttport, mqttuser, mqttpass, mqttoff);
   DEBUG_MSG("%s\n", "--------------------");
   // PID stuff
@@ -135,21 +161,31 @@ bool loadConfig()
   DEBUG_MSG("%s\n", "------ loadConfig finished ------");
 
   configFile.close();
-  if (numberOfSensors > 0)
+  if (numberOfSensors > 0) // Ticker Sensors
     TickerSen.start();
-  if (inductionStatus > 0 ) // Induktion
+
+  if (inductionStatus > 0) // Induktion
     TickerInd.start();
-  if (useDisplay)
+
+  if (useDisplay) // Ticker Display
     TickerDisp.start();
+
+  if (hltStatus > 0) // Ticker HLT
+    TickerHlt.start();
 
   DEBUG_MSG("Config file size %d\n", size);
   size_t len = measureJson(doc);
   DEBUG_MSG("JSON config length: %d\n", len);
   int memoryUsed = doc.memoryUsage();
   DEBUG_MSG("JSON memory usage: %d\n", memoryUsed);
+  DEBUG_MSG("%s\n", "--------------------");
 
   if (startBuzzer)
     sendAlarm(ALARM_ON);
+  if (useI2C)
+    numberOfPins = ALLPINS;
+  else
+    numberOfPins = GPIOPINS;
 
   readMash();
 
@@ -226,6 +262,32 @@ bool saveConfig()
     inductionStatus = 0;
     DEBUG_MSG("Induction: %d\n", inductionCooker.isEnabled);
   }
+
+  DEBUG_MSG("%s\n", "--------------------");
+
+  // Write HLT
+  JsonArray hltArray = doc.createNestedArray("hlt");
+  JsonObject hltObj = hltArray.createNestedObject();
+  hltObj["ENABLED"] = (int)kettleHLT.isEnabled;
+
+  if (kettleHLT.isEnabled)
+  {
+    hltStatus = 1;
+    hltObj["PIN"] = PinToString(kettleHLT.pin_hlt);
+    hltObj["INV"] = (int)kettleHLT.isInverted;
+    hltObj["SENID"] = kettleHLT.senid;
+    hltObj["SETP"] = int(hltSetpoint);
+    hltObj["kp"] = hltKp;
+    hltObj["ki"] = hltKi;
+    hltObj["kd"] = hltKd;
+    DEBUG_MSG("HLT: %d PIN: %s Invert: %d SenID: %d\n", kettleHLT.isEnabled, PinToString(kettleHLT.pin_hlt).c_str(), kettleHLT.isInverted, kettleHLT.senid);
+  }
+  else
+  {
+    hltStatus = 0;
+    DEBUG_MSG("HLT: %d\n", kettleHLT.isEnabled);
+  }
+  DEBUG_MSG("HLT: Kp %.02f Ki %.02f Kd %.02f Setpoint %.02f\n", hltKp, hltKi, hltKd, hltSetpoint);
   DEBUG_MSG("%s\n", "--------------------");
 
   // Write Misc Stuff
@@ -255,12 +317,13 @@ bool saveConfig()
 
   miscObj["mdns_name"] = nameMDNS;
   miscObj["mdns"] = (int)startMDNS;
+  miscObj["i2c"] = (int)useI2C;
   miscObj["MQTTHOST"] = mqtthost;
   miscObj["MQTTPORT"] = mqttport;
   miscObj["MQTTUSER"] = mqttuser;
   miscObj["MQTTPASS"] = mqttpass;
   miscObj["MQTTOFF"] = (int)mqttoff;
-  
+
   DEBUG_MSG("MQTT broker IP: %s Port: %d User: %s Pass: %s Off: %d\n", mqtthost, mqttport, mqttuser, mqttpass, mqttoff);
   DEBUG_MSG("%s\n", "--------------------");
   // Write PID Stuff
@@ -272,7 +335,7 @@ bool saveConfig()
   pidObj["kd"] = ids2Kd;
   pidObj["piddelta"] = (int(pidDelta * 100)) / 100.0;
 
-  DEBUG_MSG("PIDs: Kp: %.03f Ki: %.03f Kd: %.03f pidDelta: %.01f autoTune: %d Setpoint: %.01f\n", ids2Kp, ids2Ki, ids2Kd, pidDelta, autoTune, ids2Setpoint);
+  DEBUG_MSG("PIDs: Kp: %.03f Ki: %.03f Kd: %.03f pidDelta: %.01f ids2AutoTune: %d Setpoint: %.01f\n", ids2Kp, ids2Ki, ids2Kd, pidDelta, ids2AutoTune, ids2Setpoint);
 
   size_t len = measureJson(doc);
   int memoryUsed = doc.memoryUsage();
@@ -301,16 +364,31 @@ bool saveConfig()
   configFile.close();
   DEBUG_MSG("%s\n", "------ saveConfig finished ------");
 
-  if (numberOfSensors > 0)
+  if (useI2C)
+    numberOfPins = ALLPINS;
+  else
+    numberOfPins = GPIOPINS;
+  DEBUG_MSG("NumberOfPins: %d\n", numberOfPins);
+
+  if (numberOfSensors > 0) // Ticker Sensors
     TickerSen.start();
   else
     TickerSen.stop();
-  if (inductionStatus > 0 ) // Induktion
+
+  if (inductionStatus > 0) // Ticker Induktion
     TickerInd.start();
   else
     TickerInd.stop();
-  if (useDisplay)
+
+  if (hltStatus > 0) // Ticker HLT
+    TickerHlt.start();
+  else
+    TickerHlt.stop();
+
+  if (useDisplay) // Ticker Display
+  {
     TickerDisp.start();
+  }
   else
     TickerDisp.stop();
 
@@ -331,7 +409,13 @@ bool saveConfig()
   DEBUG_MSG("Configured WLAN SSID: %s\n", Network.c_str());
 
   if (startBuzzer)
+  {
+    pins_used[PIN_BUZZER] = true;
+    pinMode(PIN_BUZZER, OUTPUT);
+    digitalWrite(PIN_BUZZER, LOW);
     sendAlarm(ALARM_ON);
+  }
+  
   DEBUG_MSG("%s\n", "---------------------------------");
 
   return true;

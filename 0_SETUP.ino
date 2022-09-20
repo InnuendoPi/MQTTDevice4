@@ -1,6 +1,7 @@
 void setup()
 {
   Serial.begin(115200);
+  // Serial.begin(9600);
 // Debug Ausgaben prüfen
 #ifdef DEBUG_ESP_PORT
   Serial.setDebugOutput(true);
@@ -63,6 +64,35 @@ void setup()
 
   // Starte Webserver
   setupServer();
+
+  if (useDisplay)
+  {
+    softSerial.begin(9600, SWSERIAL_8N1, D1, D2, false, 256);
+    if (!softSerial)
+      Serial.println("*** SYSINFO: Invalid SoftwareSerial pin configuration, check config");
+    else
+    {
+      Serial.println("*** SYSINFO: SoftwareSerial init successful");
+      pins_used[D1] = true;
+      pins_used[D2] = true;
+      nextion.begin(softSerial);
+      // nextion.debug(Serial);
+      nextion.command("rest");
+      initDisplay();
+    }
+  }
+  if (useI2C)
+  {
+    if (pcf8574.begin(D5, D6))
+    {
+      Serial.println("*** SYSINFO: PCF8574 init successful");
+      pins_used[D5] = true;
+      pins_used[D6] = true;
+    }
+    else
+      Serial.println("*** SYSINFO: PCF8574 init error");
+  }
+
   // Pinbelegung
   pins_used[ONE_WIRE_BUS] = true;
 
@@ -77,17 +107,6 @@ void setup()
     Serial.printf("*** SYSINFO: ESP8266 IP address: %s Time: %s RSSI: %d\n", WiFi.localIP().toString().c_str(), timeClient.getFormattedTime().c_str(), WiFi.RSSI());
   }
 
-  if (useDisplay)
-  {
-    nextion.begin(softSerial);
-    // nextion.debug(Serial);
-    pins_used[D1] = true;
-    pins_used[D2] = true;
-    TickerDisp.start();
-    initDisplay();
-    nextion.update();
-  }
-
   if (startBuzzer)
   {
     pins_used[PIN_BUZZER] = true;
@@ -96,14 +115,17 @@ void setup()
   }
 
   // Starte MQTT
-  cbpiEventSystem(EM_MQTTCON); // MQTT Verbindung
-  cbpiEventSystem(EM_MQTTSUB); // MQTT Subscribe
-
+  if (!mqttoff)
+  {
+    cbpiEventSystem(EM_MQTTCON); // MQTT Verbindung
+    cbpiEventSystem(EM_MQTTSUB); // MQTT Subscribe
+    TickerPUBSUB.start();        // PubSubClient loop ticker
+  }
   cbpiEventSystem(EM_LOG); // webUpdate log
 
-  if (!mqttoff)
-    TickerPUBSUB.start(); // PubSubClient loop ticker
-  
+  // if (!mqttoff)
+  //   TickerPUBSUB.start(); // PubSubClient loop ticker
+
   // Verarbeite alle Events Setup
   gEM.processAllEvents();
 }
@@ -123,21 +145,24 @@ void setupServer()
   server.on("/reqActors", handleRequestActors);   // Liste der Aktoren ausgeben
   server.on("/reqInduction", handleRequestInduction);
   server.on("/reqSearchSensorAdresses", handleRequestSensorAddresses);
-  server.on("/reqPins", handlereqPins);           // GPIO Pins actors
-  server.on("/reqPages", handleRequestPages);     // Display page
-  server.on("/reqIndu", handleRequestIndu);       // Infos der Indu für WebConfig
-  server.on("/setSensor", handleSetSensor);       // Sensor ändern
-  server.on("/setActor", handleSetActor);         // Aktor ändern
-  server.on("/setIndu", handleSetIndu);           // Indu ändern
-  server.on("/delSensor", handleDelSensor);       // Sensor löschen
-  server.on("/delActor", handleDelActor);         // Aktor löschen
-  server.on("/reboot", rebootDevice);             // reboots the whole Device
-  server.on("/reqMisc2", handleRequestMisc2);     // Misc Infos für WebConfig
-  server.on("/reqMisc3", handleRequestMisc3);     // Misc Infos für WebConfig
-  server.on("/reqMisc", handleRequestMisc);       // Misc Infos für WebConfig
-  server.on("/reqFirm", handleRequestFirm);       // Firmware version
-  server.on("/setMisc", handleSetMisc);           // Misc ändern
-  server.on("/startHTTPUpdate", startHTTPUpdate); // Firmware WebUpdate
+  server.on("/reqPins", handlereqPins);             // GPIO Pins actors
+  server.on("/reqPages", handleRequestPages);       // Display page
+  server.on("/reqIndu", handleRequestIndu);         // Induction für WebConfig
+  server.on("/reqHLT", handleReqHlt);               // HLT
+  server.on("/reqHLTPIN", handleReqHltPin);         // HLT
+  server.on("/setHLT", handleSetHLT);               // HLT
+  server.on("/setSensor", handleSetSensor);         // Sensor ändern
+  server.on("/setActor", handleSetActor);           // Aktor ändern
+  server.on("/setIndu", handleSetIndu);             // Indu ändern
+  server.on("/delSensor", handleDelSensor);         // Sensor löschen
+  server.on("/delActor", handleDelActor);           // Aktor löschen
+  server.on("/reboot", rebootDevice);               // reboots the whole Device
+  server.on("/reqMisc2", handleRequestMisc2);       // Misc Infos für WebConfig
+  server.on("/reqMisc3", handleRequestMisc3);       // Misc Infos für WebConfig
+  server.on("/reqMisc", handleRequestMisc);         // Misc Infos für WebConfig
+  server.on("/reqFirm", handleRequestFirm);         // Firmware version
+  server.on("/setMisc", handleSetMisc);             // Misc ändern
+  server.on("/startHTTPUpdate", startHTTPUpdate);   // Firmware WebUpdate
   server.on("/startToolsUpdate", startToolsUpdate); // Firmware WebUpdate
   server.on("/reqMash", handleRequestMash);
   server.on("/setMash", handleSetMash);
@@ -146,6 +171,8 @@ void setupServer()
   server.on("/Btn-Play", handleBtnPlay);
   server.on("/Btn-Next-Step", handleBtnNextStep);
   server.on("/actorPower", handleActorPower);
+  server.on("/hltPower", handleHltPower);
+  server.on("/hltSetpoint", handleHltSetpoint);
 
   // FSBrowser initialisieren
   server.on("/edit", HTTP_GET, handleGetEdit);

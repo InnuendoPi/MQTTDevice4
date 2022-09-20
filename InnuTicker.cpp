@@ -57,6 +57,10 @@ void InnuTicker::update()
 
 void InnuTicker::updatenow()
 {
+	lastTime = millis();
+	if (repeat - counts == 1)
+		enabled = false;
+	counts++;
 	callback();
 }
 

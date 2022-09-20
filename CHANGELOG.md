@@ -1,7 +1,16 @@
 # Changelog
 
-Version 4.30d
+Version 4.31
 
+- Fixed:    Display switch pages
+- Added:    currentPageID to NextionX2 lib
+- Added:    lastPageID to NextionX2 lib
+- Fixed:    Init progress bar init (Display)
+- Reworked: Page up/down (display)
+            until currentPageID availible from lib there is no reliable method switching pages
+- Added:    HLT sparge object
+- Added:    PCF8574 support (I2C)
+- Changed:  VSCode 1.72
 - Fixed:    Bug WebUpdate: unmount FS before restart
 - Added:    Import MQTTDevice mashplan format
 - Added:    Export mashplan to download file (json)

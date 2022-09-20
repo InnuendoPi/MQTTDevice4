@@ -106,7 +106,7 @@ public:
   {
     if (pubsubClient.connected())
     {
-      StaticJsonDocument<256> doc;
+      DynamicJsonDocument doc(256);
       JsonObject sensorsObj = doc.createNestedObject("Sensor");
       sensorsObj["Name"] = sens_name;
       if (sensorsStatus == 0)
@@ -317,11 +317,9 @@ void handleSetSensor()
     if (server.argName(i) == "cbpiid")
     {
       new_id = server.arg(i);
-      DEBUG_MSG("Sens1: ID %s\n", new_id.c_str());
     }
     yield();
   }
-  DEBUG_MSG("Sens2: ID %s\n", new_id.c_str());
 
   sensors[id].change(new_address, new_mqtttopic, new_name, new_id, new_offset1, new_offset2, new_sw);
   saveConfig();
@@ -372,7 +370,7 @@ void handleRequestSensorAddresses()
 void handleRequestSensors()
 {
   int id = server.arg(0).toInt();
-  StaticJsonDocument<1024> doc;
+  DynamicJsonDocument doc(1024);
 
   if (id == -1) // fetch all sensors
   {

@@ -180,7 +180,8 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
 
 void handleRequestMisc2()
 {
-  StaticJsonDocument<512> doc;
+  // StaticJsonDocument<512> doc;
+  DynamicJsonDocument doc(256);
   doc["mqtthost"] = mqtthost;
   doc["mqttport"] = mqttport;
   doc["enable_mqtt"] = StopOnMQTTError;
@@ -198,23 +199,36 @@ void handleRequestMisc2()
   String response;
   serializeJson(doc, response);
   server.send(200, "application/json", response);
+  // size_t len = measureJson(doc);
+  // int memoryUsed = doc.memoryUsage();
+  // DEBUG_MSG("WEB Misc2 JSON config length: %d\n", len);
+  // DEBUG_MSG("WEB Misc2 JSON memory usage: %d\n", memoryUsed);
 }
 
 void handleRequestMisc3()
 {
-  StaticJsonDocument<128> doc;
-  doc["statePower"] = statePower;
+  // StaticJsonDocument<256> doc;
+  DynamicJsonDocument doc(128);
+  if (hltAutoTune)
+    doc["statePower"] = kettleHLT.isOn;
+  else
+    doc["statePower"] = statePower;
   doc["statePause"] = statePause;
   doc["statePlay"] = statePlay;
 
   String response;
   serializeJson(doc, response);
   server.send(200, "application/json", response);
+  // size_t len = measureJson(doc);
+  // int memoryUsed = doc.memoryUsage();
+  // DEBUG_MSG("WEB Misc3 JSON config length: %d\n", len);
+  // DEBUG_MSG("WEB Misc3 JSON memory usage: %d\n", memoryUsed);
 }
 
 void handleRequestMisc()
 {
-  StaticJsonDocument<512> doc;
+  // StaticJsonDocument<768> doc;
+  DynamicJsonDocument doc(768);
   doc["mqtthost"] = mqtthost;
   doc["mqttport"] = mqttport;
   doc["mqttuser"] = mqttuser;
@@ -222,6 +236,7 @@ void handleRequestMisc()
   doc["mqttoff"] = mqttoff;
   doc["mdns_name"] = nameMDNS;
   doc["mdns"] = startMDNS;
+  doc["i2c"] = useI2C;
   doc["buzzer"] = startBuzzer;
   doc["mqbuz"] = mqttBuzzer;
   doc["display"] = useDisplay;
@@ -236,7 +251,7 @@ void handleRequestMisc()
   // if (alertState)
   //   alertState = false;
   doc["pidmode"] = pidMode;
-  doc["autotune"] = autoTune;
+  doc["autotune"] = ids2AutoTune;
   doc["Setpoint"] = int(ids2Setpoint);
   doc["kp"] = ids2Kp;
   doc["ki"] = ids2Ki;
@@ -246,6 +261,10 @@ void handleRequestMisc()
   String response;
   serializeJson(doc, response);
   server.send(200, "application/json", response);
+  // size_t len = measureJson(doc);
+  // int memoryUsed = doc.memoryUsage();
+  // DEBUG_MSG("WEB Misc JSON config length: %d\n", len);
+  // DEBUG_MSG("WEB Misc JSON memory usage: %d\n", memoryUsed);
 }
 
 void handleRequestFirm()
@@ -361,6 +380,10 @@ void handleSetMisc()
     {
       startMDNS = checkBool(server.arg(i));
     }
+    if (server.argName(i) == "i2c")
+    {
+      useI2C = checkBool(server.arg(i));
+    }
     if (server.argName(i) == "enable_mqtt")
     {
       StopOnMQTTError = checkBool(server.arg(i));
@@ -390,7 +413,7 @@ void handleSetMisc()
     }
     if (server.argName(i) == "autotune")
     {
-      autoTune = checkBool(server.arg(i));
+      ids2AutoTune = checkBool(server.arg(i));
     }
     if (server.argName(i) == "ids2Setpoint")
     {
@@ -612,11 +635,16 @@ void handleBtnPower()
     {
       if (server.arg(i) == "true")
       {
-        if (autoTune)
+        if (hltAutoTune)
+        {
+          startHltAutoTune();
+          // kettleHLT.isOn = true;
+        }
+        else if (ids2AutoTune)
         {
           startAutoTune();
           statePower = true;
-          DEBUG_MSG("WEB: PowerButton on autoTune: %d ids2Setpoint: %.01f\n", autoTune, ids2Setpoint);
+          DEBUG_MSG("WEB: PowerButton on ids2AutoTune: %d ids2Setpoint: %.01f\n", ids2AutoTune, ids2Setpoint);
         }
         else
         {
@@ -654,10 +682,21 @@ void handleBtnPower()
       }
       else
       {
-        if (autoTune)
+        if (hltAutoTune)
+        {
+          hltAutoTune = false;
+
+          kettleHLT.isOn = false;
+          statePause = false;
+          statePlay = false;
+          TickerHltPID.stop();
+          kettleHLT.newPower(0);
+          TickerHlt.updatenow();
+        }
+        else if (ids2AutoTune)
         {
           statePower = false;
-          autoTune = false;
+          ids2AutoTune = false;
           statePause = false;
           statePlay = false;
           TickerMash.stop();
@@ -669,7 +708,7 @@ void handleBtnPower()
             TickerPUBSUB.start();
 
           TickerInd.start();
-          DEBUG_MSG("WEB: PowerButton off autoTune: %d\n", autoTune);
+          DEBUG_MSG("WEB: PowerButton off ids2AutoTune: %d\n", ids2AutoTune);
         }
         else
         {
@@ -859,18 +898,12 @@ void handleActorPower()
     return;
   }
 
-  int statePower = server.arg(1).toInt();
-  if (statePower == 1)
-  {
-    actors[id].isOn = true;
+  actors[id].isOn = !actors[id].isOn;
+  if (actors[id].isOn)
     actors[id].power_actor = 100;
-  }
   else
-  {
-    actors[id].isOn = false;
     actors[id].power_actor = 0;
-  }
 
-  // DEBUG_MSG("Actor ID %d switched to %d\n", id, statePower);
+  DEBUG_MSG("Actor ID %d switched to %d\n", id, actors[id].isOn);
   server.send(201, "text/plain", "created");
 }
