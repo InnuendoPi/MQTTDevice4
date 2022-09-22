@@ -74,7 +74,7 @@ bool loadConfig()
   if (indObj.containsKey("ENABLED"))
   {
     inductionStatus = 1;
-    inductionCooker.change(StringToPin(indObj["PINWHITE"] | "D7"), StringToPin(indObj["PINYELLOW"] | "D6"), StringToPin(indObj["PINBLUE"] | "D5"), indObj["TOPIC"] | "", indObj["DELAY"] | DEF_DELAY_IND, true, indObj["PL"] | 100);
+    inductionCooker.change(StringToPin(indObj["PINWHITE"]), StringToPin(indObj["PINYELLOW"]), StringToPin(indObj["PINBLUE"]), indObj["TOPIC"] | "", indObj["DELAY"] | DEF_DELAY_IND, true, indObj["PL"] | 100);
     DEBUG_MSG("Induction: %d MQTT: %s Relais (WHITE): %s Command channel (YELLOW): %s Backchannel (BLUE): %s Delay after power off %d Power level on error: %d\n", inductionStatus, indObj["TOPIC"].as<const char *>(), indObj["PINWHITE"].as<const char *>(), indObj["PINYELLOW"].as<const char *>(), indObj["PINBLUE"].as<const char *>(), indObj["DELAY"].as<int>(), indObj["PL"].as<int>());
   }
   else
@@ -166,9 +166,6 @@ bool loadConfig()
 
   if (inductionStatus > 0) // Induktion
     TickerInd.start();
-
-  if (useDisplay) // Ticker Display
-    TickerDisp.start();
 
   if (hltStatus > 0) // Ticker HLT
     TickerHlt.start();
@@ -385,11 +382,7 @@ bool saveConfig()
   else
     TickerHlt.stop();
 
-  if (useDisplay) // Ticker Display
-  {
-    TickerDisp.start();
-  }
-  else
+  if (!useDisplay) // Ticker Display
     TickerDisp.stop();
 
   if (mqttoff)

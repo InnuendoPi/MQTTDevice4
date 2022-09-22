@@ -33,7 +33,6 @@ Libraries: Version 4.31, 09.2022
 - PID_V2
 - sTune
 - PCF8574 0.3.5
-- ESPSoftwareSerial 6.16
 
 Board configuration:
 Flash size 4MB (FS:2MB OTA:~1019kB)

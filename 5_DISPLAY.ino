@@ -1,36 +1,34 @@
 void initDisplay()
 {
-  p0ForButton.touch(pageCallback);       // BrewPage forward to KettlePage
-  p0BackButton.touch(pageCallback);      // BrewPage backward to InductionPage
-  p1ForButton.touch(pageCallback);      // KelltlePage forward to InductionPage
-  p1BackButton.touch(pageCallback);      // KettlePage backward to BrewPage
-  p2ForButton.touch(pageCallback);      // InductionPage forward to BrewPage
-  p2BackButton.touch(pageCallback);     // InductionPage backward to KettlePage
-  
-  powerButton.release(powerButtonCallback); // buttonBack auf induction page backward auf page 1
-    
   activePage = startPage;
-  switch (activePage)
+  switch (startPage)
   {
   case 0:
-    activePage = 0;
     nextion.command("page 0");
     break;
   case 1:
-    activePage = 1;
     nextion.command("page 1");
     break;
   case 2:
-    activePage = 2;
     nextion.command("page 2");
     break;
   default:
-    activePage = 0;
     nextion.command("page 0");
     break;
   }
-  nextion.update();
-  // DEBUG_MSG("Setup: activePage %d\n", activePage);
+  nextion.command("doevents");  // Force immediate screen refresh and receive serial bytes to buffer
+  // register button events
+  p0ForButton.touch(pageCallback);  // BrewPage forward to KettlePage
+  p0BackButton.touch(pageCallback); // BrewPage backward to InductionPage
+  p1ForButton.touch(pageCallback);  // KelltlePage forward to InductionPage
+  p1BackButton.touch(pageCallback); // KettlePage backward to BrewPage
+  p2ForButton.touch(pageCallback);  // InductionPage forward to BrewPage
+  p2BackButton.touch(pageCallback); // InductionPage backward to KettlePage
+  powerButton.release(powerButtonCallback); // buttonBack auf induction page backward auf page 1
+  
+  // start display tikcer
+  activePage = nextion.currentPageID;
+  TickerDisp.start(); 
 }
 
 void dispPublishmqtt()
@@ -149,7 +147,6 @@ void InductionPage()
     // p2gauge.attribute("val", (int)((sensors[0].getValue() + sensors[0].getOffset1()) * 2.7 - 44));
     p2gauge.attribute("val", (int)(sensors[0].calcOffset() * 2.7 - 44));
   }
-  
 
   // p2temp_text.attribute("txt", strcat(structKettles[0].current_temp, "°C"));
 }

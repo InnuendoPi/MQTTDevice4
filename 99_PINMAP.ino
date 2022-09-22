@@ -14,9 +14,9 @@
   9   -
   10  -
   11  -
-  12  D6        SPI MISO      ok              ok        GGM IDS2 Commandchannel(yellow)     SDL PCF8574
-  13  D7        SPI MOSI      ok              ok        GGM IDS2 Relais(white)              digitalPinToInterrupt
-  14  D5        SPI SCLK      ok              ok        GGM IDS2 Backchannel(blue)          SDA PCF8574
+  12  D6        SPI MISO      ok              ok        GGM IDS2 PIN_YELLOW Commandchannel     alternativ SDL PCF8574
+  13  D7        SPI MOSI      ok              ok        GGM IDS2 PIN_BLUE Backchannel          Interrupt
+  14  D5        SPI SCLK      ok              ok        GGM IDS2 PIN_WHITE Relay               Alternativ SDA PCF8574
   15  D8        SPI CS        -               (ok)      Buzzer
   16  D0        HIGH at boot  No interrupt    No PWM    Pump
 

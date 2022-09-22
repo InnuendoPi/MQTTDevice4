@@ -1,7 +1,10 @@
 # Changelog
 
-Version 4.31
+Version 4.31b
 
+- Fixed:    Display startPage
+- Fixed:    Bug in NextionX2 lib (temp removed lastPageID)
+- Fixed:    trap causing unexpected restart (exception 28)
 - Fixed:    Display switch pages
 - Added:    currentPageID to NextionX2 lib
 - Added:    lastPageID to NextionX2 lib

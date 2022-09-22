@@ -10,36 +10,37 @@
 //    Unterstützung für Web Update
 //    Visulaisierung über Grafana
 //    Unterstützung für Nextion Touchdisplay
+//    Unterstützung für PCF8574 I2C IO Modul
 
 #include <OneWire.h>           // OneWire Bus Kommunikation
 #include <DallasTemperature.h> // Vereinfachte Benutzung der DS18B20 Sensoren
 #include <ESP8266WiFi.h>       // Generelle WiFi Funktionalität
 #include <ESP8266WebServer.h>  // Unterstützung Webserver
 #include <ESP8266HTTPUpdateServer.h>
-#include <WiFiManager.h> // WiFiManager zur Einrichtung
-#include <DNSServer.h>   // Benötigt für WiFiManager
-#include "LittleFS.h"
-#include <ArduinoJson.h>  // Lesen und schreiben von JSON Dateien 6.18
-#include <ESP8266mDNS.h>  // mDNS
-#include <WiFiUdp.h>      // WiFi
-#include <EventManager.h> // Eventmanager
+#include <WiFiManager.h>        // WiFiManager zur Einrichtung
+#include <DNSServer.h>          // Benötigt für WiFiManager
+#include "LittleFS.h"           // Dateisystem
+#include <ArduinoJson.h>        // Lesen und schreiben von JSON Dateien
+#include <ESP8266mDNS.h>        // mDNS
+#include <WiFiUdp.h>            // WiFi
+#include <EventManager.h>       // Eventmanager
 #include <ESP8266HTTPClient.h>
 #include <ESP8266httpUpdate.h>
 #include <WiFiClientSecure.h>
 #include <WiFiClientSecureBearSSL.h>
-#include <NTPClient.h>
-#include "InnuTicker.h"       // Bibliothek für Hintergrund Aufgaben (Tasks)
-#include <PubSubClient.h>     // MQTT Kommunikation 2.8.0
-#include <CertStoreBearSSL.h> // WebUpdate
-#include <SoftwareSerial.h>
-#include <NextionX2.h>
+#include <NTPClient.h>          // Uhrzeit
+#include "InnuTicker.h"         // Bibliothek für Hintergrund Aufgaben (Tasks)
+#include <PubSubClient.h>       // MQTT Kommunikation
+#include <CertStoreBearSSL.h>   // WebUpdate
+#include <SoftwareSerial.h>     // Serieller Port für Display
+#include "NextionX2.h"          // Display Nextion
 #include "index_htm.h"
 #include "edit_htm.h"
 #include "mash_htm.h"
-#include <FS.h>
-#include <PID_v2.h>
-#include <sTune.h>
-#include <PCF8574.h>
+#include <FS.h>                 // Files
+#include <PID_v2.h>             // PID Controller
+#include <sTune.h>              // AutoTune
+#include <PCF8574.h>            // I2C IO Modul PCF8574
 
 extern "C"
 {
@@ -55,7 +56,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.31a"
+#define Version "4.31b"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -220,8 +221,8 @@ InnuTicker TickerPID;
 InnuTicker TickerHltPID;
 
 // Update Intervalle für Ticker Objekte
-int SEN_UPDATE = 4000; //  sensors update
-int IND_UPDATE = 2000; //  sensors update
+#define SEN_UPDATE 4000 //  sensors update
+#define IND_UPDATE 2000 //  sensors update
 #define HLT_UPDATE 2000 //  sensors update
 #define DISP_UPDATE 1000
 
@@ -307,6 +308,8 @@ int sliderval = 0;
 char uhrzeit[6] ="00:00";
 
 // SoftwareSerial softSerial(D1, D2);
+// #define D1 (5)
+// #define D2 (4)
 SoftwareSerial softSerial;
 NextionComPort nextion;
 

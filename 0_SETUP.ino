@@ -65,21 +65,23 @@ void setup()
   // Starte Webserver
   setupServer();
 
+  if (startBuzzer)
+  {
+    pins_used[PIN_BUZZER] = true;
+    pinMode(PIN_BUZZER, OUTPUT);
+    digitalWrite(PIN_BUZZER, LOW);
+  }
+
   if (useDisplay)
   {
-    softSerial.begin(9600, SWSERIAL_8N1, D1, D2, false, 256);
-    if (!softSerial)
-      Serial.println("*** SYSINFO: Invalid SoftwareSerial pin configuration, check config");
-    else
-    {
+    softSerial.begin(9600, SWSERIAL_8N1, D1, D2, false);
+    if (softSerial)
       Serial.println("*** SYSINFO: SoftwareSerial init successful");
-      pins_used[D1] = true;
-      pins_used[D2] = true;
-      nextion.begin(softSerial);
-      // nextion.debug(Serial);
-      nextion.command("rest");
-      initDisplay();
-    }
+    pins_used[D1] = true;
+    pins_used[D2] = true;
+    nextion.begin(softSerial);    
+    // nextion.debug(Serial);
+    initDisplay();
   }
   if (useI2C)
   {
@@ -89,8 +91,6 @@ void setup()
       pins_used[D5] = true;
       pins_used[D6] = true;
     }
-    else
-      Serial.println("*** SYSINFO: PCF8574 init error");
   }
 
   // Pinbelegung
@@ -107,13 +107,6 @@ void setup()
     Serial.printf("*** SYSINFO: ESP8266 IP address: %s Time: %s RSSI: %d\n", WiFi.localIP().toString().c_str(), timeClient.getFormattedTime().c_str(), WiFi.RSSI());
   }
 
-  if (startBuzzer)
-  {
-    pins_used[PIN_BUZZER] = true;
-    pinMode(PIN_BUZZER, OUTPUT);
-    digitalWrite(PIN_BUZZER, LOW);
-  }
-
   // Starte MQTT
   if (!mqttoff)
   {
@@ -122,9 +115,6 @@ void setup()
     TickerPUBSUB.start();        // PubSubClient loop ticker
   }
   cbpiEventSystem(EM_LOG); // webUpdate log
-
-  // if (!mqttoff)
-  //   TickerPUBSUB.start(); // PubSubClient loop ticker
 
   // Verarbeite alle Events Setup
   gEM.processAllEvents();

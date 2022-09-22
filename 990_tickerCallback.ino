@@ -1,6 +1,8 @@
 void pageCallback()
 {
-  activePage = nextion.currentPageID;
+  // activePage = nextion.currentPageID;
+  if (startBuzzer)
+    sendAlarm(ALARM_INFO);
   TickerDisp.updatenow();
 }
 
@@ -13,11 +15,13 @@ void tickerDispCallback()
 {
   char ipMQTT[50];
   sprintf_P(uhrzeit, (PGM_P)F("%02d:%02d"), timeClient.getHours(), timeClient.getMinutes());
-  sprintf_P(ipMQTT, (PGM_P)F("http://%s - %s"), nameMDNS, WiFi.localIP().toString().c_str());
+  if (startMDNS)
+    sprintf_P(ipMQTT, (PGM_P)F("http://%s - %s"), nameMDNS, WiFi.localIP().toString().c_str());
+  else
+    sprintf_P(ipMQTT, (PGM_P)F("http://%s"), WiFi.localIP().toString().c_str());
+  // Serial.printf("Ticker Disp currentPageID: %d lastPageID: %d\n", nextion.currentPageID, nextion.lastPageID);
   
   activePage = nextion.currentPageID;
-  // Serial.printf("Ticker Disp currentPageID: %d lastPageID: %d\n", pageID, nextion.lastPageID);
-
   switch (activePage)
   {
   case 0: // BrewPage
