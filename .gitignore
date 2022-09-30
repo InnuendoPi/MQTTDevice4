@@ -4,6 +4,7 @@
 *.cmd
 *.exe
 *.psd
+*.ino
 core
 preproc
 sketch
@@ -23,10 +24,6 @@ tools/esptool.exe
 tools/Flashen.cmd
 tools/buildFirm.cmd
 test/
-test/mash.htm
-test/mash.htm.gz
-test/index.htm
-test/index.htm.gz
 web/
 Display/
 992_autoPID.ino

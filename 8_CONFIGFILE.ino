@@ -29,86 +29,6 @@ bool loadConfig()
     return false;
   }
 
-  JsonArray actorsArray = doc["actors"];
-  numberOfActors = actorsArray.size();
-  if (numberOfActors > numberOfActorsMax)
-    numberOfActors = numberOfActorsMax;
-  int i = 0;
-  for (JsonObject actorObj : actorsArray)
-  {
-    if (i < numberOfActors)
-    {
-      actors[i].change(actorObj["PIN"] | "", actorObj["SCRIPT"] | "", actorObj["NAME"] | "", actorObj["INV"] | 0, actorObj["SW"] | 0);
-      DEBUG_MSG("Actor #: %d Name: %s MQTT: %s PIN: %s INV: %d SW: %d\n", (i + 1), actorObj["NAME"].as<const char *>(), actorObj["SCRIPT"].as<const char *>(), actorObj["PIN"].as<const char *>(), actorObj["INV"].as<int>(), actorObj["SW"].as<int>());
-      i++;
-    }
-  }
-
-  if (numberOfActors == 0)
-  {
-    DEBUG_MSG("Actors: %d\n", numberOfActors);
-  }
-  DEBUG_MSG("%s\n", "--------------------");
-
-  JsonArray sensorsArray = doc["sensors"];
-  numberOfSensors = sensorsArray.size();
-
-  if (numberOfSensors > numberOfSensorsMax)
-    numberOfSensors = numberOfSensorsMax;
-  i = 0;
-  for (JsonObject sensorsObj : sensorsArray)
-  {
-    if (i < numberOfSensors)
-    {
-      sensors[i].change(sensorsObj["ADDRESS"] | "", sensorsObj["SCRIPT"] | "", sensorsObj["NAME"] | "", sensorsObj["CBPIID"] | "", sensorsObj["OFFSET1"] | 0.0, sensorsObj["OFFSET2"] | 0.0, sensorsObj["SW"] | 0);
-      DEBUG_MSG("Sensor #: %d Name: %s Address: %s MQTT: %s CBPi-ID: %s Offset1: %.02f Offset2: %.02f SW: %d\n", (i + 1), sensorsObj["NAME"].as<const char *>(), sensorsObj["ADDRESS"].as<const char *>(), sensorsObj["SCRIPT"].as<const char *>(), sensorsObj["CBPIID"].as<const char *>(), sensorsObj["OFFSET1"].as<float>(), sensorsObj["OFFSET2"].as<float>(), sensorsObj["SW"].as<int>());
-      i++;
-    }
-    else
-      sensors[i].change("", "", "", "", 0.0, 0.0, false);
-  }
-  DEBUG_MSG("%s\n", "--------------------");
-
-  JsonArray indArray = doc["induction"];
-  JsonObject indObj = indArray[0];
-  if (indObj.containsKey("ENABLED"))
-  {
-    inductionStatus = 1;
-    inductionCooker.change(StringToPin(indObj["PINWHITE"]), StringToPin(indObj["PINYELLOW"]), StringToPin(indObj["PINBLUE"]), indObj["TOPIC"] | "", indObj["DELAY"] | DEF_DELAY_IND, true, indObj["PL"] | 100);
-    DEBUG_MSG("Induction: %d MQTT: %s Relais (WHITE): %s Command channel (YELLOW): %s Backchannel (BLUE): %s Delay after power off %d Power level on error: %d\n", inductionStatus, indObj["TOPIC"].as<const char *>(), indObj["PINWHITE"].as<const char *>(), indObj["PINYELLOW"].as<const char *>(), indObj["PINBLUE"].as<const char *>(), indObj["DELAY"].as<int>(), indObj["PL"].as<int>());
-  }
-  else
-  {
-    inductionStatus = 0;
-    DEBUG_MSG("Induction: %d\n", inductionStatus);
-  }
-  DEBUG_MSG("%s\n", "--------------------");
-
-  JsonArray hltArray = doc["hlt"];
-  JsonObject hltObj = hltArray[0];
-  kettleHLT.isEnabled = hltObj["ENABLED"] | 0;
-  hltStatus = kettleHLT.isEnabled;
-  DEBUG_MSG("HLT: hltStatus %d\n", hltStatus);
-
-  if (kettleHLT.isEnabled)
-  {
-    hltStatus = 1;
-    hltKp = hltObj["kp"] | 2.0;
-    hltKi = hltObj["ki"] | 0.5;
-    hltKd = hltObj["kd"] | 1.0;
-    hltSetpoint = hltObj["SETP"] | 78.0;
-
-    kettleHLT.change(hltObj["ENABLED"] | 0, hltObj["PIN"] | "", hltObj["INV"] | 0, hltObj["SENID"] | 1);
-    DEBUG_MSG("HLT: %d PIN: %s invert GPIO: %d SenID: %d\n", hltStatus, hltObj["PIN"].as<const char *>(), hltObj["INV"].as<int>(), hltObj["SENID"].as<int>());
-  }
-  else
-  {
-    hltStatus = 0;
-    DEBUG_MSG("HLT: %d\n", hltStatus);
-  }
-  DEBUG_MSG("HLT: Kp %.02f Ki %.02f Kd %.02f Setpoint %.02f\n", hltKp, hltKi, hltKd, hltSetpoint);
-  DEBUG_MSG("%s\n", "--------------------");
-
   // Misc Settings
   JsonArray miscArray = doc["misc"];
   JsonObject miscObj = miscArray[0];
@@ -145,9 +65,99 @@ bool loadConfig()
   strlcpy(mqttpass, miscObj["MQTTPASS"] | "", maxPassSign);
   mqttport = miscObj["MQTTPORT"] | 1883;
   mqttoff = miscObj["MQTTOFF"] | 0;
+  if (!mqttoff)
+    DEBUG_MSG("MQTT server IP: %s Port: %d User: %s Pass: %s Off: %d\n", mqtthost, mqttport, mqttuser, mqttpass, mqttoff);
 
-  DEBUG_MSG("MQTT server IP: %s Port: %d User: %s Pass: %s Off: %d\n", mqtthost, mqttport, mqttuser, mqttpass, mqttoff);
+  if (useI2C)
+    numberOfPins = ALLPINS;
+  else
+    numberOfPins = GPIOPINS;
   DEBUG_MSG("%s\n", "--------------------");
+
+  // read actors
+  JsonArray actorsArray = doc["actors"];
+  numberOfActors = actorsArray.size();
+  if (numberOfActors > numberOfActorsMax)
+    numberOfActors = numberOfActorsMax;
+  int i = 0;
+  for (JsonObject actorObj : actorsArray)
+  {
+    if (i < numberOfActors)
+    {
+      actors[i].change(actorObj["PIN"] | "", actorObj["SCRIPT"] | "", actorObj["NAME"] | "", actorObj["INV"] | 0, actorObj["SW"] | 0);
+      DEBUG_MSG("Actor #: %d Name: %s MQTT: %s PIN: %s INV: %d SW: %d\n", (i + 1), actorObj["NAME"].as<const char *>(), actorObj["SCRIPT"].as<const char *>(), actorObj["PIN"].as<const char *>(), actorObj["INV"].as<int>(), actorObj["SW"].as<int>());
+      i++;
+    }
+  }
+
+  if (numberOfActors == 0)
+  {
+    DEBUG_MSG("Actors: %d\n", numberOfActors);
+  }
+  DEBUG_MSG("%s\n", "--------------------");
+
+  // read sensors
+  JsonArray sensorsArray = doc["sensors"];
+  numberOfSensors = sensorsArray.size();
+
+  if (numberOfSensors > numberOfSensorsMax)
+    numberOfSensors = numberOfSensorsMax;
+  i = 0;
+  for (JsonObject sensorsObj : sensorsArray)
+  {
+    if (i < numberOfSensors)
+    {
+      sensors[i].change(sensorsObj["ADDRESS"] | "", sensorsObj["SCRIPT"] | "", sensorsObj["NAME"] | "", sensorsObj["CBPIID"] | "", sensorsObj["OFFSET1"] | 0.0, sensorsObj["OFFSET2"] | 0.0, sensorsObj["SW"] | 0);
+      DEBUG_MSG("Sensor #: %d Name: %s Address: %s MQTT: %s CBPi-ID: %s Offset1: %.02f Offset2: %.02f SW: %d\n", (i + 1), sensorsObj["NAME"].as<const char *>(), sensorsObj["ADDRESS"].as<const char *>(), sensorsObj["SCRIPT"].as<const char *>(), sensorsObj["CBPIID"].as<const char *>(), sensorsObj["OFFSET1"].as<float>(), sensorsObj["OFFSET2"].as<float>(), sensorsObj["SW"].as<int>());
+      i++;
+    }
+    else
+      sensors[i].change("", "", "", "", 0.0, 0.0, false);
+  }
+  DEBUG_MSG("%s\n", "--------------------");
+
+  // read induction
+  JsonArray indArray = doc["induction"];
+  JsonObject indObj = indArray[0];
+  if (indObj.containsKey("ENABLED"))
+  {
+    inductionStatus = 1;
+    inductionCooker.change(StringToPin(indObj["PINWHITE"]), StringToPin(indObj["PINYELLOW"]), StringToPin(indObj["PINBLUE"]), indObj["TOPIC"] | "", indObj["DELAY"] | DEF_DELAY_IND, true, indObj["PL"] | 100);
+    DEBUG_MSG("Induction: %d MQTT: %s Relais (WHITE): %s Command channel (YELLOW): %s Backchannel (BLUE): %s Delay after power off %d Power level on error: %d\n", inductionStatus, indObj["TOPIC"].as<const char *>(), indObj["PINWHITE"].as<const char *>(), indObj["PINYELLOW"].as<const char *>(), indObj["PINBLUE"].as<const char *>(), indObj["DELAY"].as<int>(), indObj["PL"].as<int>());
+  }
+  else
+  {
+    inductionStatus = 0;
+    DEBUG_MSG("Induction: %d\n", inductionStatus);
+  }
+  DEBUG_MSG("%s\n", "--------------------");
+
+  // read HLT
+  JsonArray hltArray = doc["hlt"];
+  JsonObject hltObj = hltArray[0];
+  kettleHLT.isEnabled = hltObj["ENABLED"] | 0;
+  hltStatus = kettleHLT.isEnabled;
+  DEBUG_MSG("HLT: hltStatus %d\n", hltStatus);
+
+  if (kettleHLT.isEnabled)
+  {
+    hltStatus = 1;
+    hltKp = hltObj["kp"] | 2.0;
+    hltKi = hltObj["ki"] | 0.5;
+    hltKd = hltObj["kd"] | 1.0;
+    hltSetpoint = hltObj["SETP"] | 78.0;
+
+    kettleHLT.change(hltObj["ENABLED"] | 0, hltObj["PIN"] | "", hltObj["INV"] | 0, hltObj["SENID"] | 1);
+    DEBUG_MSG("HLT: %d PIN: %s invert GPIO: %d SenID: %d\n", hltStatus, hltObj["PIN"].as<const char *>(), hltObj["INV"].as<int>(), hltObj["SENID"].as<int>());
+  }
+  else
+  {
+    hltStatus = 0;
+    DEBUG_MSG("HLT: %d\n", hltStatus);
+  }
+  DEBUG_MSG("HLT: Kp %.02f Ki %.02f Kd %.02f Setpoint %.02f\n", hltKp, hltKi, hltKd, hltSetpoint);
+  DEBUG_MSG("%s\n", "--------------------");
+
   // PID stuff
   JsonArray pidArray = doc["pid"];
   JsonObject pidObj = pidArray[0];
@@ -164,6 +174,9 @@ bool loadConfig()
   if (numberOfSensors > 0) // Ticker Sensors
     TickerSen.start();
 
+  if (numberOfActors > 0) // Ticker Sensors
+    TickerAct.start();
+
   if (inductionStatus > 0) // Induktion
     TickerInd.start();
 
@@ -177,26 +190,34 @@ bool loadConfig()
   DEBUG_MSG("JSON memory usage: %d\n", memoryUsed);
   DEBUG_MSG("%s\n", "--------------------");
 
-  if (startBuzzer)
-    sendAlarm(ALARM_ON);
   if (useI2C)
     numberOfPins = ALLPINS;
   else
     numberOfPins = GPIOPINS;
 
-  readMash();
+  if (LittleFS.exists("/mashplan.json")) // Lade Maischeplan
+    readMash();
+
+  if (startBuzzer)
+  {
+    pins_used[PIN_BUZZER] = true;
+    pinMode(PIN_BUZZER, OUTPUT);
+    digitalWrite(PIN_BUZZER, LOW);
+    sendAlarm(ALARM_ON);
+  }
 
   return true;
 }
 
 void saveConfigCallback()
 {
+  shouldSaveConfig = true;
 
-  if (LittleFS.begin())
-  {
-    // saveConfig();
-    shouldSaveConfig = true;
-  }
+  // if (LittleFS.begin())
+  // {
+  //   // saveConfig();
+  //   shouldSaveConfig = true;
+  // }
 }
 
 bool saveConfig()
@@ -261,6 +282,17 @@ bool saveConfig()
   }
 
   DEBUG_MSG("%s\n", "--------------------");
+  // Write PID Stuff
+  JsonArray pidArray = doc.createNestedArray("pid");
+  JsonObject pidObj = pidArray.createNestedObject();
+
+  pidObj["kp"] = ids2Kp;
+  pidObj["ki"] = ids2Ki;
+  pidObj["kd"] = ids2Kd;
+  pidObj["piddelta"] = (int(pidDelta * 100)) / 100.0;
+
+  DEBUG_MSG("PID IDS2: Kp: %.03f Ki: %.03f Kd: %.03f pidDelta: %.01f ids2AutoTune: %d Setpoint: %.01f\n", ids2Kp, ids2Ki, ids2Kd, pidDelta, ids2AutoTune, ids2Setpoint);
+  DEBUG_MSG("%s\n", "--------------------");
 
   // Write HLT
   JsonArray hltArray = doc.createNestedArray("hlt");
@@ -284,7 +316,7 @@ bool saveConfig()
     hltStatus = 0;
     DEBUG_MSG("HLT: %d\n", kettleHLT.isEnabled);
   }
-  DEBUG_MSG("HLT: Kp %.02f Ki %.02f Kd %.02f Setpoint %.02f\n", hltKp, hltKi, hltKd, hltSetpoint);
+  DEBUG_MSG("PID HLT: Kp %.02f Ki %.02f Kd %.02f Setpoint %.02f\n", hltKp, hltKi, hltKd, hltSetpoint);
   DEBUG_MSG("%s\n", "--------------------");
 
   // Write Misc Stuff
@@ -323,24 +355,14 @@ bool saveConfig()
 
   DEBUG_MSG("MQTT broker IP: %s Port: %d User: %s Pass: %s Off: %d\n", mqtthost, mqttport, mqttuser, mqttpass, mqttoff);
   DEBUG_MSG("%s\n", "--------------------");
-  // Write PID Stuff
-  JsonArray pidArray = doc.createNestedArray("pid");
-  JsonObject pidObj = pidArray.createNestedObject();
 
-  pidObj["kp"] = ids2Kp;
-  pidObj["ki"] = ids2Ki;
-  pidObj["kd"] = ids2Kd;
-  pidObj["piddelta"] = (int(pidDelta * 100)) / 100.0;
+  // size_t len = measureJson(doc);
+  // int memoryUsed = doc.memoryUsage();
 
-  DEBUG_MSG("PIDs: Kp: %.03f Ki: %.03f Kd: %.03f pidDelta: %.01f ids2AutoTune: %d Setpoint: %.01f\n", ids2Kp, ids2Ki, ids2Kd, pidDelta, ids2AutoTune, ids2Setpoint);
-
-  size_t len = measureJson(doc);
-  int memoryUsed = doc.memoryUsage();
-
-  if (len > 2048 || memoryUsed > 2500)
+  if (measureJson(doc) > 2048 || doc.memoryUsage() > 2500)
   {
-    DEBUG_MSG("JSON config length: %d\n", len);
-    DEBUG_MSG("JSON memory usage: %d\n", memoryUsed);
+    DEBUG_MSG("JSON config length: %d\n", measureJson(doc));
+    DEBUG_MSG("JSON memory usage: %d\n", doc.memoryUsage());
     DEBUG_MSG("%s\n", "Failed to write config file - config too large");
     DEBUG_MSG("%s\n", "------ saveConfig aborted ------");
     if (startBuzzer)
@@ -359,18 +381,28 @@ bool saveConfig()
   }
   serializeJson(doc, configFile);
   configFile.close();
+
+  DEBUG_MSG("Config file size %d\n", configFile.size());
+  DEBUG_MSG("JSON config length: %d\n", measureJson(doc));
+  DEBUG_MSG("JSON memory usage: %d\n", doc.memoryUsage());
   DEBUG_MSG("%s\n", "------ saveConfig finished ------");
 
   if (useI2C)
     numberOfPins = ALLPINS;
   else
     numberOfPins = GPIOPINS;
-  DEBUG_MSG("NumberOfPins: %d\n", numberOfPins);
+  DEBUG_MSG("Maximum number of pins: %d\n", numberOfPins);
+  DEBUG_MSG("Free heap memory: %d\n", ESP.getFreeHeap());
 
   if (numberOfSensors > 0) // Ticker Sensors
     TickerSen.start();
   else
     TickerSen.stop();
+
+  if (numberOfActors > 0) // Ticker Sensors
+    TickerAct.start();
+  else
+    TickerAct.stop();
 
   if (inductionStatus > 0) // Ticker Induktion
     TickerInd.start();
@@ -384,6 +416,21 @@ bool saveConfig()
 
   if (!useDisplay) // Ticker Display
     TickerDisp.stop();
+  else
+  {
+    if (TickerDisp.state() != RUNNING)
+    {
+      if (!softSerial)
+        softSerial.begin(9600, SWSERIAL_8N1, D1, D2, false);
+
+      DEBUG_MSG("SoftwareSerial init %d\n", int(softSerial));
+      pins_used[D1] = true;
+      pins_used[D2] = true;
+      nextion.begin(softSerial);
+      initDisplay();
+      TickerDisp.start();
+    }
+  }
 
   if (mqttoff)
   {
@@ -408,7 +455,7 @@ bool saveConfig()
     digitalWrite(PIN_BUZZER, LOW);
     sendAlarm(ALARM_ON);
   }
-  
+
   DEBUG_MSG("%s\n", "---------------------------------");
 
   return true;

@@ -1,9 +1,15 @@
 # Changelog
 
-Version 4.31b
+Version 4.31d
 
+- Changed:  VSCode 1.71.2
+- Fixed:    Order and power button ID actors on mash page
+- Reworked: I2C lib - GPIO
+- Added:    PCF8574 to index.html
+- Reworked: Ticker actors
+- Renamed:  PCF pins to P0 - P7 (D9-D16)
 - Fixed:    Display startPage
-- Fixed:    Bug in NextionX2 lib (temp removed lastPageID)
+- Fixed:    Bug in NextionX2 lib
 - Fixed:    trap causing unexpected restart (exception 28)
 - Fixed:    Display switch pages
 - Added:    currentPageID to NextionX2 lib
@@ -13,7 +19,7 @@ Version 4.31b
             until currentPageID availible from lib there is no reliable method switching pages
 - Added:    HLT sparge object
 - Added:    PCF8574 support (I2C)
-- Changed:  VSCode 1.72
+- Changed:  VSCode 1.71.1
 - Fixed:    Bug WebUpdate: unmount FS before restart
 - Added:    Import MQTTDevice mashplan format
 - Added:    Export mashplan to download file (json)

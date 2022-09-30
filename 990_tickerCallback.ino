@@ -3,6 +3,7 @@ void pageCallback()
   // activePage = nextion.currentPageID;
   if (startBuzzer)
     sendAlarm(ALARM_INFO);
+
   TickerDisp.updatenow();
 }
 
@@ -156,6 +157,11 @@ void tickerDispCallback()
 void tickerSenCallback() // Timer Objekt Sensoren
 {
   cbpiEventSensors(sensorsStatus);
+}
+
+void tickerActCallback() // Timer Objekt Sensoren
+{
+  cbpiEventActors(actorsStatus);
 }
 
 void tickerIndCallback() // Timer Objekt Sensoren

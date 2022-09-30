@@ -189,6 +189,11 @@ void handleRequestMisc2()
   doc["buzzer"] = startBuzzer;
   doc["mqbuz"] = mqttBuzzer;
   doc["display"] = useDisplay;
+  doc["i2c"] = useI2C;
+  if (startMDNS)
+    doc["mdns"] = nameMDNS;
+  else
+    doc["mdns"] = 0;
   doc["alertstate"] = alertState;
   // doc["statePower"] = statePower;
   // doc["statePause"] = statePause;
@@ -903,7 +908,8 @@ void handleActorPower()
     actors[id].power_actor = 100;
   else
     actors[id].power_actor = 0;
-
-  DEBUG_MSG("Actor ID %d switched to %d\n", id, actors[id].isOn);
+    
+  TickerAct.updatenow();
+  DEBUG_MSG("Actor ID %d Pin %s switched to %d\n", id, PinToString(actors[id].pin_actor).c_str(), actors[id].isOn);
   server.send(201, "text/plain", "created");
 }

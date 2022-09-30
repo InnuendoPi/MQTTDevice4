@@ -56,7 +56,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.31b"
+#define Version "4.31d"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -113,21 +113,21 @@ bool useI2C = false;
 // const unsigned char pnumberOfPins = 8;
 // const unsigned char ppins[pnumberOfPins] = {P0, P1, P2, P3, P4, P5, P6, P7};
 // const String ppin_names[pnumberOfPins] = {"P0", "P1", "P2", "P3", "P4", "P5", "P6", "P7"};
-#define D9 17
-#define D10 18
-#define D11 19
-#define D12 20
-#define D13 21
-#define D14 22
-#define D15 23
-#define D16 24
+#define P0 17
+#define P1 18
+#define P2 19
+#define P3 20
+#define P4 21
+#define P5 22
+#define P6 23
+#define P7 24
 #define ALLPINS 17
 #define GPIOPINS 9
 #define PCFPINS 8
 bool pins_used[25]; // GPIO
 unsigned char numberOfPins = ALLPINS;
-const unsigned char pins[ALLPINS] = {D0, D1, D2, D3, D4, D5, D6, D7, D8, D9, D10, D11, D12, D13, D14, D15, D16};
-const String pin_names[ALLPINS] = {"D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9*", "D10*", "D11*", "D12*", "D13*", "D14*", "D15*", "D16*"};
+const unsigned char pins[ALLPINS] = {D0, D1, D2, D3, D4, D5, D6, D7, D8, P0, P1, P2, P3, P4, P5, P6, P7};
+const String pin_names[ALLPINS] = {"D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "P0", "P1", "P2", "P3", "P4", "P5", "P6", "P7"};
 
 // Variablen
 unsigned char numberOfSensors = 0; // Gesamtzahl der Sensoren
@@ -195,12 +195,11 @@ unsigned long wlanconnectlasttry; // Zeitstempel bei Fehler WLAN
 bool mqtt_state = true;           // Status MQTT
 bool devBranch = false;           // Check out development branch
 bool mqttoff = false;             // Disable MQTT
-// bool prevStateMQTT = false;
 
 // Event handling Zeitintervall für Reconnects WLAN und MQTT
 #define tickerWLAN 30000 // für Ticker Objekt WLAN in ms
 #define tickerMQTT 30000 // für Ticker Objekt MQTT in ms
-#define tickerPUSUB 300  // delay für PubSubClient
+#define tickerPUSUB 300  // Ticker PubSubClient
 
 // Event handling Standard Verzögerungen
 unsigned long wait_on_error_mqtt = 120000;             // How long should device wait between tries to reconnect WLAN      - approx in ms
@@ -209,6 +208,7 @@ unsigned long wait_on_Sensor_error_induction = 120000; // How long should induct
 
 // Ticker Objekte
 InnuTicker TickerSen;
+InnuTicker TickerAct;
 InnuTicker TickerInd;
 InnuTicker TickerHlt;
 InnuTicker TickerMQTT;
@@ -222,6 +222,7 @@ InnuTicker TickerHltPID;
 
 // Update Intervalle für Ticker Objekte
 #define SEN_UPDATE 4000 //  sensors update
+#define ACT_UPDATE 2000 //  sensors update
 #define IND_UPDATE 2000 //  sensors update
 #define HLT_UPDATE 2000 //  sensors update
 #define DISP_UPDATE 1000
@@ -287,7 +288,7 @@ struct Kettles
 };
 struct Kettles structKettles[maxKettles];
 
-#define maxSteps 12
+#define maxSteps 10
 struct Steps
 {
     char id[maxIdSign];
@@ -307,14 +308,11 @@ char notify[maxNotifySign]; //= "Waiting for data - start brewing";
 int sliderval = 0;
 char uhrzeit[6] ="00:00";
 
-// SoftwareSerial softSerial(D1, D2);
-// #define D1 (5)
-// #define D2 (4)
-SoftwareSerial softSerial;
-NextionComPort nextion;
+// Display Nextion
+SoftwareSerial softSerial;  // Objekt SoftSerial ohne GPIO 
+NextionComPort nextion;     // Objekt Display Kommunikation
 
 // Steuerung Buttons
-NextionComponent page0(nextion, 0, 0);
 NextionComponent p0ForButton(nextion, 0, 19);
 NextionComponent p0BackButton(nextion, 0, 21);
 
@@ -360,7 +358,7 @@ NextionComponent p2uhrzeit_text(nextion, 2, 7);
 NextionComponent p2slider(nextion, 2, 1);
 NextionComponent p2temp_text(nextion, 2, 5);
 NextionComponent p2gauge(nextion, 2, 4);
-
+  
 #define ALARM_ON 1
 #define ALARM_OFF 2
 #define ALARM_INFO 3
@@ -370,7 +368,7 @@ NextionComponent p2gauge(nextion, 2, 4);
 
 const int PIN_BUZZER = D8; // Buzzer
 bool startBuzzer = false;  // Aktiviere Buzzer
-bool mqttBuzzer = false;   // MQTTBuzzer
+bool mqttBuzzer = false;   // MQTTBuzzer für CBPi4
 
 // PID
 #define PID_UPDATE 3000     // checkTemp and send newPower
@@ -392,7 +390,7 @@ PID_v2 hltPID(hltKp, hltKi, hltKd, PID::Direction::Direct);
 bool pidMode = false;
 bool ids2AutoTune = false;
 bool hltAutoTune = false;
-// button states
+// mash button states
 bool statePower = false;
 bool statePause = false;
 bool statePlay = false;
@@ -408,15 +406,15 @@ float outputStart = 0;
 float outputStep = 100;
 float tempLimit = 75;
 
-sTune tuner = sTune(&ids2Input, &ids2Output, tuner.Mixed_PID, tuner.directIP, tuner.printOFF);
-sTune hltTuner = sTune(&hltInput, &hltOutput, tuner.Mixed_PID, tuner.directIP, tuner.printOFF);
+sTune tuner = sTune(&ids2Input, &ids2Output, tuner.Mixed_PID, tuner.directIP, tuner.printOFF);  // IDS2
+sTune hltTuner = sTune(&hltInput, &hltOutput, tuner.Mixed_PID, tuner.directIP, tuner.printOFF); // HLT
 
 // tuner.printDEBUG
 // tuner.printSUMMARY
 // tuner.direct5T
 
 // Maischeplan
-#define MASH_UPDATE 5000    // handleMash
+#define MASH_UPDATE 5000    // handleMash TickerMash
 #define maxSchritte 10
 int maxActMashSteps = 0;    // maxArray
 #define sizeImportMax 3072
@@ -426,10 +424,10 @@ String planResponse;
 int actMashStep = 0;        // active mash step
 struct Maischeplan
 {
-    String name;
-    int duration;
-    int temp;
-    bool autonext;
+    String name;        // Rast Name
+    int duration;       // Rast Dauer
+    int temp;           // Rast Temperatur
+    bool autonext;      // nächste Rast automatisch anfahren
 };
 struct Maischeplan structPlan[maxSchritte];
 

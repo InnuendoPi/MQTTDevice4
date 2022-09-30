@@ -45,8 +45,8 @@ void setup()
     checkSummerTime();
     TickerNTP.start();
 
-    if (shouldSaveConfig) // WiFiManager
-      saveConfig();
+    // if (shouldSaveConfig) // WiFiManager
+    //   saveConfig();
 
     if (LittleFS.exists("/config.txt")) // Lade Konfiguration
       loadConfig();
@@ -65,23 +65,26 @@ void setup()
   // Starte Webserver
   setupServer();
 
-  if (startBuzzer)
-  {
-    pins_used[PIN_BUZZER] = true;
-    pinMode(PIN_BUZZER, OUTPUT);
-    digitalWrite(PIN_BUZZER, LOW);
-  }
-
   if (useDisplay)
   {
     softSerial.begin(9600, SWSERIAL_8N1, D1, D2, false);
     if (softSerial)
+    {
       Serial.println("*** SYSINFO: SoftwareSerial init successful");
-    pins_used[D1] = true;
-    pins_used[D2] = true;
-    nextion.begin(softSerial);    
-    // nextion.debug(Serial);
-    initDisplay();
+      pins_used[D1] = true;
+      pins_used[D2] = true;
+      nextion.begin(softSerial);
+      // nextion.debug(Serial);
+      initDisplay();
+    }
+    else
+    {
+      Serial.println("*** SYSINFO: SoftwareSerial init error");
+      if (startBuzzer)
+      {
+        sendAlarm(ALARM_ERROR);
+      }
+    }
   }
   if (useI2C)
   {
@@ -90,6 +93,15 @@ void setup()
       Serial.println("*** SYSINFO: PCF8574 init successful");
       pins_used[D5] = true;
       pins_used[D6] = true;
+      // pcf8574.selectNone(); // set all PCF8574 pins to low
+    }
+    else
+    {
+      Serial.println("*** SYSINFO: PCF8574 init error");
+      if (startBuzzer)
+      {
+        sendAlarm(ALARM_ERROR);
+      }
     }
   }
 

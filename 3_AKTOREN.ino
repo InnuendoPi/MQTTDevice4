@@ -15,7 +15,7 @@ public:
   bool switchable;              // actors switchable on error events?
   bool isOnBeforeError = false; // isOn status before error event
   bool actor_state = true;      // Error state actor
-  
+
   // MQTT Publish
   char actor_mqtttopic[50]; // Für MQTT Kommunikation
 
@@ -33,7 +33,7 @@ public:
     // GPIO 17-25 PCF PINs -> pin_actor to pcf_actor transform
     // ACT ON Update isPin 1 pin_actor 17 pcf_actor 0 pinType 9 power 100  -> D9 => P0
     // ACT ON Update isPin 1 pin_actor 18 pcf_actor 1 pinType 10 power 100 -> D10 => P1
-    
+
     if (isPin(pin_actor))
     {
       if (isOn && power_actor > 0)
@@ -44,29 +44,45 @@ public:
         }
         if (millis() > powerLast + (dutycycle_actor * power_actor / 100L))
         {
-          if (type != -100 && type < 9)
+          if (type != -100 && type < GPIOPINS)
+          {
             digitalWrite(pin_actor, OFF);
-          else if (type >= 9)
+            DEBUG_MSG("Actor GPIO PIN %s isOFF\n", PinToString(pin_actor).c_str());
+          }
+          else if (type >= GPIOPINS)
           {
             pcf8574.write(pcf_actor, OFF);
             // DEBUG_MSG("ACT PCF OFF Update isPin %d actor id %d pinType %d power %d\n", isPin(pin_actor), pin_actor, pinType(pin_actor), power_actor);
+            DEBUG_MSG("Actor PCF PIN %d isOFF\n", pcf_actor);
           }
         }
         else
         {
-          if (type != -100 && type < 9)
+          if (type != -100 && type < GPIOPINS)
+          {
             digitalWrite(pin_actor, ON);
-          else if (type >= 9)
+            DEBUG_MSG("Actor GPIO PIN %s isON\n", PinToString(pin_actor).c_str());
+          }
+          else if (type >= GPIOPINS)
+          {
             pcf8574.write(pcf_actor, ON);
-          // DEBUG_MSG("ACT ON Update isPin %d pin_actor %d pcf_actor %d pinType %d power %d\n", isPin(pin_actor), pin_actor, pcf_actor, pinType(pin_actor), power_actor);
+            // DEBUG_MSG("ACT ON Update isPin %d pin_actor %d pcf_actor %d pinType %d power %d\n", isPin(pin_actor), pin_actor, pcf_actor, pinType(pin_actor), power_actor);
+            DEBUG_MSG("Actor PCF PIN %d isON\n", pcf_actor);
+          }
         }
       }
       else
       {
-        if (type != -100 && type < 9)
+        if (type != -100 && type < GPIOPINS)
+        {
           digitalWrite(pin_actor, OFF);
-        else if (type >= 9)
+          // DEBUG_MSG("Actor3 GPIO PIN %s isOFF\n", PinToString(pin_actor).c_str());
+        }
+        else if (type >= GPIOPINS)
+        {
           pcf8574.write(pcf_actor, OFF);
+          // DEBUG_MSG("Actor3 PCF PIN %d isOFF\n", pcf_actor);
+        }
       }
     }
   }
@@ -79,9 +95,9 @@ public:
 
     if (isPin(pin_actor))
     {
-      if (type != -100 && type < 9)
+      if (type != -100 && type < GPIOPINS)
         digitalWrite(pin_actor, HIGH);
-      else if (type >= 9) // PCF PIN
+      else if (type >= GPIOPINS) // PCF PIN
         pcf8574.write(pcf_actor, HIGH);
 
       pins_used[pin_actor] = false;
@@ -89,18 +105,18 @@ public:
     }
 
     pin_actor = StringToPin(pin);
-    
+
     type = pinType(pin_actor);
     pcf_actor = type - GPIOPINS;
 
     if (isPin(pin_actor))
     {
-      if (type != -100 && type < 9)
+      if (type != -100 && type < GPIOPINS)
       {
         pinMode(pin_actor, OUTPUT);
         digitalWrite(pin_actor, HIGH);
       }
-      else if (type >= 9)
+      else if (type >= GPIOPINS)
       {
         pcf8574.write(pcf_actor, HIGH);
       }
@@ -343,7 +359,7 @@ unsigned char StringToPin(String pinstring)
       return pins[i];
     }
   }
-  return 9;
+  return -100;
 }
 
 String PinToString(unsigned char pinbyte)

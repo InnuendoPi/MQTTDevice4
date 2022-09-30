@@ -17,9 +17,9 @@ class induction
   long powerLow = 0;
 
 public:
-  unsigned char PIN_WHITE = 14;     // D5 RELAIS
-  unsigned char PIN_YELLOW = 12;    // D6 AUSGABE AN PLATTE
-  unsigned char PIN_INTERRUPT = 13; // D7 EINGABE VON PLATTE
+  unsigned char PIN_WHITE = 14;     // D5 Relay white
+  unsigned char PIN_YELLOW = 12;    // D6 Command channel yellow AUSGABE AN PLATTE
+  unsigned char PIN_INTERRUPT = 13; // D7 Back channel blue EINGABE VON PLATTE
   int power = 0;
   int newPower = 0;
   unsigned char CMD_CUR = 0; // Aktueller Befehl
@@ -49,7 +49,7 @@ public:
       // aktuelle PINS deaktivieren
       if (isPin(PIN_WHITE))
       {
-        if (type != -100 && type < 9)
+        if (type != -100 && type < GPIOPINS)
           digitalWrite(PIN_WHITE, HIGH);
         else
           pcf8574.write(pcf_pin, HIGH);
@@ -61,7 +61,7 @@ public:
 
       if (isPin(PIN_YELLOW))
       {
-        if (type != -100 && type < 9)
+        if (type != -100 && type < GPIOPINS)
           digitalWrite(PIN_YELLOW, HIGH);
         else
           pcf8574.write(pcf_pin, HIGH);
@@ -96,12 +96,12 @@ public:
       // neue PINS aktiveren
       if (isPin(PIN_WHITE))
       {
-        if (type != -100 && type < 9)
+        if (type != -100 && type < GPIOPINS)
         {
           pinMode(PIN_WHITE, OUTPUT);
           digitalWrite(PIN_WHITE, HIGH);
         }
-        else if (type >= 9)
+        else if (type >= GPIOPINS)
         {
           pcf8574.write(pcf_pin, HIGH);
         }
@@ -116,12 +116,12 @@ public:
 
       if (isPin(PIN_YELLOW))
       {
-        if (type != -100 && type < 9)
+        if (type != -100 && type < GPIOPINS)
         {
           pinMode(PIN_YELLOW, OUTPUT);
           digitalWrite(PIN_YELLOW, HIGH);
         }
-        else if (type >= 9)
+        else if (type >= GPIOPINS)
         {
           // pcf8574.pinMode(pcf_pin, OUTPUT);
           pcf8574.write(pcf_pin, HIGH);
@@ -241,10 +241,16 @@ public:
     int pcf_pin = type - GPIOPINS;
     if (isInduon == true && isRelayon == false)
     { /* Relais einschalten */
-      if (type != -100 && type < 9)
+      if (type != -100 && type < GPIOPINS)
+      {
         digitalWrite(PIN_WHITE, HIGH);
-      else if (type >= 9)
+        DEBUG_MSG("IDS2 update relay GPIO PIN White %s isHigh: %d \n",  PinToString(PIN_WHITE).c_str(), HIGH);
+      }
+      else if (type >= GPIOPINS)
+      {
         pcf8574.write(pcf_pin, HIGH);
+        DEBUG_MSG("IDS2 update relay PCF PIN White %s : %d isHigh: %d \n",  PinToString(PIN_WHITE).c_str(), pcf_pin, HIGH);
+      }
       // digitalWrite(PIN_WHITE, HIGH);
       return true;
     }
@@ -253,10 +259,16 @@ public:
     { /* Relais ausschalten */
       if (millis() > timeTurnedoff + delayAfteroff)
       {
-        if (type != -100 && type < 9)
+        if (type != -100 && type < GPIOPINS)
+        {
           digitalWrite(PIN_WHITE, LOW);
-        else if (type >= 9)
+          DEBUG_MSG("IDS2 update relay GPIO PIN White %s isLow: %d \n",  PinToString(PIN_WHITE).c_str(), LOW);
+        }
+        else if (type >= GPIOPINS)
+        {
           pcf8574.write(pcf_pin, LOW);
+          DEBUG_MSG("IDS2 update relay PCF PIN White %s : %d isLow: %d \n",  PinToString(PIN_WHITE).c_str(), pcf_pin, LOW);
+        }
         // digitalWrite(PIN_WHITE, LOW);
         return false;
       }
@@ -343,33 +355,58 @@ public:
     int type = pinType(PIN_YELLOW);
     int pcf_pin = type - GPIOPINS;
 
-    if (type != -100 && type < 9)
+    if (type != -100 && type < GPIOPINS)
+    {
       digitalWrite(PIN_YELLOW, HIGH);
-    else if (type >= 9)
+      // DEBUG_MSG("IDS2 sendCommand GPIO PIN Yellow %s isHigh: %d \n",  PinToString(PIN_YELLOW).c_str(), HIGH);
+    }
+    else if (type >= GPIOPINS)
+    {
       pcf8574.write(pcf_pin, HIGH);
+      // DEBUG_MSG("IDS2 sendCommand PCF PIN Yellow %s : %d isHigh: %d \n",  PinToString(PIN_YELLOW).c_str(), pcf_pin, HIGH);
+    }
     // digitalWrite(PIN_YELLOW, HIGH);
     millis2wait(SIGNAL_START);
 
-    if (type != -100 && type < 9)
+    if (type != -100 && type < GPIOPINS)
+    {
       digitalWrite(PIN_YELLOW, LOW);
-    else if (type >= 9)
+      // DEBUG_MSG("IDS2 GsendCommand PIO PIN Yellow %s isLow\n",  PinToString(PIN_YELLOW).c_str());
+    }
+    else if (type >= GPIOPINS)
+    {
       pcf8574.write(pcf_pin, LOW);
+      // DEBUG_MSG("IDS2 sendCommand PCF PIN Yellow %s : %d isLow\n",  PinToString(PIN_YELLOW).c_str(), pcf_pin);
+    }
     // digitalWrite(PIN_YELLOW, LOW);
     millis2wait(SIGNAL_WAIT);
 
     // PIN_YELLOW := Ausgabe an IDS2
     for (int i = 0; i < 33; i++)
     {
-      if (type != -100 && type < 9)
+      if (type != -100 && type < GPIOPINS)
+      {
         digitalWrite(PIN_YELLOW, HIGH);
+        // DEBUG_MSG("IDS2 sendCommand GPIO PIN Yellow %s isHigh\n",  PinToString(PIN_YELLOW).c_str());
+      }
       else if (type >= 9)
+      {
         pcf8574.write(pcf_pin, HIGH);
+        // DEBUG_MSG("IDS2 sendCommand PCF PIN Yellow %s : %d isHigh\n",  PinToString(PIN_YELLOW).c_str(), pcf_pin);
+      }
       // digitalWrite(PIN_YELLOW, HIGH);
       micros2wait(command[i]);
-      if (type != -100 && type < 9)
+      if (type != -100 && type < GPIOPINS)
+      {
         digitalWrite(PIN_YELLOW, LOW);
+        // DEBUG_MSG("IDS2 sendCommand GPIO PIN Yellow %s isLow\n",  PinToString(PIN_YELLOW).c_str());
+      }
       else if (type >= 9)
+      {
         pcf8574.write(pcf_pin, LOW);
+        // DEBUG_MSG("IDS2 sendCommand PCF PIN Yellow %s : %d isLow\n",  PinToString(PIN_YELLOW).c_str(), pcf_pin);
+      }
+        
       // digitalWrite(PIN_YELLOW, LOW);
       micros2wait(SIGNAL_LOW);
     }

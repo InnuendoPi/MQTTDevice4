@@ -18,8 +18,8 @@ void loop()
 
   if (numberOfSensors > 0)    // Ticker Sensoren
     TickerSen.update();
-  if (numberOfActors > 0)     // Aktoren
-    cbpiEventActors(actorsStatus);
+  if (numberOfActors > 0)     // Ticker Aktoren
+    TickerAct.update();
   if (inductionStatus > 0)    // Ticker Induktion
     TickerInd.update();
   if (useDisplay)             // Ticker Display

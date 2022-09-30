@@ -1,5 +1,14 @@
 void initDisplay()
 {
+  // register callback functions
+  p0ForButton.touch(pageCallback);          // BrewPage forward to KettlePage
+  p0BackButton.touch(pageCallback);         // BrewPage backward to InductionPage
+  p1ForButton.touch(pageCallback);          // KelltlePage forward to InductionPage
+  p1BackButton.touch(pageCallback);         // KettlePage backward to BrewPage
+  p2ForButton.touch(pageCallback);          // InductionPage forward to BrewPage
+  p2BackButton.touch(pageCallback);         // InductionPage backward to KettlePage
+  powerButton.release(powerButtonCallback); // buttonBack auf induction page backward auf page 1
+  
   activePage = startPage;
   switch (startPage)
   {
@@ -16,19 +25,10 @@ void initDisplay()
     nextion.command("page 0");
     break;
   }
-  nextion.command("doevents");  // Force immediate screen refresh and receive serial bytes to buffer
-  // register button events
-  p0ForButton.touch(pageCallback);  // BrewPage forward to KettlePage
-  p0BackButton.touch(pageCallback); // BrewPage backward to InductionPage
-  p1ForButton.touch(pageCallback);  // KelltlePage forward to InductionPage
-  p1BackButton.touch(pageCallback); // KettlePage backward to BrewPage
-  p2ForButton.touch(pageCallback);  // InductionPage forward to BrewPage
-  p2BackButton.touch(pageCallback); // InductionPage backward to KettlePage
-  powerButton.release(powerButtonCallback); // buttonBack auf induction page backward auf page 1
-  
+  nextion.command("doevents"); // Force immediate screen refresh and receive serial bytes to buffer
   // start display tikcer
   activePage = nextion.currentPageID;
-  TickerDisp.start(); 
+  TickerDisp.start();
 }
 
 void dispPublishmqtt()
