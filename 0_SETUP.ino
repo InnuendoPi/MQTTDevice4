@@ -139,7 +139,7 @@ void setupServer()
   server.on("/index", handleRoot);
   server.on("/index.html", handleRoot);
   server.on("/mash", HTTP_GET, handleGetMash);
-  server.on("/mash.html", HTTP_GET, handleGetMash);
+  // server.on("/mash.html", HTTP_GET, handleGetMash);
   server.on("/mash.htm", HTTP_GET, handleGetMash);
   server.on("/setupActor", handleSetActor);       // Einstellen der Aktoren
   server.on("/setupSensor", handleSetSensor);     // Einstellen der Sensoren
@@ -175,6 +175,7 @@ void setupServer()
   server.on("/actorPower", handleActorPower);
   server.on("/hltPower", handleHltPower);
   server.on("/hltSetpoint", handleHltSetpoint);
+  server.on("/setActorPWM", handleSetPWM);
 
   // FSBrowser initialisieren
   server.on("/edit", HTTP_GET, handleGetEdit);

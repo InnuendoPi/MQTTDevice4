@@ -1,7 +1,9 @@
 # Changelog
 
-Version 4.31e
+Version 4.31f
 
+- Added:    PWM input in actors table (0..100%)
+- Added:    actors PWM
 - Fixed:    typo IDS2 setpoint autotune
 - Fixed:    free mem below 20k
 - Changed:  VSCode 1.72.2

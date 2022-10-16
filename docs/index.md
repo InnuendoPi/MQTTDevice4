@@ -552,11 +552,11 @@ MQTTDevice supports a PCF8574 I2C port expander. A PCF8574 shield offers 8 addit
 1. PCF8574 must be connected to D5 and D6
     SDA D5
     SCL D6
-2. If you are using a a PCF8574 shield and a GGM IDS2 PIN Backchannel Interrupt (the blue cable) cannot be connected to PCF8574. PIN D7 is recommended (Interrupt).
+2. If you are using a PCF8574 shield and a GGM IDS2 PIN Backchannel Interrupt (the blue cable) cannot be connected to PCF8574. PIN D7 is highly recommended for IDS2 Backchannel Interrupt.
 3. PCF8574 address set to 0x20 (fixed, no config options)
 4. Starting with version 4.31 only one port expander shield is supported (no stack)
 5. Due to limited memory (free heap) maximum number of actors is set to 10
-6. Only output PINS (ON/OFF) are supported, no PWM functions. PCF8574 shield interrupt mode is not implemented.
+6. Only output PINS (ON/OFF) are supported. PCF8574 shield interrupt mode is not implemented.
 
 ## Technical information
 

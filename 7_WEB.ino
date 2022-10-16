@@ -911,7 +911,7 @@ void handleActorPower()
 
   actors[id].isOn = !actors[id].isOn;
   if (actors[id].isOn)
-    actors[id].power_actor = 100;
+    actors[id].power_actor = actors[id].pwm;
   else
     actors[id].power_actor = 0;
     
