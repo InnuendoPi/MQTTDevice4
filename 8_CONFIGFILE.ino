@@ -14,8 +14,6 @@ bool loadConfig()
   {
     DEBUG_MSG("%s\n", "Config file size is too large");
     DEBUG_MSG("%s\n", "------ loadConfig aborted ------");
-    if (startBuzzer)
-      sendAlarm(ALARM_ERROR);
     return false;
   }
 
@@ -24,8 +22,6 @@ bool loadConfig()
   if (error)
   {
     DEBUG_MSG("Conf: Error Json %s\n", error.c_str());
-    if (startBuzzer)
-      sendAlarm(ALARM_ERROR);
     return false;
   }
 
@@ -212,12 +208,11 @@ bool loadConfig()
 void saveConfigCallback()
 {
   shouldSaveConfig = true;
-
-  // if (LittleFS.begin())
-  // {
-  //   // saveConfig();
-  //   shouldSaveConfig = true;
-  // }
+  if (LittleFS.begin())
+  {
+    // saveConfig();
+    shouldSaveConfig = true;
+  }
 }
 
 bool saveConfig()
@@ -282,6 +277,7 @@ bool saveConfig()
   }
 
   DEBUG_MSG("%s\n", "--------------------");
+
   // Write PID Stuff
   JsonArray pidArray = doc.createNestedArray("pid");
   JsonObject pidObj = pidArray.createNestedObject();

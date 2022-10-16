@@ -420,12 +420,18 @@ void handleSetMisc()
     {
       ids2AutoTune = checkBool(server.arg(i));
     }
-    if (server.argName(i) == "ids2Setpoint")
+    if (server.argName(i) == "setpoint")
     {
-      if (isValidInt(server.arg(i)))
+      if (isValidDigit(server.arg(i)))
       {
         ids2Setpoint = server.arg(i).toInt();
+        DEBUG_MSG("WEB: ids2Setpoint %.02f\n", ids2Setpoint);
       }
+      else
+      {
+        DEBUG_MSG("WEB: error ids2Setpoint %.02f\n", ids2Setpoint);
+      }
+
     }
     if (server.argName(i) == "kp")
     {

@@ -1,8 +1,10 @@
 # Changelog
 
-Version 4.31d
+Version 4.31e
 
-- Changed:  VSCode 1.71.2
+- Fixed:    typo IDS2 setpoint autotune
+- Fixed:    free mem below 20k
+- Changed:  VSCode 1.72.2
 - Fixed:    Order and power button ID actors on mash page
 - Reworked: I2C lib - GPIO
 - Added:    PCF8574 to index.html

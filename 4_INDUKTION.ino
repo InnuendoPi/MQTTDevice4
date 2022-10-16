@@ -512,8 +512,9 @@ void handleRequestInduction()
   }
   else if (ids2AutoTune)
   {
-    doc["target"] = ids2Setpoint;
+    doc["target"] = int(ids2Setpoint);
     doc["step"] = "AutoTune IDS2";
+    DEBUG_MSG("IND: ids2 autotune setpoint: %d\n", int(ids2Setpoint));
   }
   else
   {
