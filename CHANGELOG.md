@@ -1,7 +1,8 @@
 # Changelog
 
-Version 4.31f
+Version 4.31g
 
+- Update:   WifiManager lib
 - Added:    PWM input in actors table (0..100%)
 - Added:    actors PWM
 - Fixed:    typo IDS2 setpoint autotune

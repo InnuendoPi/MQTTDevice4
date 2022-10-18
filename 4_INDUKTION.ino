@@ -17,9 +17,9 @@ class induction
   long powerLow = 0;
 
 public:
-  unsigned char PIN_WHITE = 14;     // D5 Relay white
+  unsigned char PIN_WHITE = 13;     // D7 Relay white
   unsigned char PIN_YELLOW = 12;    // D6 Command channel yellow AUSGABE AN PLATTE
-  unsigned char PIN_INTERRUPT = 13; // D7 Back channel blue EINGABE VON PLATTE
+  unsigned char PIN_INTERRUPT = 14; // D5 Back channel blue EINGABE VON PLATTE
   int power = 0;
   int newPower = 0;
   unsigned char CMD_CUR = 0; // Aktueller Befehl
