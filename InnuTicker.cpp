@@ -109,7 +109,10 @@ uint32_t InnuTicker::elapsed()
 
 uint32_t InnuTicker::remaining()
 {
-	return timer - elapsed();
+	if (timer == 0)
+		return 0;
+	else
+		return timer - elapsed();
 }
 
 status_t InnuTicker::state()

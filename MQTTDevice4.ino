@@ -56,7 +56,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.31g"
+#define Version "4.31i"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -176,7 +176,6 @@ EventManager gEM; //  Eventmanager Objekt Queues
 #define EM_SETNTP 29
 #define EM_LOG 35
 
-
 // Event für Sensoren, Aktor und Induktion
 #define EM_OK 0      // Normal mode
 #define EM_CRCER 1   // Sensor CRC failed
@@ -222,8 +221,8 @@ InnuTicker TickerHltPID;
 
 // Update Intervalle für Ticker Objekte
 #define SEN_UPDATE 4000 //  sensors update
-#define ACT_UPDATE 2000 //  sensors update
-#define IND_UPDATE 2000 //  sensors update
+#define ACT_UPDATE 0 //  sensors update
+#define IND_UPDATE 0 //  sensors update
 #define HLT_UPDATE 2000 //  sensors update
 #define DISP_UPDATE 1000
 

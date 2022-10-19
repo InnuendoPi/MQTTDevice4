@@ -137,7 +137,7 @@ void setupServer()
   server.on("/", handleRoot);
   server.on("/index.htm", handleRoot);
   server.on("/index", handleRoot);
-  server.on("/index.html", handleRoot);
+  // server.on("/index.html", handleRoot);
   server.on("/mash", HTTP_GET, handleGetMash);
   server.on("/mash.html", HTTP_GET, handleGetMash);
   server.on("/mash.htm", HTTP_GET, handleGetMash);

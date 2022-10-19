@@ -244,12 +244,12 @@ public:
       if (type != -100 && type < GPIOPINS)
       {
         digitalWrite(PIN_WHITE, HIGH);
-        DEBUG_MSG("IDS2 update relay GPIO PIN White %s isHigh: %d \n",  PinToString(PIN_WHITE).c_str(), HIGH);
+        DEBUG_MSG("IDS2 update relay GPIO PIN White %s isHigh: %d \n", PinToString(PIN_WHITE).c_str(), HIGH);
       }
       else if (type >= GPIOPINS)
       {
         pcf8574.write(pcf_pin, HIGH);
-        DEBUG_MSG("IDS2 update relay PCF PIN White %s : %d isHigh: %d \n",  PinToString(PIN_WHITE).c_str(), pcf_pin, HIGH);
+        DEBUG_MSG("IDS2 update relay PCF PIN White %s : %d isHigh: %d \n", PinToString(PIN_WHITE).c_str(), pcf_pin, HIGH);
       }
       // digitalWrite(PIN_WHITE, HIGH);
       return true;
@@ -262,12 +262,12 @@ public:
         if (type != -100 && type < GPIOPINS)
         {
           digitalWrite(PIN_WHITE, LOW);
-          DEBUG_MSG("IDS2 update relay GPIO PIN White %s isLow: %d \n",  PinToString(PIN_WHITE).c_str(), LOW);
+          DEBUG_MSG("IDS2 update relay GPIO PIN White %s isLow: %d \n", PinToString(PIN_WHITE).c_str(), LOW);
         }
         else if (type >= GPIOPINS)
         {
           pcf8574.write(pcf_pin, LOW);
-          DEBUG_MSG("IDS2 update relay PCF PIN White %s : %d isLow: %d \n",  PinToString(PIN_WHITE).c_str(), pcf_pin, LOW);
+          DEBUG_MSG("IDS2 update relay PCF PIN White %s : %d isLow: %d \n", PinToString(PIN_WHITE).c_str(), pcf_pin, LOW);
         }
         // digitalWrite(PIN_WHITE, LOW);
         return false;
@@ -406,7 +406,7 @@ public:
         pcf8574.write(pcf_pin, LOW);
         // DEBUG_MSG("IDS2 sendCommand PCF PIN Yellow %s : %d isLow\n",  PinToString(PIN_YELLOW).c_str(), pcf_pin);
       }
-        
+
       // digitalWrite(PIN_YELLOW, LOW);
       micros2wait(SIGNAL_LOW);
     }
@@ -479,9 +479,16 @@ void handleInduction()
 
 void handleRequestInduction()
 {
-  DynamicJsonDocument doc(512);
+  DynamicJsonDocument doc(800);
   doc["enabled"] = inductionCooker.isEnabled;
   doc["power"] = 0;
+  doc["autotune"] = ids2AutoTune;
+  doc["setpoint"] = int(ids2Setpoint);
+  doc["kp"] = ids2Kp;
+  doc["ki"] = ids2Ki;
+  doc["kd"] = ids2Kd;
+  doc["piddelta"] = pidDelta;
+
   if (inductionCooker.isEnabled)
   {
     doc["relayOn"] = inductionCooker.isRelayon;
@@ -671,6 +678,34 @@ void handleSetIndu()
         pl = server.arg(i).toInt();
       else
         pl = 100;
+    }
+    if (server.argName(i) == "autotune")
+    {
+      ids2AutoTune = checkBool(server.arg(i));
+    }
+    if (server.argName(i) == "setpoint")
+    {
+      if (isValidDigit(server.arg(i)))
+      {
+        ids2Setpoint = server.arg(i).toInt();
+        DEBUG_MSG("WEB: ids2Setpoint %.02f\n", ids2Setpoint);
+      }
+    }
+    if (server.argName(i) == "kp")
+    {
+      ids2Kp = formatDOT(server.arg(i));
+    }
+    if (server.argName(i) == "ki")
+    {
+      ids2Ki = formatDOT(server.arg(i));
+    }
+    if (server.argName(i) == "kd")
+    {
+      ids2Kd = formatDOT(server.arg(i));
+    }
+    if (server.argName(i) == "piddelta")
+    {
+      pidDelta = formatDOT(server.arg(i));
     }
     yield();
   }

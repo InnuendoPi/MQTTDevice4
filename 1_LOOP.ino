@@ -19,9 +19,9 @@ void loop()
   if (numberOfSensors > 0)    // Ticker Sensoren
     TickerSen.update();
   if (numberOfActors > 0)     // Ticker Aktoren
-    TickerAct.update();
+    TickerAct.updatenow();
   if (inductionStatus > 0)    // Ticker Induktion
-    TickerInd.update();
+    TickerInd.updatenow();
   if (useDisplay)             // Ticker Display
   {
     nextion.update();

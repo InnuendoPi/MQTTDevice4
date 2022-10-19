@@ -1,7 +1,14 @@
 # Changelog
 
-Version 4.31g
+Version 4.31i
 
+- Reworked: WebIf index - Induction - PID
+- Reworked: WebIf index - Sparge water - PID
+- Reworked: WebIf mash - button size
+- Reworked: WebIf async transfer
+- Update:   PCF8574 lib
+- Changed:  PWN actors
+- Changed:  Ticker handling
 - Update:   WifiManager lib
 - Added:    PWM input in actors table (0..100%)
 - Added:    actors PWM

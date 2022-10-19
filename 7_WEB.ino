@@ -255,14 +255,7 @@ void handleRequestMisc()
   // doc["alertstate"] = alertState;
   // if (alertState)
   //   alertState = false;
-  doc["pidmode"] = pidMode;
-  doc["autotune"] = ids2AutoTune;
-  doc["Setpoint"] = int(ids2Setpoint);
-  doc["kp"] = ids2Kp;
-  doc["ki"] = ids2Ki;
-  doc["kd"] = ids2Kd;
-  doc["piddelta"] = pidDelta;
-
+    
   String response;
   serializeJson(doc, response);
   server.send(200, "application/json", response);
@@ -412,44 +405,6 @@ void handleSetMisc()
         wait_on_Sensor_error_induction = server.arg(i).toInt() * 1000;
       }
     }
-    if (server.argName(i) == "pidmode")
-    {
-      pidMode = checkBool(server.arg(i));
-    }
-    if (server.argName(i) == "autotune")
-    {
-      ids2AutoTune = checkBool(server.arg(i));
-    }
-    if (server.argName(i) == "setpoint")
-    {
-      if (isValidDigit(server.arg(i)))
-      {
-        ids2Setpoint = server.arg(i).toInt();
-        DEBUG_MSG("WEB: ids2Setpoint %.02f\n", ids2Setpoint);
-      }
-      else
-      {
-        DEBUG_MSG("WEB: error ids2Setpoint %.02f\n", ids2Setpoint);
-      }
-
-    }
-    if (server.argName(i) == "kp")
-    {
-      ids2Kp = formatDOT(server.arg(i));
-    }
-    if (server.argName(i) == "ki")
-    {
-      ids2Ki = formatDOT(server.arg(i));
-    }
-    if (server.argName(i) == "kd")
-    {
-      ids2Kd = formatDOT(server.arg(i));
-    }
-    if (server.argName(i) == "piddelta")
-    {
-      pidDelta = formatDOT(server.arg(i));
-    }
-
     yield();
   }
   saveConfig();
