@@ -220,11 +220,11 @@ InnuTicker TickerPID;
 InnuTicker TickerHltPID;
 
 // Update Intervalle für Ticker Objekte
-#define SEN_UPDATE 4000 //  sensors update
-#define ACT_UPDATE 0 //  sensors update
-#define IND_UPDATE 0 //  sensors update
-#define HLT_UPDATE 2000 //  sensors update
-#define DISP_UPDATE 1000
+#define SEN_UPDATE 4000     //  sensors update
+#define ACT_UPDATE 2000     //  actors update
+#define IND_UPDATE 2000     //  induction update
+#define HLT_UPDATE 2000     //  hlt update
+#define DISP_UPDATE 1000    // display update
 
 // Systemstart
 bool startMDNS = true; // Standard mDNS Name ist ESP8266- mit mqtt_chip_key

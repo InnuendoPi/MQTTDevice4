@@ -14,6 +14,8 @@ void powerButtonCallback()
 
 void tickerDispCallback()
 {
+  nextion.update();
+  
   char ipMQTT[50];
   sprintf_P(uhrzeit, (PGM_P)F("%02d:%02d"), timeClient.getHours(), timeClient.getMinutes());
   if (startMDNS)

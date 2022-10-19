@@ -281,9 +281,9 @@ bool saveConfig()
   // Write PID Stuff
   JsonArray pidArray = doc.createNestedArray("pid");
   JsonObject pidObj = pidArray.createNestedObject();
-  pidObj["kp"] = (int(ids2Kp * 100)) / 100.0;
-  pidObj["ki"] = (int(ids2Ki * 100)) / 100.0;
-  pidObj["kd"] = (int(ids2Kd * 100)) / 100.0;
+  pidObj["kp"] = ids2Kp;
+  pidObj["ki"] = ids2Ki;
+  pidObj["kd"] = ids2Kd;
   pidObj["piddelta"] = (int(pidDelta * 100)) / 100.0;
 
   DEBUG_MSG("PID IDS2: Kp: %.03f Ki: %.03f Kd: %.03f pidDelta: %.01f ids2AutoTune: %d Setpoint: %.01f\n", ids2Kp, ids2Ki, ids2Kd, pidDelta, ids2AutoTune, ids2Setpoint);
@@ -301,9 +301,9 @@ bool saveConfig()
     hltObj["INV"] = (int)kettleHLT.isInverted;
     hltObj["SENID"] = kettleHLT.senid;
     hltObj["SETP"] = int(hltSetpoint);
-    hltObj["kp"] = (int(hltKp * 100)) / 100.0;
-    hltObj["ki"] = (int(hltKi * 100)) / 100.0;
-    hltObj["kd"] = (int(hltKd * 100)) / 100.0;
+    hltObj["kp"] = hltKp;
+    hltObj["ki"] = hltKi;
+    hltObj["kd"] = hltKd;
     DEBUG_MSG("HLT: %d PIN: %s Invert: %d SenID: %d\n", kettleHLT.isEnabled, PinToString(kettleHLT.pin_hlt).c_str(), kettleHLT.isInverted, kettleHLT.senid);
   }
   else
