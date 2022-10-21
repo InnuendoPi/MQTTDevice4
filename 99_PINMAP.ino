@@ -20,7 +20,7 @@
   15  D8        SPI CS        -               (ok)      Buzzer
   16  D0        HIGH at boot  No interrupt    No PWM    Pump
 
-*** PCF Pins Shield PCF8574 I2C port expander
+*** PCF Pins Shield PCF8574 I2C port expander 
 
   17  D9*
   18  D10*

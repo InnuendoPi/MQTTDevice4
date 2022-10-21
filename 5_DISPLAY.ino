@@ -374,6 +374,7 @@ void cbpi4steps_handlemqtt(char *payload)
     int min = 0;
     int sec = 0;
 
+
     if (currentStepName != doc["name"]) // New active step
     {
       strlcpy(currentStepName, doc["name"] | "", maxStepSign);
