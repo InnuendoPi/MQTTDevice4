@@ -1,10 +1,9 @@
 class TemperatureSensor
 {
   int sens_err = 0;
-  bool sens_sw = false;   // Events aktivieren
-  bool sens_state = true; // Fehlerstatus ensor
-  bool sens_isConnected;  // ist der Sensor verbunden
-  // float sens_offset = 0.0;       // Offset - Temp kalibrieren
+  bool sens_sw = false;          // Events aktivieren
+  bool sens_state = true;        // Fehlerstatus ensor
+  bool sens_isConnected;         // ist der Sensor verbunden
   float sens_offset1 = 0.0;      // Offset - Temp kalibrieren
   float sens_offset2 = 0.0;      // Offset - Temp kalibrieren
   float sens_value = -127.0;     // Aktueller Wert
@@ -61,7 +60,6 @@ public:
       sens_state = true;
     }
     sens_err = sensorsStatus;
-    // if (!mqttoff && mqtt_state)
     if (!mqttoff && TickerPUBSUB.state() == RUNNING && TickerMQTT.state() != RUNNING)
       publishmqtt();
   } // void Update

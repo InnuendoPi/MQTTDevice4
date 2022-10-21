@@ -16,10 +16,7 @@ public:
   bool switchable;              // actors switchable on error events?
   bool isOnBeforeError = false; // isOn status before error event
   bool actor_state = true;      // Error state actor
-
-  // MQTT Publish
-  char actor_mqtttopic[50]; // Für MQTT Kommunikation
-
+  
   Actor(String pin, String argument, String aname, bool ainverted, bool aswitchable)
   {
     change(pin, argument, aname, ainverted, aswitchable);
@@ -48,13 +45,12 @@ public:
           if (type != -100 && type < GPIOPINS)
           {
             digitalWrite(pin_actor, OFF);
-            DEBUG_MSG("Actor GPIO PIN %s isOFF\n", PinToString(pin_actor).c_str());
+            // DEBUG_MSG("Actor GPIO PIN %s isOFF\n", PinToString(pin_actor).c_str());
           }
           else if (type >= GPIOPINS)
           {
             pcf8574.write(pcf_actor, OFF);
-            // DEBUG_MSG("ACT PCF OFF Update isPin %d actor id %d pinType %d power %d\n", isPin(pin_actor), pin_actor, pinType(pin_actor), power_actor);
-            DEBUG_MSG("Actor PCF PIN %d isOFF\n", pcf_actor);
+            // DEBUG_MSG("Actor PCF PIN %d isOFF\n", pcf_actor);
           }
         }
         else
@@ -62,13 +58,12 @@ public:
           if (type != -100 && type < GPIOPINS)
           {
             digitalWrite(pin_actor, ON);
-            DEBUG_MSG("Actor GPIO PIN %s isON\n", PinToString(pin_actor).c_str());
+            // DEBUG_MSG("Actor GPIO PIN %s isON\n", PinToString(pin_actor).c_str());
           }
           else if (type >= GPIOPINS)
           {
             pcf8574.write(pcf_actor, ON);
-            // DEBUG_MSG("ACT ON Update isPin %d pin_actor %d pcf_actor %d pinType %d power %d\n", isPin(pin_actor), pin_actor, pcf_actor, pinType(pin_actor), power_actor);
-            DEBUG_MSG("Actor PCF PIN %d isON\n", pcf_actor);
+            // DEBUG_MSG("Actor PCF PIN %d isON\n", pcf_actor);
           }
         }
       }
@@ -211,7 +206,7 @@ public:
   }
 };
 
-// Initialisierung des Arrays max 8
+// Initialisierung des Arrays max 10
 Actor actors[numberOfActorsMax] = {
     Actor("", "", "", false, false),
     Actor("", "", "", false, false),
@@ -323,13 +318,11 @@ void handleSetPWM()
   int id = server.arg(0).toInt();
 
   if (id == -1)
-      return;
-
+    return;
 
   if (server.argName(1) == "pwm")
   {
-    Serial.printf("Act: pwm %s\n", server.arg(1));
-    if (isValidDigit(server.arg(1)))
+     if (isValidDigit(server.arg(1)))
     {
       actors[id].handlePWM(server.arg(1).toInt());
     }
@@ -432,4 +425,20 @@ int pinType(unsigned char pinbyte)
     }
   }
   return -100;
+}
+
+void actERR()
+{
+  for (int i = 0; i < numberOfActors; i++)
+  {
+    if (actors[i].switchable && actors[i].actor_state && actors[i].isOn)
+    {
+      actors[i].isOnBeforeError = actors[i].isOn;
+      actors[i].isOn = false;
+      actors[i].actor_state = false;
+      actors[i].Update();
+      DEBUG_MSG("ACT ERR Aktor: %s : %d isOnBeforeError: %d\n", actors[i].name_actor.c_str(), actors[i].actor_state, actors[i].isOnBeforeError);
+    }
+    yield();
+  }
 }

@@ -15,7 +15,7 @@ void powerButtonCallback()
 void tickerDispCallback()
 {
   nextion.update();
-  
+
   char ipMQTT[50];
   sprintf_P(uhrzeit, (PGM_P)F("%02d:%02d"), timeClient.getHours(), timeClient.getMinutes());
   if (startMDNS)
@@ -23,7 +23,7 @@ void tickerDispCallback()
   else
     sprintf_P(ipMQTT, (PGM_P)F("http://%s"), WiFi.localIP().toString().c_str());
   // Serial.printf("Ticker Disp currentPageID: %d lastPageID: %d\n", nextion.currentPageID, nextion.lastPageID);
-  
+
   activePage = nextion.currentPageID;
   switch (activePage)
   {
@@ -72,7 +72,7 @@ void tickerDispCallback()
       int sliderval = 100;
       if (TickerMash.state() == RUNNING)
         sliderval = TickerMash.remaining() / 1000 * 100 / structPlan[actMashStep].duration;
-      
+
       progress.value(sliderval);
     }
     else
@@ -158,17 +158,121 @@ void tickerDispCallback()
 
 void tickerSenCallback() // Timer Objekt Sensoren
 {
-  cbpiEventSensors(sensorsStatus);
+  switch (sensorsStatus)
+  {
+  case EM_OK:
+    // all sensors ok
+    lastSenInd = 0; // Delete induction timestamp after event
+    lastSenAct = 0; // Delete actor timestamp after event
+    // if (WiFi.status() == WL_CONNECTED && pubsubClient.connected() && mqtt_state)
+    if (WiFi.status() == WL_CONNECTED && TickerPUBSUB.state() == RUNNING && mqtt_state)
+    // if (WiFi.status() == WL_CONNECTED && !mqttoff && mqtt_state)
+    {
+      for (int i = 0; i < numberOfActors; i++)
+      {
+        if (actors[i].switchable && !actors[i].actor_state) // Sensor in normal mode: check actor in error state
+        {
+          DEBUG_MSG("EM SenOK: %s isOnBeforeError: %d power level: %d\n", actors[i].name_actor.c_str(), actors[i].isOnBeforeError, actors[i].power_actor);
+          actors[i].isOn = actors[i].isOnBeforeError;
+          actors[i].actor_state = true;
+          actors[i].Update();
+          lastSenAct = 0; // Delete actor timestamp after event
+        }
+        yield();
+      }
+
+      if (!inductionCooker.induction_state)
+      {
+        DEBUG_MSG("EM SenOK: Induction power: %d powerLevelOnError: %d powerLevelBeforeError: %d\n", inductionCooker.power, inductionCooker.powerLevelOnError, inductionCooker.powerLevelBeforeError);
+        if (!inductionCooker.induction_state)
+        {
+          inductionCooker.newPower = inductionCooker.powerLevelBeforeError;
+          inductionCooker.isInduon = true;
+          inductionCooker.induction_state = true;
+          inductionCooker.Update();
+          DEBUG_MSG("EM SenOK: Induction restore old value: %d\n", inductionCooker.newPower);
+          lastSenInd = 0; // Delete induction timestamp after event
+        }
+      }
+    }
+    break;
+  case EM_CRCER:
+    // Sensor CRC ceck failed
+  case EM_DEVER:
+    // -127°C device error
+  case EM_UNPL:
+    // sensor unpluged
+  case EM_SENER:
+    // all other errors
+    // if (WiFi.status() == WL_CONNECTED && pubsubClient.connected() && mqtt_state)
+    if (WiFi.status() == WL_CONNECTED && TickerPUBSUB.state() == RUNNING && mqtt_state)
+    // if (WiFi.status() == WL_CONNECTED && !mqttoff && mqtt_state)
+    {
+      for (int i = 0; i < numberOfSensors; i++)
+      {
+        if (!sensors[i].getState())
+        {
+          switch (sensorsStatus)
+          {
+          case EM_CRCER:
+            // Sensor CRC ceck failed
+            DEBUG_MSG("EM CRCER: Sensor %s crc check failed\n", sensors[i].getName().c_str());
+            break;
+          case EM_DEVER:
+            // -127°C device error
+            DEBUG_MSG("EM DEVER: Sensor %s device error\n", sensors[i].getName().c_str());
+            break;
+          case EM_UNPL:
+            // sensor unpluged
+            DEBUG_MSG("EM UNPL: Sensor %s unplugged\n", sensors[i].getName().c_str());
+            break;
+          default:
+            break;
+          }
+        }
+
+        if (sensors[i].getSw() && !sensors[i].getState())
+        {
+          if (lastSenAct == 0)
+          {
+            lastSenAct = millis(); // Timestamp on error
+            DEBUG_MSG("EM SENER: timestamp actors due to sensor error: %l Wait on error actors: %d\n", lastSenAct, wait_on_Sensor_error_actor / 1000);
+          }
+          if (lastSenInd == 0)
+          {
+            lastSenInd = millis(); // Timestamp on error
+            DEBUG_MSG("EM SENER: timestamp induction due to sensor error: %l Wait on error induction: %d\n", lastSenInd, wait_on_Sensor_error_induction / 1000);
+          }
+          if (millis() - lastSenAct >= wait_on_Sensor_error_actor) // Wait bevor Event handling
+          {
+            actERR();
+          }
+          if (millis() - lastSenInd >= wait_on_Sensor_error_induction) // Wait bevor Event handling
+          {
+            if (inductionCooker.isInduon && inductionCooker.powerLevelOnError < 100 && inductionCooker.induction_state)
+            {
+              inductionCooker.indERR();
+            }
+          }
+        } // Switchable
+        yield();
+      } // Iterate sensors
+    }   // wlan und mqtt state
+    break;
+  default:
+    break;
+  }
+  handleSensors();
 }
 
 void tickerActCallback() // Timer Objekt Sensoren
 {
-  cbpiEventActors(actorsStatus);
+  handleActors();
 }
 
 void tickerIndCallback() // Timer Objekt Sensoren
 {
-  cbpiEventInduction(inductionStatus);
+  handleInduction();
 }
 void tickerHltCallback() // Timer Objekt Sensoren
 {
@@ -193,7 +297,7 @@ void tickerPUBSUBCallback() // Timer Objekt Sensoren
       {
         // DEBUG_MSG("%s\n", "Ticker PubSub Error: TickerMQTT started");
         // DEBUG_MSG("Ticker PubSub error rc=%d \n", pubsubClient.state());
-        mqtt_state = false;
+        // mqtt_state = false;
         TickerMQTT.resume();
         mqttconnectlasttry = millis();
       }
@@ -299,7 +403,7 @@ void tickerMQTTCallback() // Ticker helper function calling Event MQTT Error
       break;
     }
   }
-  cbpiEventSystem(EM_MQTTER);
+  EM_MQTTER();
 }
 
 void tickerWLANCallback() // Ticker helper function calling Event WLAN Error
@@ -337,5 +441,5 @@ void tickerWLANCallback() // Ticker helper function calling Event WLAN Error
       break;
     }
   }
-  cbpiEventSystem(EM_WLANER);
+  WiFi.reconnect();
 }

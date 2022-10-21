@@ -1,7 +1,10 @@
 # Changelog
 
-Version 4.31i
+Version 4.31
 
+- Reworked: Timer mgmt
+- Reworked: Ticker mgmt
+- Removed:  Eventmanager
 - Reworked: WebIf index - Induction - PID
 - Reworked: WebIf index - Sparge water - PID
 - Reworked: WebIf mash - button size

@@ -5,6 +5,7 @@
 *.exe
 *.psd
 *.ino
+*.old
 core
 preproc
 sketch

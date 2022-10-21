@@ -13,7 +13,7 @@ void loop()
   }
   else
   {
-    cbpiEventSystem(EM_WLAN); // Check WLAN
+    EM_WLAN();
   }
 
   if (numberOfSensors > 0)    // Ticker Sensoren
@@ -51,6 +51,4 @@ void loop()
     TickerPID.update();
     TickerMash.update();
   }
-
-  gEM.processAllEvents();     // All the rest event queue
 }

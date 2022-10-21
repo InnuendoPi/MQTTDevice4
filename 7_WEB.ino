@@ -255,7 +255,7 @@ void handleRequestMisc()
   // doc["alertstate"] = alertState;
   // if (alertState)
   //   alertState = false;
-    
+
   String response;
   serializeJson(doc, response);
   server.send(200, "application/json", response);
@@ -415,7 +415,7 @@ void handleSetMisc()
 void rebootDevice()
 {
   server.send(205, "text/plain", "reboot");
-  cbpiEventSystem(EM_REBOOT);
+  EM_REBOOT();
 }
 
 void handleRequestPages()
@@ -869,7 +869,7 @@ void handleActorPower()
     actors[id].power_actor = actors[id].pwm;
   else
     actors[id].power_actor = 0;
-    
+
   TickerAct.updatenow();
   DEBUG_MSG("Actor ID %d Pin %s switched to %d\n", id, PinToString(actors[id].pin_actor).c_str(), actors[id].isOn);
   server.send(201, "text/plain", "created");

@@ -23,7 +23,6 @@
 #include <ArduinoJson.h>        // Lesen und schreiben von JSON Dateien
 #include <ESP8266mDNS.h>        // mDNS
 #include <WiFiUdp.h>            // WiFi
-#include <EventManager.h>       // Eventmanager
 #include <ESP8266HTTPClient.h>
 #include <ESP8266httpUpdate.h>
 #include <WiFiClientSecure.h>
@@ -56,7 +55,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.31i"
+#define Version "4.31"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -153,39 +152,12 @@ bool alertState = false;          // WebUpdate Status
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, NTP_ADDRESS, NTP_OFFSET, NTP_INTERVAL);
 
-// EventManager
-EventManager gEM; //  Eventmanager Objekt Queues
-
-// System Fehler Events
-#define EM_WLANER 1
-#define EM_MQTTER 2
-
-// System Events
-#define EM_MQTTRES 10
-#define EM_REBOOT 11
-
-// Loop Events
-#define EM_WLAN 20
-#define EM_WEB 21
-#define EM_MQTT 22
-#define EM_MDNS 24
-#define EM_NTP 25
-#define EM_MDNSET 26
-#define EM_MQTTCON 27
-#define EM_MQTTSUB 28
-#define EM_SETNTP 29
-#define EM_LOG 35
-
-// Event für Sensoren, Aktor und Induktion
+// Event für Sensoren
 #define EM_OK 0      // Normal mode
 #define EM_CRCER 1   // Sensor CRC failed
 #define EM_DEVER 2   // Sensor device error
 #define EM_UNPL 3    // Sensor unplugged
 #define EM_SENER 4   // Sensor all errors
-#define EM_ACTER 10  // Bei Fehler Behandlung von Aktoren
-#define EM_INDER 10  // Bei Fehler Behandlung Induktion
-#define EM_ACTOFF 11 // Aktor ausschalten
-#define EM_INDOFF 11 // Induktion ausschalten
 
 // Event handling Status Variablen
 bool StopOnMQTTError = false;     // Event handling für MQTT Fehler
@@ -198,7 +170,7 @@ bool mqttoff = false;             // Disable MQTT
 // Event handling Zeitintervall für Reconnects WLAN und MQTT
 #define tickerWLAN 30000 // für Ticker Objekt WLAN in ms
 #define tickerMQTT 30000 // für Ticker Objekt MQTT in ms
-#define tickerPUSUB 300  // Ticker PubSubClient
+#define tickerPUSUB 1000  // Ticker PubSubClient
 
 // Event handling Standard Verzögerungen
 unsigned long wait_on_error_mqtt = 120000;             // How long should device wait between tries to reconnect WLAN      - approx in ms
@@ -221,10 +193,11 @@ InnuTicker TickerHltPID;
 
 // Update Intervalle für Ticker Objekte
 #define SEN_UPDATE 4000     //  sensors update
-#define ACT_UPDATE 2000     //  actors update
-#define IND_UPDATE 2000     //  induction update
-#define HLT_UPDATE 2000     //  hlt update
-#define DISP_UPDATE 1000    // display update
+#define ACT_UPDATE 4000     //  actors update
+#define IND_UPDATE 4000     //  induction update
+#define HLT_UPDATE 4000     //  hlt update
+#define DISP_UPDATE 1000    //  display update
+#define MASH_UPDATE 4000    //  mash update
 
 // Systemstart
 bool startMDNS = true; // Standard mDNS Name ist ESP8266- mit mqtt_chip_key
@@ -393,8 +366,6 @@ bool hltAutoTune = false;
 bool statePower = false;
 bool statePause = false;
 bool statePlay = false;
-// bool stateForward = false;
-
 // autoTune user settings
 uint32_t settleTimeSec = 10;
 uint32_t testTimeSec = 500;
@@ -413,7 +384,6 @@ sTune hltTuner = sTune(&hltInput, &hltOutput, tuner.Mixed_PID, tuner.directIP, t
 // tuner.direct5T
 
 // Maischeplan
-#define MASH_UPDATE 5000    // handleMash TickerMash
 #define maxSchritte 10
 int maxActMashSteps = 0;    // maxArray
 #define sizeImportMax 3072

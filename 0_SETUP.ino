@@ -9,7 +9,6 @@ void setup()
 
   Serial.println();
   Serial.println();
-  // Setze Namen für das MQTTDevice
   snprintf(mqtt_clientid, maxHostSign, "ESP8266-%08X", ESP.getChipId());
   Serial.printf("*** SYSINFO: start up MQTTDevice - device ID: %s\n", mqtt_clientid);
 
@@ -55,12 +54,6 @@ void setup()
   }
   else
     Serial.println("*** SYSINFO: error - cannot mount LittleFS!");
-
-  // Lege Event Queues an
-  gEM.addListener(EventManager::kEventUser0, listenerSystem);
-  gEM.addListener(EventManager::kEventUser1, listenerSensors);
-  gEM.addListener(EventManager::kEventUser2, listenerActors);
-  gEM.addListener(EventManager::kEventUser3, listenerInduction);
 
   // Starte Webserver
   setupServer();
@@ -113,7 +106,7 @@ void setup()
 
   // Starte mDNS
   if (startMDNS)
-    cbpiEventSystem(EM_MDNSET);
+    EM_MDNSET();
   else
   {
     Serial.printf("*** SYSINFO: ESP8266 IP address: %s Time: %s RSSI: %d\n", WiFi.localIP().toString().c_str(), timeClient.getFormattedTime().c_str(), WiFi.RSSI());
@@ -122,14 +115,12 @@ void setup()
   // Starte MQTT
   if (!mqttoff)
   {
-    cbpiEventSystem(EM_MQTTCON); // MQTT Verbindung
-    cbpiEventSystem(EM_MQTTSUB); // MQTT Subscribe
+    EM_MQTTCON();
+    EM_MQTTSUB();
     TickerPUBSUB.start();        // PubSubClient loop ticker
   }
-  cbpiEventSystem(EM_LOG); // webUpdate log
+  EM_LOG(); // webUpdate log
 
-  // Verarbeite alle Events Setup
-  gEM.processAllEvents();
 }
 
 void setupServer()
@@ -137,7 +128,7 @@ void setupServer()
   server.on("/", handleRoot);
   server.on("/index.htm", handleRoot);
   server.on("/index", handleRoot);
-  // server.on("/index.html", handleRoot);
+  server.on("/index.html", handleRoot);
   server.on("/mash", HTTP_GET, handleGetMash);
   server.on("/mash.html", HTTP_GET, handleGetMash);
   server.on("/mash.htm", HTTP_GET, handleGetMash);

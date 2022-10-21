@@ -463,6 +463,23 @@ public:
       }
     }
   }
+
+  void indERR()
+  {
+    if (isInduon && powerLevelOnError < 100 && induction_state) // powerlevelonerror == 100 -> kein event handling
+    {
+      powerLevelBeforeError = power;
+      DEBUG_MSG("IND ERR: Induktion powerlevel: %d reduce power to: %d\n", power, powerLevelOnError);
+      if (powerLevelOnError == 0)
+        isInduon = false;
+      else
+        newPower = powerLevelOnError;
+
+      newPower = powerLevelOnError;
+      induction_state = false;
+      Update();
+    }
+  }
 };
 
 induction inductionCooker = induction();
@@ -714,3 +731,20 @@ void handleSetIndu()
   saveConfig();
   server.send(201, "text/plain", "created");
 }
+
+// void indERR()
+// {
+//   if (inductionCooker.isInduon && inductionCooker.powerLevelOnError < 100 && inductionCooker.induction_state) // powerlevelonerror == 100 -> kein event handling
+//   {
+//     inductionCooker.powerLevelBeforeError = inductionCooker.power;
+//     DEBUG_MSG("IND ERR: Induktion powerlevel: %d reduce power to: %d\n", inductionCooker.power, inductionCooker.powerLevelOnError);
+//     if (inductionCooker.powerLevelOnError == 0)
+//       inductionCooker.isInduon = false;
+//     else
+//       inductionCooker.newPower = inductionCooker.powerLevelOnError;
+
+//     inductionCooker.newPower = inductionCooker.powerLevelOnError;
+//     inductionCooker.induction_state = false;
+//     inductionCooker.Update();
+//   }
+// }

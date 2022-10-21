@@ -279,3 +279,198 @@ void sendAlarm(const uint8_t &setAlarm)
     break;
   }
 }
+
+void EM_LOG()
+{
+  if (LittleFS.exists("/updateSys.log")) // WebUpdate Firmware
+  {
+    fsUploadFile = LittleFS.open("/updateSys.log", "r");
+    int anzahlSys = 0;
+    if (fsUploadFile)
+    {
+      anzahlSys = char(fsUploadFile.read()) - '0';
+    }
+    fsUploadFile.close();
+    bool check = LittleFS.remove("/updateSys.log");
+    if (LittleFS.exists("/dev.txt")) // WebUpdate Firmware
+    {
+      Serial.printf("*** SYSINFO: Update development firmware retries count %d\n", anzahlSys);
+      check = LittleFS.remove("/dev.txt");
+    }
+    else
+    {
+      Serial.printf("*** SYSINFO: Update firmware retries count %d\n", anzahlSys);
+    }
+    alertState = true;
+  }
+
+  if (LittleFS.exists("/updateTools.log")) // WebUpdate Firmware
+  {
+    fsUploadFile = LittleFS.open("/updateTools.log", "r");
+    int anzahlTools = 0;
+    if (fsUploadFile)
+    {
+      anzahlTools = char(fsUploadFile.read()) - '0';
+    }
+    fsUploadFile.close();
+
+    bool check = LittleFS.remove("/updateTools.log");
+    if (LittleFS.exists("/dev.txt")) // WebUpdate Firmware
+    {
+      Serial.printf("*** SYSINFO: Update development tools retries count %d\n", anzahlTools);
+      check = LittleFS.remove("/dev.txt");
+    }
+    else
+    {
+      Serial.printf("*** SYSINFO: Update tools retries count %d\n", anzahlTools);
+    }
+    alertState = false;
+  }
+}
+
+void EM_MDNSET() // MDNS setup
+{
+  if (startMDNS && nameMDNS[0] != '\0' && WiFi.status() == WL_CONNECTED)
+  {
+    if (mdns.begin(nameMDNS))
+      Serial.printf("*** SYSINFO: mDNS started as %s connected to %s Time: %s RSSI=%d\n", nameMDNS, WiFi.localIP().toString().c_str(), timeClient.getFormattedTime().c_str(), WiFi.RSSI());
+    else
+      Serial.printf("*** SYSINFO: error start mDNS! IP Adresse: %s Time: %s RSSI: %d\n", WiFi.localIP().toString().c_str(), timeClient.getFormattedTime().c_str(), WiFi.RSSI());
+  }
+}
+
+void EM_REBOOT() // Reboot ESP
+{
+  // Stop actors
+  for (int i = 0; i < numberOfActors; i++)
+  {
+    if (actors[i].isOn)
+    {
+      actors[i].isOn = false;
+      actors[i].Update();
+      DEBUG_MSG("EM ACTER: Aktor: %s  switched off\n", actors[i].name_actor.c_str());
+    }
+    yield();
+  }
+  // Stop induction
+  if (inductionCooker.isInduon)
+  {
+    DEBUG_MSG("%s\n", "EM INDOFF: induction switched off");
+    inductionCooker.newPower = 0;
+    inductionCooker.isInduon = false;
+    inductionCooker.Update();
+  }
+  server.send(200, "text/plain", "rebooting...");
+  LittleFS.end(); // unmount LittleFS
+  ESP.restart();
+}
+
+void EM_WLAN() // check WLAN and reconnect on error
+{
+  if (WiFi.status() == WL_CONNECTED)
+  {
+    if (TickerWLAN.state() == RUNNING)
+      TickerWLAN.stop();
+  }
+  else
+  {
+    if (TickerWLAN.state() != RUNNING)
+    {
+      WiFi.mode(WIFI_OFF);
+      WiFi.mode(WIFI_STA);
+      TickerWLAN.resume();
+      wlanconnectlasttry = millis();
+    }
+    TickerWLAN.update();
+  }
+}
+
+void EM_MQTTCON() // MQTT connect
+{
+  if (WiFi.status() == WL_CONNECTED) // kein wlan = kein mqtt
+  {
+    pubsubClient.setServer(mqtthost, mqttport);
+    pubsubClient.setCallback(mqttcallback);
+    pubsubClient.connect(mqtt_clientid, mqttuser, mqttpass);
+    DEBUG_MSG("Connecting MQTT broker %s with client-id: %s user: %s pass: %s\n", mqtthost, mqtt_clientid, mqttuser, mqttpass);
+  }
+}
+
+void EM_MQTTSUB() // MQTT subscribe
+{
+  if (pubsubClient.connected())
+  {
+    DEBUG_MSG("%s\n", "MQTT connected! Subscribing...");
+    mqtt_state = true; // MQTT state ok
+    for (int i = 0; i < numberOfActors; i++)
+    {
+      actors[i].mqtt_subscribe();
+      yield();
+    }
+    if (inductionCooker.isEnabled)
+      inductionCooker.mqtt_subscribe();
+    if (useDisplay)
+    {
+      dispPublishmqtt();
+      cbpi4kettle_subscribe();
+      cbpi4steps_subscribe();
+      cbpi4notification_subscribe();
+    }
+    else if (mqttBuzzer) // mqttBuzzer only
+      cbpi4notification_subscribe();
+
+    TickerMQTT.stop();
+  }
+}
+
+void EM_MQTTRES() // restore saved values after reconnect MQTT
+{
+  if (pubsubClient.connected())
+  {
+    // wlan_state = true;
+    mqtt_state = true;
+    for (int i = 0; i < numberOfActors; i++)
+    {
+      if (actors[i].switchable && !actors[i].actor_state)
+      {
+        DEBUG_MSG("EM MQTTRES: %s isOnBeforeError: %d Powerlevel: %d\n", actors[i].name_actor.c_str(), actors[i].isOnBeforeError, actors[i].power_actor);
+        actors[i].isOn = actors[i].isOnBeforeError;
+        actors[i].actor_state = true; // Sensor ok
+        actors[i].Update();
+      }
+      yield();
+    }
+    if (!inductionCooker.induction_state)
+    {
+      DEBUG_MSG("EM MQTTRES: Induction power: %d powerLevelOnError: %d powerLevelBeforeError: %d\n", inductionCooker.power, inductionCooker.powerLevelOnError, inductionCooker.powerLevelBeforeError);
+      inductionCooker.newPower = inductionCooker.powerLevelBeforeError;
+      inductionCooker.isInduon = true;
+      inductionCooker.induction_state = true; // Induction ok
+      inductionCooker.Update();
+      DEBUG_MSG("EM MQTTRES: Induction restore old value: %d\n", inductionCooker.newPower);
+    }
+  }
+}
+
+void EM_MQTTER() // MQTT Error -> handling
+{
+  if (pubsubClient.connect(mqtt_clientid, mqttuser, mqttpass))
+  {
+    DEBUG_MSG("%s", "MQTT auto reconnect successful. Subscribing..\n");
+    EM_MQTTSUB();
+    EM_MQTTRES();
+    return;
+  }
+  if (millis() - mqttconnectlasttry >= wait_on_error_mqtt)
+  {
+    if (StopOnMQTTError && mqtt_state)
+    {
+      mqtt_state = false; // MQTT in error state
+      if (startBuzzer)
+        sendAlarm(ALARM_ERROR);
+      DEBUG_MSG("EM MQTTER: MQTT Broker %s not availible! StopOnMQTTError: %d mqtt_state: %d\n", mqtthost, StopOnMQTTError, mqtt_state);
+      actERR();
+      inductionCooker.indERR();
+    }
+  }
+}
