@@ -7,10 +7,8 @@ void setup()
   Serial.setDebugOutput(true);
 #endif
 
-  Serial.println();
-  Serial.println();
   snprintf(mqtt_clientid, maxHostSign, "ESP8266-%08X", ESP.getChipId());
-  Serial.printf("*** SYSINFO: start up MQTTDevice - device ID: %s\n", mqtt_clientid);
+  Serial.printf("\n*** SYSINFO: start up MQTTDevice - device ID: %s\n", mqtt_clientid);
 
   wifiManager.setDebugOutput(false);
   wifiManager.setMinimumSignalQuality(10);

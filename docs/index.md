@@ -16,7 +16,7 @@ An easy but reliable PID based mash controller without the hassle of setting up,
 **What does this firmware offer?**
 
 * A configuration web interface (WebIf)
-* Temperature sensors DS18B20 (max 6)
+* Temperature sensors DS18B20 (max 4)
   * Search for connected sensors based on OneWire addresses
 * Actors (max 8)
   * PIN selection (GPIO)

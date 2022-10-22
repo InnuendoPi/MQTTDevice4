@@ -214,8 +214,6 @@ TemperatureSensor sensors[numberOfSensorsMax] = {
     TemperatureSensor("", "", "", "", 0.0, 0.0, false),
     TemperatureSensor("", "", "", "", 0.0, 0.0, false),
     TemperatureSensor("", "", "", "", 0.0, 0.0, false),
-    TemperatureSensor("", "", "", "", 0.0, 0.0, false),
-    TemperatureSensor("", "", "", "", 0.0, 0.0, false),
     TemperatureSensor("", "", "", "", 0.0, 0.0, false)};
 
 // Funktion für Loop im Timer Objekt

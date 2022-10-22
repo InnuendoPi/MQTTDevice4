@@ -130,7 +130,7 @@ const String pin_names[ALLPINS] = {"D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7
 
 // Variablen
 unsigned char numberOfSensors = 0; // Gesamtzahl der Sensoren
-#define numberOfSensorsMax 6       // Maximale Anzahl an Sensoren
+#define numberOfSensorsMax 4       // Maximale Anzahl an Sensoren
 unsigned char addressesFound[numberOfSensorsMax][8];
 unsigned char numberOfSensorsFound = 0;
 unsigned char numberOfActors = 0; // Gesamtzahl der Aktoren
@@ -193,8 +193,8 @@ InnuTicker TickerHltPID;
 
 // Update Intervalle für Ticker Objekte
 #define SEN_UPDATE 4000     //  sensors update
-#define ACT_UPDATE 4000     //  actors update
-#define IND_UPDATE 4000     //  induction update
+#define ACT_UPDATE 2000     //  actors update
+#define IND_UPDATE 2000     //  induction update
 #define HLT_UPDATE 4000     //  hlt update
 #define DISP_UPDATE 1000    //  display update
 #define MASH_UPDATE 4000    //  mash update

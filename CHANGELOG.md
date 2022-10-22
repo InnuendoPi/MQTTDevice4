@@ -2,6 +2,7 @@
 
 Version 4.31
 
+- Changed:  max number of sensors 4
 - Reworked: Timer mgmt
 - Reworked: Ticker mgmt
 - Removed:  Eventmanager

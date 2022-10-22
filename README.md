@@ -29,7 +29,7 @@ Libraries: Version 4.31, 10.2022
 - PubSubClient 2.8.0 (PubSubClient.h: #define MQTT_MAX_PACKET_SIZE 512)
 - ArduinoJSON 6.19.4
 - WiFiManager 2.0.12
-- NextionX2 1.1.2 (NextionX2.h: #define ATTRIBUTE_TEXT_LENGTH 90, added currentPageID, lastPageID)
+- NextionX2 1.1.2 (NextionX2.h: #define ATTRIBUTE_TEXT_LENGTH 90, added currentPageID)
 - PID_V2
 - sTune
 - PCF8574 0.3.5
