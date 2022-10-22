@@ -384,7 +384,7 @@ sTune hltTuner = sTune(&hltInput, &hltOutput, tuner.Mixed_PID, tuner.directIP, t
 // tuner.direct5T
 
 // Maischeplan
-#define maxSchritte 10
+#define maxSchritte 15
 int maxActMashSteps = 0;    // maxArray
 #define sizeImportMax 3072
 #define sizeRezeptMax 1024
