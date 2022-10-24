@@ -2,6 +2,9 @@
 
 Version 4.31
 
+- Checked:  PID calc
+- Fixed:    change page event display not working correctly
+- Fixed:    Kettlepage no output
 - Changed:  max number of sensors 4
 - Reworked: Timer mgmt
 - Reworked: Ticker mgmt

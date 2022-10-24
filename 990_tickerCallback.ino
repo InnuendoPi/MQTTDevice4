@@ -1,8 +1,10 @@
 void pageCallback()
 {
-  // activePage = nextion.currentPageID;
   if (startBuzzer)
     sendAlarm(ALARM_INFO);
+
+  // currentPageID bei Event Touch nicht aktuell
+  // activePage = nextion.currentPageID;
 
   TickerDisp.updatenow();
 }
@@ -22,8 +24,7 @@ void tickerDispCallback()
     sprintf_P(ipMQTT, (PGM_P)F("http://%s - %s"), nameMDNS, WiFi.localIP().toString().c_str());
   else
     sprintf_P(ipMQTT, (PGM_P)F("http://%s"), WiFi.localIP().toString().c_str());
-  // Serial.printf("Ticker Disp currentPageID: %d lastPageID: %d\n", nextion.currentPageID, nextion.lastPageID);
-
+  
   activePage = nextion.currentPageID;
   switch (activePage)
   {
@@ -321,19 +322,19 @@ void tickerMashCallback() // Ticker helper function calling Event WLAN Error
 
 void tickerPIDCallback() // Ticker helper function calling Event WLAN Error
 {
-  sensors[0].Update();
-  float val = sensors[0].getTotalValueFloat();
-  if (val != -127.00)
-    ids2Input = val;
-
-  if (!isnan(ids2Input))
+  sensors[0].Update();  // IDS2 Sensor abfragen
+  if (sensors[0].getTotalValueFloat() != -127.00) // Sensor error
   {
+    ids2Input = sensors[0].getTotalValueFloat(); // Sensor value + offsets
     ids2Output = ids2PID.Run(ids2Input);
     inductionCooker.inductionNewPower(int(ids2Output));
-    // handleInduction();
     TickerInd.updatenow();
-    // DEBUG_MSG("Ticker PID ids2Input: %.02f ids2Output: %.02f intOutput %d ids2Setpoint: %.02f\n", ids2Input, ids2Output, int(ids2Output), ids2Setpoint);
-    // Serial.printf("Ticker PID ids2Input: %.02f ids2Output: %.02f intOutput %d ids2Setpoint: %.02f\n", ids2Input, ids2Output, int(ids2Output), ids2Setpoint);
+  }
+  else  // sens error
+  {
+    ids2Input = 0;
+    inductionCooker.inductionNewPower(0);
+    return;
   }
 
   if (ids2AutoTune)
@@ -341,7 +342,7 @@ void tickerPIDCallback() // Ticker helper function calling Event WLAN Error
 
   if (TickerMash.state() != RUNNING && TickerMash.state() != PAUSED)
   {
-    checkTemp();
+    checkTemp(); //check piddelta
   }
   // printPID();
 }

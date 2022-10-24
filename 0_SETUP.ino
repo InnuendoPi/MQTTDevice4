@@ -2,7 +2,7 @@ void setup()
 {
   Serial.begin(115200);
   // Serial.begin(9600);
-// Debug Ausgaben prüfen
+  // Debug Ausgaben prüfen
 #ifdef DEBUG_ESP_PORT
   Serial.setDebugOutput(true);
 #endif
@@ -115,10 +115,9 @@ void setup()
   {
     EM_MQTTCON();
     EM_MQTTSUB();
-    TickerPUBSUB.start();        // PubSubClient loop ticker
+    TickerPUBSUB.start(); // PubSubClient loop ticker
   }
   EM_LOG(); // webUpdate log
-
 }
 
 void setupServer()

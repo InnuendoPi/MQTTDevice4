@@ -182,8 +182,6 @@ public:
     if (sens_value == -127.0)
       return buf;
 
-    // dtostrf((round((sens_value + sens_offset + 0.05) * 10) / 10.0), 2, 1, buf);
-
     dtostrf((round((calcOffset() + 0.05) * 10) / 10.0), 2, 1, buf);
     return buf;
   }

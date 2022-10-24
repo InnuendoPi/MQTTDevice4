@@ -7,6 +7,13 @@ void initDisplay()
   p1BackButton.touch(pageCallback);         // KettlePage backward to BrewPage
   p2ForButton.touch(pageCallback);          // InductionPage forward to BrewPage
   p2BackButton.touch(pageCallback);         // InductionPage backward to KettlePage
+  
+  // p0ForButton.release(pageCallback);          // BrewPage forward to KettlePage
+  // p0BackButton.release(pageCallback);         // BrewPage backward to InductionPage
+  // p1ForButton.release(pageCallback);          // KelltlePage forward to InductionPage
+  // p1BackButton.release(pageCallback);         // KettlePage backward to BrewPage
+  // p2ForButton.release(pageCallback);          // InductionPage forward to BrewPage
+  // p2BackButton.release(pageCallback);         // InductionPage backward to KettlePage
   powerButton.release(powerButtonCallback); // buttonBack auf induction page backward auf page 1
   
   activePage = startPage;
@@ -42,7 +49,7 @@ void dispPublishmqtt()
     pubsubClient.publish("cbpi/updatekettle", jsonMessage);
     pubsubClient.publish("cbpi/updateactor", jsonMessage);
     pubsubClient.publish("cbpi/updatesensor", jsonMessage);
-    pubsubClient.publish("cbpi/updatefermenter", jsonMessage);
+    // pubsubClient.publish("cbpi/updatefermenter", jsonMessage);
   }
 }
 
