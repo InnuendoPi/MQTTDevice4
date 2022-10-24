@@ -348,6 +348,7 @@ bool saveConfig()
   miscObj["MQTTUSER"] = mqttuser;
   miscObj["MQTTPASS"] = mqttpass;
   miscObj["MQTTOFF"] = (int)mqttoff;
+  miscObj["VER"] = Version;
 
   DEBUG_MSG("MQTT broker IP: %s Port: %d User: %s Pass: %s Off: %d\n", mqtthost, mqttport, mqttuser, mqttpass, mqttoff);
   DEBUG_MSG("%s\n", "--------------------");

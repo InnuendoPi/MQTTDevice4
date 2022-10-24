@@ -547,6 +547,7 @@ void NextionComPort::command(const char *cmd)
 	nextionSerial->print(cmd);
 	nextionSerial->print("\xFF\xFF\xFF");
 
+	// auskommentiert weil zu viele Ausgaben
 	// if ((debugSerial != nullptr) && (strlen(cmd) > 0)) {
 	// 	debugSerial->write("Command ");
 	// 	debugSerial->println(cmd);
