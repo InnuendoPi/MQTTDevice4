@@ -37,8 +37,9 @@
 #include "edit_htm.h"
 #include "mash_htm.h"
 #include <FS.h>                 // Files
-#include <PID_v2.h>             // PID Controller
-#include <sTune.h>              // AutoTune
+// #include "PID_v2.h"             // PID Controller
+#include <QuickPID.h>           // PID Controller
+#include "sTune.h"              // AutoTune
 #include <PCF8574.h>            // I2C IO Modul PCF8574
 
 extern "C"
@@ -55,7 +56,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.31b"
+#define Version "4.32"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -103,15 +104,7 @@ int CMD[6][33] = {
 unsigned char PWR_STEPS[6] = {0, 20, 40, 60, 80, 100};                                                     // Prozentuale Abstufung zwischen den Stufen
 
 bool useI2C = false;
-// bool pins_used[17]; // GPIO
-// const unsigned char numberOfPins = 9;
-// const unsigned char pins[numberOfPins] = {D0, D1, D2, D3, D4, D5, D6, D7, D8};
-// const String pin_names[numberOfPins] = {"D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8"};
 
-// bool ppins_used[8]; // GPIO
-// const unsigned char pnumberOfPins = 8;
-// const unsigned char ppins[pnumberOfPins] = {P0, P1, P2, P3, P4, P5, P6, P7};
-// const String ppin_names[pnumberOfPins] = {"P0", "P1", "P2", "P3", "P4", "P5", "P6", "P7"};
 #define P0 17
 #define P1 18
 #define P2 19
@@ -346,17 +339,28 @@ bool mqttBuzzer = false;   // MQTTBuzzer für CBPi4
 #define PID_UPDATE 3000     // checkTemp and send newPower
 #define RUN_PID 1000        // PID SetSampleTime
 
-float ids2Kp = 2, ids2Ki = 5, ids2Kd = 1;
-float ids2Input = 0, ids2Output = 0, ids2Setpoint = 0;
+float ids2Kp = 0, ids2Ki = 0, ids2Kd = 0;
+float ids2Input, ids2Output, ids2Setpoint = 63;
 
-float hltKp = 2, hltKi = 5, hltKd = 1;
-float hltInput = 0, hltOutput = 0, hltSetpoint = 78;
+float hltKp = 0, hltKi = 0, hltKd = 0;
+float hltInput, hltOutput, hltSetpoint = 78;
 
-// PID_v2 ids2PID(Kp, Ki, Kd, PID::Direct);
-//PID::P_On::Measurement
-//PID_v2 ids2PID(&ids2Input, &ids2Output, &Setpoint, Kp, Ki, Kd, PID::Direction::Direct);
-PID_v2 ids2PID(ids2Kp, ids2Ki, ids2Kd, PID::Direction::Direct);
-PID_v2 hltPID(hltKp, hltKi, hltKd, PID::Direction::Direct);
+// PID_v2 ids2PID(ids2Kp, ids2Ki, ids2Kd, PID::Direction::Direct);
+// PID_v2 ids2PID(ids2Kp, ids2Ki, ids2Kd, PID::Direct, PID::P_On::Measurement);
+// PID_v2 hltPID(hltKp, hltKi, hltKd, PID::Direct, PID::P_On::Measurement);
+
+// QuickPID
+QuickPID ids2PID(&ids2Input, &ids2Output, &ids2Setpoint, ids2Kp, ids2Ki, ids2Kd,
+               ids2PID.pMode::pOnError,
+               ids2PID.dMode::dOnMeas,
+               ids2PID.iAwMode::iAwClamp,
+               ids2PID.Action::direct);
+
+QuickPID hltPID(&hltInput, &hltOutput, &hltSetpoint, hltKp, hltKi, hltKd,
+               hltPID.pMode::pOnError,
+               hltPID.dMode::dOnMeas,
+               hltPID.iAwMode::iAwCondition,
+               hltPID.Action::direct);
 
 // modes
 bool pidMode = false;
@@ -366,22 +370,20 @@ bool hltAutoTune = false;
 bool statePower = false;
 bool statePause = false;
 bool statePlay = false;
-// autoTune user settings
-uint32_t settleTimeSec = 10;
-uint32_t testTimeSec = 500;
-const uint16_t samples = 500;
-const float inputSpan = 100;
-const float outputSpan = 100;
+
+// autoTune settings
+uint32_t settleTimeSec = 5;     // used to provide additional settling time prior to starting the test
+uint32_t testTimeSec = 1000;     // runPid interval = testTimeSec / samples
+const uint16_t samples = 1000;   // define the maximum number of samples used to perform the test. To get an accurate representation of the curve, the suggested range is 200-500.
+const float inputSpan = 100;    // 100
+const float outputSpan = 100;   // 100;
 float outputStart = 0;
-float outputStep = 100;
+float outputStep = 100;         // 100
 float tempLimit = 75;
+uint8_t debounce = 1;
 
-sTune tuner = sTune(&ids2Input, &ids2Output, tuner.Mixed_PID, tuner.directIP, tuner.printOFF);  // IDS2
-sTune hltTuner = sTune(&hltInput, &hltOutput, tuner.Mixed_PID, tuner.directIP, tuner.printOFF); // HLT
-
-// tuner.printDEBUG
-// tuner.printSUMMARY
-// tuner.direct5T
+float stInput, stOutput, stSetpoint = 64, stKp, stKi, stKd; // sTune
+sTune tuner = sTune(&stInput, &stOutput, tuner.ZN_PID, tuner.directIP, tuner.printALL); // printOFF, printALL, printSUMMARY, printDEBUG}
 
 // Maischeplan
 #define maxSchritte 15

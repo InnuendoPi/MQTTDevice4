@@ -139,7 +139,8 @@ void InductionPage()
   {
     int32_t aktSlider = p2slider.value();
     if (aktSlider >= 0 && aktSlider <= 100)
-      inductionCooker.handleInductionPage(aktSlider);
+      inductionCooker.inductionNewPower(aktSlider); // inductionCooker.handleInductionPage(aktSlider);
+      
     // String aktTemp = strcat(structKettles[0].current_temp, "°C");
     p2temp_text.attribute("txt", String(structKettles[0].current_temp).c_str());
   }

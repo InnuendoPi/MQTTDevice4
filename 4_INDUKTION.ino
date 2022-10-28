@@ -2,14 +2,14 @@ class induction
 {
   unsigned long timeTurnedoff;
 
-  long timeOutCommand = 5000;  // TimeOut für Seriellen Befehl
-  long timeOutReaction = 2000; // TimeOut für Induktionskochfeld
+  // long timeOutCommand = 5000;  // TimeOut für Seriellen Befehl
+  // long timeOutReaction = 2000; // TimeOut für Induktionskochfeld
   unsigned long lastInterrupt;
   unsigned long lastCommand;
   bool inputStarted = false;
   unsigned char inputCurrent = 0;
   unsigned char inputBuffer[33];
-  bool isError = false;
+  // bool isError = false;
   unsigned char error = 0;
   long powerSampletime = 20000;
   unsigned long powerLast;
@@ -28,19 +28,16 @@ public:
   boolean isPower = false;
   String mqtttopic = "";
   boolean isEnabled = false;
-  long delayAfteroff = 120000;
   int powerLevelOnError = 100;   // 100% schaltet das Event handling für Induktion aus
   int powerLevelBeforeError = 0; // in error event save last power state
   bool induction_state = true;   // Error state induction
 
-  // MQTT Publish
-  // char induction_mqtttopic[50];      // Für MQTT Kommunikation
   induction()
   {
     setupCommands();
   }
 
-  void change(unsigned char pinwhite, unsigned char pinyellow, unsigned char pinblue, String topic, long delayoff, bool is_enabled, int powerLevel)
+  void change(unsigned char pinwhite, unsigned char pinyellow, unsigned char pinblue, String topic, bool is_enabled, int powerLevel)
   {
     if (isEnabled)
     {
@@ -85,7 +82,7 @@ public:
     PIN_INTERRUPT = pinblue;
 
     mqtttopic = topic;
-    delayAfteroff = delayoff;
+    // delayAfteroff = delayoff;
     powerLevelOnError = powerLevel;
     induction_state = true;
     isEnabled = is_enabled;
@@ -105,9 +102,6 @@ public:
         {
           pcf8574.write(pcf_pin, HIGH);
         }
-
-        // pinMode(PIN_WHITE, OUTPUT);
-        // digitalWrite(PIN_WHITE, LOW);
         pins_used[PIN_WHITE] = true;
       }
 
@@ -123,11 +117,8 @@ public:
         }
         else if (type >= GPIOPINS)
         {
-          // pcf8574.pinMode(pcf_pin, OUTPUT);
           pcf8574.write(pcf_pin, HIGH);
         }
-        // pinMode(PIN_YELLOW, OUTPUT);
-        // digitalWrite(PIN_YELLOW, LOW);
         pins_used[PIN_YELLOW] = true;
       }
 
@@ -190,33 +181,18 @@ public:
     return PIN_INTERRUPT;
   }
 
-  void handleInductionPage(int value)
-  {
-    return;
-    if (value > 0)
-    {
-      newPower = value;
-    }
-    else
-    {
-      newPower = 0;
-    }
-  }
-
-  void inductionNewPower(int value)
-  {
-    newPower = min(100, value);
-    newPower = max(0, newPower);
-    // if (value > 0)
-    // {
-    //   newPower = value;
-    // }
-    // else
-    // {
-    //   newPower = 0;
-    // }
-  }
-
+  // void handleInductionPage(int value)
+  // {
+  //   if (value > 0)
+  //   {
+  //     newPower = value;
+  //   }
+  //   else
+  //   {
+  //     newPower = 0;
+  //   }
+  // }
+  
   void setupCommands()
   {
     for (int i = 0; i < 33; i++)
@@ -244,12 +220,12 @@ public:
       if (type != -100 && type < GPIOPINS)
       {
         digitalWrite(PIN_WHITE, HIGH);
-        DEBUG_MSG("IDS2 update relay GPIO PIN White %s isHigh: %d \n", PinToString(PIN_WHITE).c_str(), HIGH);
+        // DEBUG_MSG("IDS2 update relay GPIO PIN White %s isHigh: %d \n", PinToString(PIN_WHITE).c_str(), HIGH);
       }
       else if (type >= GPIOPINS)
       {
         pcf8574.write(pcf_pin, HIGH);
-        DEBUG_MSG("IDS2 update relay PCF PIN White %s : %d isHigh: %d \n", PinToString(PIN_WHITE).c_str(), pcf_pin, HIGH);
+        // DEBUG_MSG("IDS2 update relay PCF PIN White %s : %d isHigh: %d \n", PinToString(PIN_WHITE).c_str(), pcf_pin, HIGH);
       }
       // digitalWrite(PIN_WHITE, HIGH);
       return true;
@@ -257,17 +233,17 @@ public:
 
     if (isInduon == false && isRelayon == true)
     { /* Relais ausschalten */
-      if (millis() > timeTurnedoff + delayAfteroff)
+      if (millis() > timeTurnedoff + DEF_DELAY_IND)
       {
         if (type != -100 && type < GPIOPINS)
         {
           digitalWrite(PIN_WHITE, LOW);
-          DEBUG_MSG("IDS2 update relay GPIO PIN White %s isLow: %d \n", PinToString(PIN_WHITE).c_str(), LOW);
+          // DEBUG_MSG("IDS2 update relay GPIO PIN White %s isLow: %d \n", PinToString(PIN_WHITE).c_str(), LOW);
         }
         else if (type >= GPIOPINS)
         {
           pcf8574.write(pcf_pin, LOW);
-          DEBUG_MSG("IDS2 update relay PCF PIN White %s : %d isLow: %d \n", PinToString(PIN_WHITE).c_str(), pcf_pin, LOW);
+          // DEBUG_MSG("IDS2 update relay PCF PIN White %s : %d isLow: %d \n", PinToString(PIN_WHITE).c_str(), pcf_pin, LOW);
         }
         // digitalWrite(PIN_WHITE, LOW);
         return false;
@@ -310,18 +286,26 @@ public:
       sendCommand(CMD[0]);
     }
   }
-
-  // Test 20220903
+  
+  void inductionNewPower(int value)
+  {
+    newPower = min(100, value);
+    newPower = max(0, newPower);
+  }
+  
   void updatePower()
   {
     if (power != newPower) // Neuer Befehl empfangen
     {
-      if (newPower > 100)
-        newPower = 100; // Nicht > 100
-      if (newPower < 0)
-        newPower = 0; // Nicht < 0
+      // if (newPower > 100)
+      //   newPower = 100; // Nicht > 100
+      // if (newPower < 0)
+      //   newPower = 0; // Nicht < 0
+      // power = newPower;
 
-      power = newPower;
+      newPower = min(100, newPower);
+      power = max(0, newPower);
+     
       timeTurnedoff = 0;
       isInduon = true;
       if (power == 0)
@@ -523,7 +507,7 @@ void handleRequestInduction()
   }
 
   doc["topic"] = inductionCooker.mqtttopic;
-  doc["delay"] = inductionCooker.delayAfteroff / 1000;
+  // doc["delay"] = inductionCooker.delayAfteroff / 1000;
   doc["pl"] = inductionCooker.powerLevelOnError;
 
   // PID mode values
@@ -538,7 +522,6 @@ void handleRequestInduction()
   {
     doc["target"] = int(ids2Setpoint);
     doc["step"] = "AutoTune IDS2";
-    DEBUG_MSG("IND: ids2 autotune setpoint: %d\n", int(ids2Setpoint));
   }
   else
   {
@@ -658,7 +641,7 @@ void handleSetIndu()
   unsigned char pin_white = inductionCooker.PIN_WHITE;
   unsigned char pin_blue = inductionCooker.PIN_INTERRUPT;
   unsigned char pin_yellow = inductionCooker.PIN_YELLOW;
-  long delayoff = inductionCooker.delayAfteroff;
+  // long delayoff = inductionCooker.delayAfteroff;
   bool is_enabled = inductionCooker.isEnabled;
   String topic = inductionCooker.mqtttopic;
   int pl = inductionCooker.powerLevelOnError;
@@ -685,10 +668,10 @@ void handleSetIndu()
     {
       pin_blue = StringToPin(server.arg(i));
     }
-    if (server.argName(i) == "delay")
-    {
-      delayoff = server.arg(i).toInt() * 1000;
-    }
+    // if (server.argName(i) == "delay")
+    // {
+    //   delayoff = server.arg(i).toInt() * 1000;
+    // }
     if (server.argName(i) == "pl")
     {
       if (isValidInt(server.arg(i)))
@@ -727,7 +710,7 @@ void handleSetIndu()
     yield();
   }
 
-  inductionCooker.change(pin_white, pin_yellow, pin_blue, topic, delayoff, is_enabled, pl);
+  inductionCooker.change(pin_white, pin_yellow, pin_blue, topic, is_enabled, pl);
   saveConfig();
   server.send(201, "text/plain", "created");
 }

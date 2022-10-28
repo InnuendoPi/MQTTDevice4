@@ -605,24 +605,30 @@ void handleBtnPower()
         {
           startHltAutoTune();
           // kettleHLT.isOn = true;
+          DEBUG_MSG("WEB: PowerButton on hltAutoTune: %d hltSetpoint: %.01f\n", hltAutoTune, hltSetpoint);
+          if (startBuzzer)
+            sendAlarm(ALARM_ON);
         }
         else if (ids2AutoTune)
         {
           startAutoTune();
           statePower = true;
           DEBUG_MSG("WEB: PowerButton on ids2AutoTune: %d ids2Setpoint: %.01f\n", ids2AutoTune, ids2Setpoint);
+          if (startBuzzer)
+            sendAlarm(ALARM_ON);
         }
         else
         {
           statePower = true;
           actMashStep = 0;
           pidMode = true;
-
-          ids2PID.SetTunings(ids2Kp, ids2Ki, ids2Kd, PID::P_On::Error);
-          ids2PID.SetOutputLimits(0, 100);
-          ids2PID.SetSampleTime(RUN_PID);
-          // turn the PID on
-          resetPID();
+          // QuickPID
+          ids2PID.SetOutputLimits(0, outputSpan);
+          ids2PID.SetSampleTimeUs(outputSpan * 1000 - debounce);
+          ids2PID.SetMode(ids2PID.Control::automatic); // the PID is turned on
+          ids2PID.SetProportionalMode(ids2PID.pMode::pOnError);
+          ids2PID.SetAntiWindupMode(ids2PID.iAwMode::iAwClamp);
+          ids2PID.SetTunings(ids2Kp, ids2Ki, ids2Kd); // update PID with the new tunings
 
           if (TickerPUBSUB.state() == RUNNING)
             TickerPUBSUB.stop();
@@ -634,12 +640,13 @@ void handleBtnPower()
           if (structPlan[actMashStep].duration > 0)
           {
             ids2Setpoint = structPlan[actMashStep].temp;
-            ids2PID.Start(ids2Input, 0, ids2Setpoint);
             inductionCooker.inductionNewPower(0);
+            handleInduction(); // TickerInd stopped
             TickerMash.stop(); // stop mash ticker and configure temp and duration
             TickerMash.config(tickerMashCallback, structPlan[actMashStep].duration * 60 * 1000, 1);
             DEBUG_MSG("WEB: PowerButton on aktMashStep: %d duration: %lu\n", actMashStep, (structPlan[actMashStep].duration * 60 * 1000));
           }
+          printPID();
 
           TickerPID.start();
           if (startBuzzer)
@@ -651,13 +658,15 @@ void handleBtnPower()
         if (hltAutoTune)
         {
           hltAutoTune = false;
-
           kettleHLT.isOn = false;
           statePause = false;
           statePlay = false;
           TickerHltPID.stop();
           kettleHLT.newPower(0);
-          TickerHlt.updatenow();
+          kettleHLT.Update(); // TickerHLT stopped
+          DEBUG_MSG("WEB: PowerButton off hltAutoTune: %d\n", hltAutoTune);
+          if (startBuzzer)
+            sendAlarm(ALARM_OFF);
         }
         else if (ids2AutoTune)
         {
@@ -668,13 +677,14 @@ void handleBtnPower()
           TickerMash.stop();
           TickerPID.stop();
           inductionCooker.inductionNewPower(0);
-          // handleInduction();
-          TickerInd.updatenow();
+          handleInduction(); // TickerInd stopped
           if (!mqttoff)
             TickerPUBSUB.start();
 
           TickerInd.start();
           DEBUG_MSG("WEB: PowerButton off ids2AutoTune: %d\n", ids2AutoTune);
+          if (startBuzzer)
+            sendAlarm(ALARM_OFF);
         }
         else
         {
@@ -684,17 +694,13 @@ void handleBtnPower()
           statePlay = false;
           actMashStep = 0;
           ids2Setpoint = 0.0;
-          ids2PID.Start(ids2Input, 0, ids2Setpoint);
-
           if (!mqttoff)
             TickerPUBSUB.start();
 
           TickerInd.start();
-
           TickerMash.stop();
           TickerPID.stop();
           inductionCooker.inductionNewPower(0);
-          // handleInduction();
           TickerInd.updatenow();
           DEBUG_MSG("WEB: PowerButton off aktMashStep: %d duration: %lu\n", actMashStep, (structPlan[actMashStep].duration * 60 * 1000));
           if (startBuzzer)
@@ -726,14 +732,16 @@ void handleBtnPlay()
     {
       DEBUG_MSG("WEB: PlayButton1 ids2Setpoint: %.02f ids2Input: %.02f\n", ids2Setpoint, ids2Input);
       ids2Setpoint = structPlan[actMashStep].temp;
-      ids2PID.Start(ids2Input, 0, ids2Setpoint);
+      // ids2PID.Start(ids2Input, 0, ids2Setpoint); // PID_v2
+
       // handleInduction(); -> Funktion geändert!
       statePlay = false;
     }
     else if (actMashStep > 0 && !statePlay)
     {
       ids2Setpoint = ids2Input;
-      ids2PID.Start(ids2Input, 0, ids2Setpoint);
+      // ids2PID.Start(ids2Input, 0, ids2Setpoint); // PID_v2
+
       // handleInduction(); -> Funktion geändert!
       statePlay = true;
       DEBUG_MSG("WEB: PlayButton2 ids2Setpoint: %.02f ids2Input: %.02f\n", ids2Setpoint, ids2Input);
@@ -772,27 +780,6 @@ void handleBtnPause()
     statePause = false;
     TickerMash.resume();
   }
-  // Änderung play
-  // else if (TickerMash.state() == STOPPED) // check for last step autonext false?
-  // {
-  //   if (!structPlan[actMashStep - 1].autonext && actMashStep > 0 && statePause)
-  //   {
-  //     DEBUG_MSG("WEB: PauseButton1 ids2Setpoint: %.02f ids2Input: %.02f\n", ids2Setpoint, ids2Input);
-  //     ids2Setpoint = structPlan[actMashStep].temp;
-  //     ids2PID.Start(ids2Input, 0, ids2Setpoint);
-  //     // handleInduction();
-
-  //     statePause = false; // set btn-primary
-  //   }
-  //   else if (actMashStep > 0 && !statePause)
-  //   {
-  //     ids2Setpoint = ids2Input;
-  //     ids2PID.Start(ids2Input, 0, ids2Setpoint);
-  //     // handleInduction();
-  //     statePause = true;
-  //     DEBUG_MSG("WEB: PauseButton2 ids2Setpoint: %.02f ids2Input: %.02f\n", ids2Setpoint, ids2Input);
-  //   }
-  // }
   server.send(201, "text/plain", "created");
 }
 
@@ -829,7 +816,7 @@ void handleBtnNextStep()
     inductionCooker.inductionNewPower(int(ids2Output));
     // handleInduction();
     TickerInd.updatenow();
-    ids2PID.Start(ids2Input, ids2Output, ids2Setpoint);
+    // ids2PID.Start(ids2Input, ids2Output, ids2Setpoint); // PID_v2
   }
   else // last mash step finished
   {
@@ -837,7 +824,7 @@ void handleBtnNextStep()
     pidMode = false;
     actMashStep = 0;
     ids2Setpoint = 0.0;
-    ids2PID.Start(ids2Input, 0, ids2Setpoint);
+    // ids2PID.Start(ids2Input, 0, ids2Setpoint); // PID_v2
     TickerMash.stop();
     TickerPID.stop();
     inductionCooker.inductionNewPower(0);

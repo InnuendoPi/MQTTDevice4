@@ -2,6 +2,8 @@
 
 Version 4.31
 
+- Reworked: PID AutoTune
+- Changed:  PID lib to QuickPID
 - Checked:  PID calc
 - Fixed:    change page event display not working correctly
 - Fixed:    Kettlepage no output

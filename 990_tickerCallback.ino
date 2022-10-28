@@ -24,7 +24,7 @@ void tickerDispCallback()
     sprintf_P(ipMQTT, (PGM_P)F("http://%s - %s"), nameMDNS, WiFi.localIP().toString().c_str());
   else
     sprintf_P(ipMQTT, (PGM_P)F("http://%s"), WiFi.localIP().toString().c_str());
-  
+
   activePage = nextion.currentPageID;
   switch (activePage)
   {
@@ -90,14 +90,26 @@ void tickerDispCallback()
   case 1: // KettlePage
     if (mqttoff)
     {
+      char buf[5];
+      sprintf(buf, "%s", "0.0");
+
       // DEBUG_MSG("Ticker: dispCallback KettlePage activePage: %d\n", activePage);
       if (inductionStatus)
       {
-        p1temp_text.attribute("txt", String(int(ids2Input * 10) / 10.0).c_str());
-        if (ids2Setpoint > 0)
-          p1target_text.attribute("txt", String(int(ids2Setpoint * 10) / 10.0).c_str());
+        // p1temp_text.attribute("txt", String(int(ids2Input * 10) / 10.0).c_str());
+        p1temp_text.attribute("txt", sensors[0].getTotalValueString());
+        if (ids2AutoTune)
+        {
+          dtostrf(ids2Setpoint, 2, 1, buf);
+          p1target_text.attribute("txt", buf);
+          // p1target_text.attribute("txt", String(int(ids2Setpoint)).c_str());
+        }
         else
-          p1target_text.attribute("txt", String(int(structPlan[actMashStep].temp * 10) / 10.0).c_str());
+        {
+          dtostrf(structPlan[actMashStep].temp, 2, 1, buf);
+          p1target_text.attribute("txt", buf);
+          // p1target_text.attribute("txt", String(int(structPlan[actMashStep].temp * 100) / 100.0).c_str());
+        }
 
         // p1current_text.attribute("txt", structPlan[actMashStep].name.c_str());
         // p1remain_text.attribute("txt", calcRemaining().c_str());
@@ -116,11 +128,26 @@ void tickerDispCallback()
       else if (hltStatus)
       {
         p1temp_text.attribute("txt", sensors[kettleHLT.senid].getTotalValueString());
-        p1target_text.attribute("txt", String(int(hltSetpoint * 10) / 10.0).c_str());
+        dtostrf(hltSetpoint, 2, 1, buf);
+        p1target_text.attribute("txt", buf);
+        // p1target_text.attribute("txt", String(int(hltSetpoint)).c_str());
       }
 
-      p1current_text.attribute("txt", structPlan[actMashStep].name.c_str());
-      p1remain_text.attribute("txt", calcRemaining().c_str());
+      if (ids2AutoTune)
+      {
+        p1current_text.attribute("txt", "AutoTune IDS2");
+        p1remain_text.attribute("txt", "");
+      }
+      else if (hltAutoTune)
+      {
+        p1current_text.attribute("txt", "AutoTune HLT");
+        p1remain_text.attribute("txt", "");
+      }
+      else
+      {
+        p1current_text.attribute("txt", structPlan[actMashStep].name.c_str());
+        p1remain_text.attribute("txt", calcRemaining().c_str());
+      }
       p1mqttDevice.attribute("txt", ipMQTT);
       p1uhrzeit_text.attribute("txt", uhrzeit);
 
@@ -322,27 +349,28 @@ void tickerMashCallback() // Ticker helper function calling Event WLAN Error
 
 void tickerPIDCallback() // Ticker helper function calling Event WLAN Error
 {
-  sensors[0].Update();  // IDS2 Sensor abfragen
-  if (sensors[0].getTotalValueFloat() != -127.00) // Sensor error
+  sensors[0].Update(); // IDS2 Sensor abfragen
+  ids2Input = sensors[0].getTotalValueFloat();
+  ids2PID.Compute(); // QuickPID
+  inductionCooker.inductionNewPower(int(ids2Output));
+  if (TickerInd.state() == RUNNING)
   {
-    ids2Input = sensors[0].getTotalValueFloat(); // Sensor value + offsets
-    ids2Output = ids2PID.Run(ids2Input);
-    inductionCooker.inductionNewPower(int(ids2Output));
     TickerInd.updatenow();
+    Serial.println("TickerInd");
   }
-  else  // sens error
+  else
   {
-    ids2Input = 0;
-    inductionCooker.inductionNewPower(0);
-    return;
+    handleInduction();
+    Serial.println("handleInduction");
   }
+  // printPID();
 
   if (ids2AutoTune)
     return;
 
   if (TickerMash.state() != RUNNING && TickerMash.state() != PAUSED)
   {
-    checkTemp(); //check piddelta
+    checkTemp(); // check piddelta
   }
   // printPID();
 }
@@ -350,18 +378,12 @@ void tickerPIDCallback() // Ticker helper function calling Event WLAN Error
 void tickerHltPIDCallback() // Ticker helper function calling Event WLAN Error
 {
   sensors[kettleHLT.senid].Update();
-  float val = sensors[kettleHLT.senid].getTotalValueFloat();
-  if (val != -127.00)
-    hltInput = val;
-
-  if (!isnan(hltInput))
-  {
-    hltOutput = hltPID.Run(hltInput);
-    kettleHLT.newPower(int(hltOutput));
-    TickerHlt.updatenow();
-    // DEBUG_MSG("Ticker hltPID hltInput: %.02f hltOutput: %.02f intOutput %d hltSetpoint: %.02f\n", hltInput, hltOutput, int(hltOutput), hltSetpoint);
-    // Serial.printf("Ticker HltPID hltInput: %.02f hltOutput: %.02f intOutput %d hltSetpoint: %.02f\n", hltInput, hltOutput, int(hltOutput), hltSetpoint);
-  }
+  hltInput = sensors[kettleHLT.senid].getTotalValueFloat();
+  hltPID.Compute(); // QuickPID
+  kettleHLT.newPower(int(hltOutput));
+  TickerHlt.updatenow();
+  // DEBUG_MSG("Ticker hltPID hltInput: %.02f hltOutput: %.02f intOutput %d hltSetpoint: %.02f\n", hltInput, hltOutput, int(hltOutput), hltSetpoint);
+  // Serial.printf("Ticker HltPID hltInput: %.02f hltOutput: %.02f intOutput %d hltSetpoint: %.02f\n", hltInput, hltOutput, int(hltOutput), hltSetpoint);
 }
 
 void tickerMQTTCallback() // Ticker helper function calling Event MQTT Error

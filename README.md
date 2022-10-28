@@ -30,7 +30,7 @@ Libraries: Version 4.31, 10.2022
 - ArduinoJSON 6.19.4
 - WiFiManager 2.0.12
 - NextionX2 1.1.2 (NextionX2.h: #define ATTRIBUTE_TEXT_LENGTH 90, added currentPageID)
-- PID_V2
+- QuickPID
 - sTune
 - PCF8574 0.3.5
 

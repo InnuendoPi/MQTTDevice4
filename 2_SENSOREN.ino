@@ -188,6 +188,8 @@ public:
 
   float calcOffset()
   {
+    if (sens_value == -127.00 || sens_value == 85.00)
+      return 0.0;
     if (sens_offset1 == 0.0 && sens_offset2 == 0.0) // keine Kalibrierung
     {
       return sens_value;

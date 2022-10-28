@@ -119,8 +119,8 @@ bool loadConfig()
   if (indObj.containsKey("ENABLED"))
   {
     inductionStatus = 1;
-    inductionCooker.change(StringToPin(indObj["PINWHITE"]), StringToPin(indObj["PINYELLOW"]), StringToPin(indObj["PINBLUE"]), indObj["TOPIC"] | "", indObj["DELAY"] | DEF_DELAY_IND, true, indObj["PL"] | 100);
-    DEBUG_MSG("Induction: %d MQTT: %s Relais (WHITE): %s Command channel (YELLOW): %s Backchannel (BLUE): %s Delay after power off %d Power level on error: %d\n", inductionStatus, indObj["TOPIC"].as<const char *>(), indObj["PINWHITE"].as<const char *>(), indObj["PINYELLOW"].as<const char *>(), indObj["PINBLUE"].as<const char *>(), indObj["DELAY"].as<int>(), indObj["PL"].as<int>());
+    inductionCooker.change(StringToPin(indObj["PINWHITE"]), StringToPin(indObj["PINYELLOW"]), StringToPin(indObj["PINBLUE"]), indObj["TOPIC"] | "", true, indObj["PL"] | 100);
+    DEBUG_MSG("Induction: %d MQTT: %s Relais (WHITE): %s, Command channel (YELLOW): %s, Backchannel (BLUE): %s, PlOnErr: %d\n", inductionStatus, indObj["TOPIC"].as<const char *>(), indObj["PINWHITE"].as<const char *>(), indObj["PINYELLOW"].as<const char *>(), indObj["PINBLUE"].as<const char *>(), indObj["PL"].as<int>());
   }
   else
   {
@@ -134,36 +134,31 @@ bool loadConfig()
   JsonObject hltObj = hltArray[0];
   kettleHLT.isEnabled = hltObj["ENABLED"] | 0;
   hltStatus = kettleHLT.isEnabled;
-  DEBUG_MSG("HLT: hltStatus %d\n", hltStatus);
-
-  if (kettleHLT.isEnabled)
+  if (hltStatus)
   {
-    hltStatus = 1;
-    hltKp = hltObj["kp"] | 2.0;
-    hltKi = hltObj["ki"] | 0.5;
-    hltKd = hltObj["kd"] | 1.0;
-    hltSetpoint = hltObj["SETP"] | 78.0;
-
-    kettleHLT.change(hltObj["ENABLED"] | 0, hltObj["PIN"] | "", hltObj["INV"] | 0, hltObj["SENID"] | 1);
+    kettleHLT.change(hltStatus, hltObj["PIN"] | "", hltObj["INV"] | 0, hltObj["SENID"] | 1);
     DEBUG_MSG("HLT: %d PIN: %s invert GPIO: %d SenID: %d\n", hltStatus, hltObj["PIN"].as<const char *>(), hltObj["INV"].as<int>(), hltObj["SENID"].as<int>());
   }
   else
   {
-    hltStatus = 0;
     DEBUG_MSG("HLT: %d\n", hltStatus);
   }
-  DEBUG_MSG("HLT: Kp %.02f Ki %.02f Kd %.02f Setpoint %.02f\n", hltKp, hltKi, hltKd, hltSetpoint);
+  hltKp = hltObj["kp"] | 0.0;
+  hltKi = hltObj["ki"] | 0.0;
+  hltKd = hltObj["kd"] | 0.0;
+  hltSetpoint = hltObj["SETP"] | 78.0;
+  DEBUG_MSG("PID HLT: Kp %.06f Ki %.06f Kd %.06f Setpoint %.01f\n", hltKp, hltKi, hltKd, hltSetpoint);
   DEBUG_MSG("%s\n", "--------------------");
 
   // PID stuff
   JsonArray pidArray = doc["pid"];
   JsonObject pidObj = pidArray[0];
 
-  ids2Kp = pidObj["kp"] | 2.0;
-  ids2Ki = pidObj["ki"] | 0.5;
-  ids2Kd = pidObj["kd"] | 1.0;
+  ids2Kp = pidObj["kp"] | 0.0;
+  ids2Ki = pidObj["ki"] | 0.0;
+  ids2Kd = pidObj["kd"] | 0.0;
   pidDelta = pidObj["piddelta"] | 0.0;
-  DEBUG_MSG("PIDs: Kp: %.03f Ki: %.03f Kd: %.03f delta: %.03f\n", ids2Kp, ids2Ki, ids2Kd, pidDelta);
+  DEBUG_MSG("PID IDS2: Kp: %.06f Ki: %.06f Kd: %.06f piddelta: %.01f\n", ids2Kp, ids2Ki, ids2Kd, pidDelta);
 
   DEBUG_MSG("%s\n", "------ loadConfig finished ------");
 
@@ -266,10 +261,9 @@ bool saveConfig()
     indObj["PINYELLOW"] = PinToString(inductionCooker.PIN_YELLOW);
     indObj["PINBLUE"] = PinToString(inductionCooker.PIN_INTERRUPT);
     indObj["TOPIC"] = inductionCooker.mqtttopic;
-    indObj["DELAY"] = inductionCooker.delayAfteroff;
     indObj["ENABLED"] = (int)inductionCooker.isEnabled;
     indObj["PL"] = inductionCooker.powerLevelOnError;
-    DEBUG_MSG("Induction: %d MQTT: %s Relais (WHITE): %s Command channel (YELLOW): %s Backchannel (BLUE): %s Delay after power off %d Power level on error: %d\n", inductionCooker.isEnabled, inductionCooker.mqtttopic.c_str(), PinToString(inductionCooker.PIN_WHITE).c_str(), PinToString(inductionCooker.PIN_YELLOW).c_str(), PinToString(inductionCooker.PIN_INTERRUPT).c_str(), (inductionCooker.delayAfteroff / 1000), inductionCooker.powerLevelOnError);
+    DEBUG_MSG("Induction: %d MQTT: %s Relais (WHITE): %s, Command channel (YELLOW): %s, Backchannel (BLUE): %s, PlOnErr: %d\n", inductionCooker.isEnabled, inductionCooker.mqtttopic.c_str(), PinToString(inductionCooker.PIN_WHITE).c_str(), PinToString(inductionCooker.PIN_YELLOW).c_str(), PinToString(inductionCooker.PIN_INTERRUPT).c_str(), inductionCooker.powerLevelOnError);
   }
   else
   {
@@ -287,7 +281,7 @@ bool saveConfig()
   pidObj["kd"] = ids2Kd;
   pidObj["piddelta"] = (int(pidDelta * 100)) / 100.0;
 
-  DEBUG_MSG("PID IDS2: Kp: %.03f Ki: %.03f Kd: %.03f pidDelta: %.01f ids2AutoTune: %d Setpoint: %.01f\n", ids2Kp, ids2Ki, ids2Kd, pidDelta, ids2AutoTune, ids2Setpoint);
+  DEBUG_MSG("PID IDS2: Kp: %.06f Ki: %.06f Kd: %.06f pidDelta: %.01f ids2AutoTune: %d Setpoint: %.01f\n", ids2Kp, ids2Ki, ids2Kd, pidDelta, ids2AutoTune, ids2Setpoint);
   DEBUG_MSG("%s\n", "--------------------");
 
   // Write HLT
@@ -305,6 +299,7 @@ bool saveConfig()
     hltObj["kp"] = hltKp;
     hltObj["ki"] = hltKi;
     hltObj["kd"] = hltKd;
+      
     DEBUG_MSG("HLT: %d PIN: %s Invert: %d SenID: %d\n", kettleHLT.isEnabled, PinToString(kettleHLT.pin_hlt).c_str(), kettleHLT.isInverted, kettleHLT.senid);
   }
   else
@@ -312,7 +307,7 @@ bool saveConfig()
     hltStatus = 0;
     DEBUG_MSG("HLT: %d\n", kettleHLT.isEnabled);
   }
-  DEBUG_MSG("PID HLT: Kp %.02f Ki %.02f Kd %.02f Setpoint %.02f\n", hltKp, hltKi, hltKd, hltSetpoint);
+  DEBUG_MSG("PID HLT: Kp: %.06f Ki: %.06f Kd: %.06f hltAutoTune: %d Setpoint: %.01f\n", hltKp, hltKi, hltKd, hltAutoTune, hltSetpoint);
   DEBUG_MSG("%s\n", "--------------------");
 
   // Write Misc Stuff
