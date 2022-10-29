@@ -482,7 +482,10 @@ void handleRequestInduction()
 {
   DynamicJsonDocument doc(800);
   doc["enabled"] = inductionCooker.isEnabled;
-  doc["power"] = 0;
+  if (hltAutoTune)
+      doc["power"] = kettleHLT.power;
+  else
+    doc["power"] = 0;
   doc["autotune"] = ids2AutoTune;
   doc["setpoint"] = int(ids2Setpoint);
   doc["kp"] = ids2Kp;
@@ -493,7 +496,10 @@ void handleRequestInduction()
   if (inductionCooker.isEnabled)
   {
     doc["relayOn"] = inductionCooker.isRelayon;
-    doc["power"] = inductionCooker.power;
+    if (hltAutoTune)
+      doc["power"] = kettleHLT.power;
+    else
+      doc["power"] = inductionCooker.power;
     doc["relayOn"] = inductionCooker.isRelayon;
     doc["state"] = inductionCooker.induction_state;
     if (inductionCooker.isPower)
@@ -515,6 +521,7 @@ void handleRequestInduction()
   if (hltAutoTune)
   {
     doc["power"] = kettleHLT.power;
+    // doc["power"] = hltOutput;
     doc["target"] = hltSetpoint;
     doc["step"] = "AutoTune HLT";
   }
@@ -530,7 +537,7 @@ void handleRequestInduction()
   }
   if (hltAutoTune)
   {
-    if (kettleHLT.isOn)
+    if (kettleHLT.state)
       doc["timer"] = "in progress";
     else
       doc["timer"] = "press power";

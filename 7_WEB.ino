@@ -215,7 +215,7 @@ void handleRequestMisc3()
   // StaticJsonDocument<256> doc;
   DynamicJsonDocument doc(128);
   if (hltAutoTune)
-    doc["statePower"] = kettleHLT.isOn;
+    doc["statePower"] = kettleHLT.state;
   else
     doc["statePower"] = statePower;
   doc["statePause"] = statePause;
@@ -623,12 +623,13 @@ void handleBtnPower()
           actMashStep = 0;
           pidMode = true;
           // QuickPID
-          ids2PID.SetOutputLimits(0, outputSpan);
-          ids2PID.SetSampleTimeUs(outputSpan * 1000 - debounce);
-          ids2PID.SetMode(ids2PID.Control::automatic); // the PID is turned on
-          ids2PID.SetProportionalMode(ids2PID.pMode::pOnError);
-          ids2PID.SetAntiWindupMode(ids2PID.iAwMode::iAwClamp);
-          ids2PID.SetTunings(ids2Kp, ids2Ki, ids2Kd); // update PID with the new tunings
+          ids2PID.SetOutputLimits(0, outputSpan);                 // Set and clamps the output to (0-255 by default)
+          ids2PID.SetSampleTimeUs(outputSpan * 1000 - debounce);  // Set PID compute sample time, default = 100000 µs
+          ids2PID.SetTunings(ids2Kp, ids2Ki, ids2Kd,              // update PID with the new tunings
+                            ids2PID.pMode::pOnError,              // Set pTerm based on error (default), measurement, or both
+                            ids2PID.dMode::dOnMeas,               // Set the dTerm, based error or measurement (default).
+                            ids2PID.iAwMode::iAwClamp);           // Set iTerm anti-windup to iAwCondition, iAwClamp or iAwOff
+          ids2PID.SetMode(ids2PID.Control::automatic);            // the PID is turned on
 
           if (TickerPUBSUB.state() == RUNNING)
             TickerPUBSUB.stop();
@@ -659,6 +660,7 @@ void handleBtnPower()
         {
           hltAutoTune = false;
           kettleHLT.isOn = false;
+          kettleHLT.state = false;
           statePause = false;
           statePlay = false;
           TickerHltPID.stop();
@@ -732,16 +734,12 @@ void handleBtnPlay()
     {
       DEBUG_MSG("WEB: PlayButton1 ids2Setpoint: %.02f ids2Input: %.02f\n", ids2Setpoint, ids2Input);
       ids2Setpoint = structPlan[actMashStep].temp;
-      // ids2PID.Start(ids2Input, 0, ids2Setpoint); // PID_v2
-
       // handleInduction(); -> Funktion geändert!
       statePlay = false;
     }
     else if (actMashStep > 0 && !statePlay)
     {
       ids2Setpoint = ids2Input;
-      // ids2PID.Start(ids2Input, 0, ids2Setpoint); // PID_v2
-
       // handleInduction(); -> Funktion geändert!
       statePlay = true;
       DEBUG_MSG("WEB: PlayButton2 ids2Setpoint: %.02f ids2Input: %.02f\n", ids2Setpoint, ids2Input);
@@ -816,7 +814,6 @@ void handleBtnNextStep()
     inductionCooker.inductionNewPower(int(ids2Output));
     // handleInduction();
     TickerInd.updatenow();
-    // ids2PID.Start(ids2Input, ids2Output, ids2Setpoint); // PID_v2
   }
   else // last mash step finished
   {
@@ -824,7 +821,6 @@ void handleBtnNextStep()
     pidMode = false;
     actMashStep = 0;
     ids2Setpoint = 0.0;
-    // ids2PID.Start(ids2Input, 0, ids2Setpoint); // PID_v2
     TickerMash.stop();
     TickerPID.stop();
     inductionCooker.inductionNewPower(0);

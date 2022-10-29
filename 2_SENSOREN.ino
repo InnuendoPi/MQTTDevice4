@@ -179,7 +179,7 @@ public:
   char *getTotalValueString()
   {
     sprintf(buf, "%s", "0.0");
-    if (sens_value == -127.0)
+    if (sensorsStatus != EM_OK)
       return buf;
 
     dtostrf((round((calcOffset() + 0.05) * 10) / 10.0), 2, 1, buf);
@@ -188,7 +188,7 @@ public:
 
   float calcOffset()
   {
-    if (sens_value == -127.00 || sens_value == 85.00)
+    if (sensorsStatus != EM_OK)
       return 0.0;
     if (sens_offset1 == 0.0 && sens_offset2 == 0.0) // keine Kalibrierung
     {

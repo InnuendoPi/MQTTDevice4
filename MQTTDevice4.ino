@@ -56,7 +56,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.32"
+#define Version "4.32a"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -191,6 +191,7 @@ InnuTicker TickerHltPID;
 #define HLT_UPDATE 4000     //  hlt update
 #define DISP_UPDATE 1000    //  display update
 #define MASH_UPDATE 4000    //  mash update
+#define PID_UPDATE 2000     //  PID update
 
 // Systemstart
 bool startMDNS = true; // Standard mDNS Name ist ESP8266- mit mqtt_chip_key
@@ -336,9 +337,6 @@ bool startBuzzer = false;  // Aktiviere Buzzer
 bool mqttBuzzer = false;   // MQTTBuzzer für CBPi4
 
 // PID
-#define PID_UPDATE 3000     // checkTemp and send newPower
-#define RUN_PID 1000        // PID SetSampleTime
-
 float ids2Kp = 0, ids2Ki = 0, ids2Kd = 0;
 float ids2Input, ids2Output, ids2Setpoint = 63;
 
@@ -359,7 +357,7 @@ QuickPID ids2PID(&ids2Input, &ids2Output, &ids2Setpoint, ids2Kp, ids2Ki, ids2Kd,
 QuickPID hltPID(&hltInput, &hltOutput, &hltSetpoint, hltKp, hltKi, hltKd,
                hltPID.pMode::pOnError,
                hltPID.dMode::dOnMeas,
-               hltPID.iAwMode::iAwCondition,
+               hltPID.iAwMode::iAwClamp,
                hltPID.Action::direct);
 
 // modes
@@ -373,8 +371,8 @@ bool statePlay = false;
 
 // autoTune settings
 uint32_t settleTimeSec = 5;     // used to provide additional settling time prior to starting the test
-uint32_t testTimeSec = 1000;     // runPid interval = testTimeSec / samples
-const uint16_t samples = 1000;   // define the maximum number of samples used to perform the test. To get an accurate representation of the curve, the suggested range is 200-500.
+uint32_t testTimeSec = 500;     // runPid interval = testTimeSec / samples
+const uint16_t samples = 500;   // define the maximum number of samples used to perform the test. To get an accurate representation of the curve, the suggested range is 200-500.
 const float inputSpan = 100;    // 100
 const float outputSpan = 100;   // 100;
 float outputStart = 0;
@@ -383,7 +381,7 @@ float tempLimit = 75;
 uint8_t debounce = 1;
 
 float stInput, stOutput, stSetpoint = 64, stKp, stKi, stKd; // sTune
-sTune tuner = sTune(&stInput, &stOutput, tuner.ZN_PID, tuner.directIP, tuner.printALL); // printOFF, printALL, printSUMMARY, printDEBUG}
+sTune tuner = sTune(&stInput, &stOutput, tuner.ZN_PID, tuner.directIP, tuner.printSUMMARY); // printOFF, printALL, printSUMMARY, printDEBUG}
 
 // Maischeplan
 #define maxSchritte 15

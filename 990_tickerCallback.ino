@@ -356,12 +356,12 @@ void tickerPIDCallback() // Ticker helper function calling Event WLAN Error
   if (TickerInd.state() == RUNNING)
   {
     TickerInd.updatenow();
-    Serial.println("TickerInd");
+    // Serial.println("TickerInd");
   }
   else
   {
     handleInduction();
-    Serial.println("handleInduction");
+    // Serial.println("handleInduction");
   }
   // printPID();
 
