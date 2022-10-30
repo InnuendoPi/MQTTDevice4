@@ -31,8 +31,8 @@ Libraries: Version 4.31, 10.2022
 - WiFiManager 2.0.12
 - NextionX2 1.1.2 (NextionX2.h: #define ATTRIBUTE_TEXT_LENGTH 90, added currentPageID)
 - QuickPID
-- sTune
-- PCF8574 0.3.5
+- sTune (added method calcOptOut)
+- PCF8574 0.3.6
 
 Board configuration:
 Flash size 4MB (FS:2MB OTA:~1019kB)

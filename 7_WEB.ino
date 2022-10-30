@@ -438,6 +438,103 @@ void handleRequestPages()
   server.send(200, "text/plain", message);
 }
 
+void handleRequestStep()
+{
+  // doc["data.step"] doc["data.tempvalue"] doc["data.target"] doc["data.timer"] doc["data.power"]
+
+  DynamicJsonDocument doc(386);
+  
+  doc["power"] = 0;
+  doc["tempvalue"] = sensors[0].getTotalValueString();
+  if (hltAutoTune)
+  {
+    doc["target"] = hltSetpoint;
+    doc["step"] = "AutoTune HLT";
+    doc["tempvalue"] = sensors[1].getTotalValueString();
+  }
+  else if (ids2AutoTune)
+  {
+    doc["target"] = int(ids2Setpoint);
+    doc["step"] = "AutoTune IDS2";
+  }
+  else
+  {
+    doc["power"] = inductionCooker.power;
+    doc["target"] = structPlan[actMashStep].temp;
+    doc["step"] = structPlan[actMashStep].name;
+  }
+
+  if (hltAutoTune)
+  {
+    if (kettleHLT.state)
+    {
+      doc["power"] = stOutput;
+      doc["timer"] = "in progress";
+    }
+    else
+      doc["timer"] = "press power";
+  }
+  else if (ids2AutoTune)
+  {
+    if (statePower)
+    {
+      doc["power"] = inductionCooker.power;
+      doc["timer"] = "in progress";
+    }
+    else
+      doc["timer"] = "press power";
+  }
+  else if (TickerMash.state() == RUNNING)
+  {
+    doc["target"] = structPlan[actMashStep].temp;
+    doc["step"] = structPlan[actMashStep].name;
+    unsigned long allSeconds = TickerMash.remaining() / 1000;
+    int runHours = allSeconds / 3600;
+    int secsRemaining = allSeconds % 3600;
+    int runMinutes = secsRemaining / 60;
+    int runSeconds = secsRemaining % 60;
+    char buf[21];
+    if (runHours > 0)
+      runMinutes += runHours * 60;
+    sprintf(buf, "%02d:%02d", runMinutes, runSeconds);
+    doc["timer"] = buf;
+  }
+  else if (TickerMash.state() == STOPPED)
+  {
+    if (actMashStep > 0 && statePause)
+    {
+      doc["timer"] = "pause to continue";
+    }
+    else
+    {
+      unsigned long allSeconds = structPlan[actMashStep].duration * 60;
+      int runHours = allSeconds / 3600;
+      int secsRemaining = allSeconds % 3600;
+      int runMinutes = secsRemaining / 60;
+      int runSeconds = secsRemaining % 60;
+      char buf[21];
+      if (runHours > 0)
+        runMinutes += runHours * 60;
+      sprintf(buf, "%02d:%02d", runMinutes, runSeconds);
+      doc["timer"] = buf;
+    }
+  }
+  else if (TickerMash.state() == PAUSED && TickerMash.counter() >= 1)
+  {
+    doc["timer"] = "click forward";
+  }
+  else if (TickerMash.state() == PAUSED)
+    doc["timer"] = "paused";
+
+  String response;
+  serializeJson(doc, response);
+  server.send(200, "application/json", response);
+  // size_t len = measureJson(doc);
+  // int memoryUsed = doc.memoryUsage();
+  // DEBUG_MSG("WEB reqStep JSON config length: %d\n", len);
+  // DEBUG_MSG("WEB reqStep JSON memory usage: %d\n", memoryUsed);
+}
+
 void handleRequestMash()
 {
 
@@ -623,13 +720,13 @@ void handleBtnPower()
           actMashStep = 0;
           pidMode = true;
           // QuickPID
-          ids2PID.SetOutputLimits(0, outputSpan);                 // Set and clamps the output to (0-255 by default)
-          ids2PID.SetSampleTimeUs(outputSpan * 1000 - debounce);  // Set PID compute sample time, default = 100000 µs
-          ids2PID.SetTunings(ids2Kp, ids2Ki, ids2Kd,              // update PID with the new tunings
-                            ids2PID.pMode::pOnError,              // Set pTerm based on error (default), measurement, or both
-                            ids2PID.dMode::dOnMeas,               // Set the dTerm, based error or measurement (default).
-                            ids2PID.iAwMode::iAwClamp);           // Set iTerm anti-windup to iAwCondition, iAwClamp or iAwOff
-          ids2PID.SetMode(ids2PID.Control::automatic);            // the PID is turned on
+          ids2PID.SetOutputLimits(0, outputSpan);                // Set and clamps the output to (0-255 by default)
+          ids2PID.SetSampleTimeUs(outputSpan * 1000 - debounce); // Set PID compute sample time, default = 100000 µs
+          ids2PID.SetTunings(ids2Kp, ids2Ki, ids2Kd,             // update PID with the new tunings
+                             ids2PID.pMode::pOnError,            // Set pTerm based on error (default), measurement, or both
+                             ids2PID.dMode::dOnMeas,             // Set the dTerm, based error or measurement (default).
+                             ids2PID.iAwMode::iAwClamp);         // Set iTerm anti-windup to iAwCondition, iAwClamp or iAwOff
+          ids2PID.SetMode(ids2PID.Control::automatic);           // the PID is turned on
 
           if (TickerPUBSUB.state() == RUNNING)
             TickerPUBSUB.stop();
@@ -658,12 +755,14 @@ void handleBtnPower()
       {
         if (hltAutoTune)
         {
+          TickerHltPID.stop();
           hltAutoTune = false;
+          Serial.printf("WEB: PowerButton off hltAutoTune: %d\n", hltAutoTune);
           kettleHLT.isOn = false;
           kettleHLT.state = false;
           statePause = false;
           statePlay = false;
-          TickerHltPID.stop();
+          // TickerHltPID.stop();
           kettleHLT.newPower(0);
           kettleHLT.Update(); // TickerHLT stopped
           DEBUG_MSG("WEB: PowerButton off hltAutoTune: %d\n", hltAutoTune);

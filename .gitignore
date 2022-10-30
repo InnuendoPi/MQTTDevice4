@@ -35,3 +35,7 @@ sTan.cpp
 sTan.h
 sTune.cpp
 sTune.h
+PCF8574.cpp
+PCF8574.h
+QuickPID.cpp
+QuickPID.h

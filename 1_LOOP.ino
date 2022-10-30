@@ -33,12 +33,10 @@ void loop()
   if (hltAutoTune && TickerHltPID.state() == RUNNING) // AutoTune HLT
   {
     TickerHltPID.update();
-    runHltAutoTune();
   }
   else if (ids2AutoTune && TickerPID.state() == RUNNING) // AutoTune IDS2
   {
     TickerPID.update();
-    runAutoTune();
   }
 
   if (hltStatus > 0 && TickerHltPID.state() == RUNNING) // Ticker hltPID

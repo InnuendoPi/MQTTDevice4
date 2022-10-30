@@ -44,7 +44,7 @@ void setup()
 
     // if (shouldSaveConfig) // WiFiManager
     //   saveConfig();
-
+    
     if (LittleFS.exists("/config.txt")) // Lade Konfiguration
       loadConfig();
     else
@@ -79,9 +79,12 @@ void setup()
   }
   if (useI2C)
   {
-    if (pcf8574.begin(D5, D6))
+    Wire.begin(D5, D6);
+    Wire.endTransmission();
+    
+    if (pcf020.begin(D5, D6))
     {
-      Serial.println("*** SYSINFO: PCF8574 init successful");
+      Serial.println("*** SYSINFO: PCF8574 init successful" );
       pins_used[D5] = true;
       pins_used[D6] = true;
       // pcf8574.selectNone(); // set all PCF8574 pins to low
@@ -139,6 +142,7 @@ void setupServer()
   server.on("/reqPages", handleRequestPages);       // Display page
   server.on("/reqIndu", handleRequestIndu);         // Induction für WebConfig
   server.on("/reqHLT", handleReqHlt);               // HLT
+  server.on("/reqHLT2", handleReqHlt2);               // HLT
   server.on("/reqHLTPIN", handleReqHltPin);         // HLT
   server.on("/setHLT", handleSetHLT);               // HLT
   server.on("/setSensor", handleSetSensor);         // Sensor ändern
@@ -156,6 +160,7 @@ void setupServer()
   server.on("/startToolsUpdate", startToolsUpdate); // Firmware WebUpdate
   server.on("/reqMash", handleRequestMash);
   server.on("/setMash", handleSetMash);
+  server.on("/reqStep", handleRequestStep);
   server.on("/Btn-Power", handleBtnPower);
   server.on("/Btn-Pause", handleBtnPause);
   server.on("/Btn-Play", handleBtnPlay);

@@ -349,34 +349,34 @@ void tickerMashCallback() // Ticker helper function calling Event WLAN Error
 
 void tickerPIDCallback() // Ticker helper function calling Event WLAN Error
 {
+  if (ids2AutoTune)
+  {
+    runAutoTune();
+    return;
+  }
+
   sensors[0].Update(); // IDS2 Sensor abfragen
   ids2Input = sensors[0].getTotalValueFloat();
   ids2PID.Compute(); // QuickPID
   inductionCooker.inductionNewPower(int(ids2Output));
   if (TickerInd.state() == RUNNING)
-  {
     TickerInd.updatenow();
-    // Serial.println("TickerInd");
-  }
   else
-  {
     handleInduction();
-    // Serial.println("handleInduction");
-  }
-  // printPID();
-
-  if (ids2AutoTune)
-    return;
 
   if (TickerMash.state() != RUNNING && TickerMash.state() != PAUSED)
   {
     checkTemp(); // check piddelta
   }
-  // printPID();
 }
 
 void tickerHltPIDCallback() // Ticker helper function calling Event WLAN Error
 {
+  if (hltAutoTune)
+  {
+    runHltAutoTune();
+    return;
+  }
   sensors[kettleHLT.senid].Update();
   hltInput = sensors[kettleHLT.senid].getTotalValueFloat();
   hltPID.Compute(); // QuickPID

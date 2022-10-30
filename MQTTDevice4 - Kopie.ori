@@ -13,6 +13,7 @@
 //    Unterstützung für PCF8574 I2C IO Modul
 
 #include <OneWire.h>           // OneWire Bus Kommunikation
+#include <Wire.h>
 #include <DallasTemperature.h> // Vereinfachte Benutzung der DS18B20 Sensoren
 #include <ESP8266WiFi.h>       // Generelle WiFi Funktionalität
 #include <ESP8266WebServer.h>  // Unterstützung Webserver
@@ -32,14 +33,14 @@
 #include <PubSubClient.h>       // MQTT Kommunikation
 #include <CertStoreBearSSL.h>   // WebUpdate
 #include <SoftwareSerial.h>     // Serieller Port für Display
+#include <PCF8574.h>            // I2C IO Modul PCF8574
+#include <FS.h>                 // Files
 #include "NextionX2.h"          // Display Nextion
 #include "index_htm.h"
 #include "edit_htm.h"
 #include "mash_htm.h"
-#include <FS.h>                 // Files
-#include <QuickPID.h>           // PID Controller
 #include "sTune.h"              // AutoTune
-#include <PCF8574.h>            // I2C IO Modul PCF8574
+#include "QuickPID.h"           // PID Controller
 
 extern "C"
 {
@@ -55,7 +56,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.32c"
+#define Version "4.32"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -71,7 +72,9 @@ OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature DS18B20(&oneWire);
 
 // I2C Port expander
-PCF8574 pcf020(0x20);
+PCF8574 pcf020(0x27);
+#define SDA_PIN 14
+#define SCL_PIN 12
 
 // WiFi und MQTT
 ESP8266WebServer server(80);
@@ -103,15 +106,7 @@ int CMD[6][33] = {
 unsigned char PWR_STEPS[6] = {0, 20, 40, 60, 80, 100};                                                     // Prozentuale Abstufung zwischen den Stufen
 
 bool useI2C = false;
-// bool pins_used[17]; // GPIO
-// const unsigned char numberOfPins = 9;
-// const unsigned char pins[numberOfPins] = {D0, D1, D2, D3, D4, D5, D6, D7, D8};
-// const String pin_names[numberOfPins] = {"D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8"};
 
-// bool ppins_used[8]; // GPIO
-// const unsigned char pnumberOfPins = 8;
-// const unsigned char ppins[pnumberOfPins] = {P0, P1, P2, P3, P4, P5, P6, P7};
-// const String ppin_names[pnumberOfPins] = {"P0", "P1", "P2", "P3", "P4", "P5", "P6", "P7"};
 #define P0 17
 #define P1 18
 #define P2 19
@@ -195,7 +190,7 @@ InnuTicker TickerHltPID;
 #define SEN_UPDATE 4000     //  sensors update
 #define ACT_UPDATE 2000     //  actors update
 #define IND_UPDATE 2000     //  induction update
-#define HLT_UPDATE 4000     //  hlt update
+#define HLT_UPDATE 2000     //  hlt update
 #define DISP_UPDATE 1000    //  display update
 #define MASH_UPDATE 4000    //  mash update
 #define PID_UPDATE 1000     //  PID update
@@ -375,6 +370,7 @@ bool hltAutoTune = false;
 bool statePower = false;
 bool statePause = false;
 bool statePlay = false;
+
 // autoTune settings
 uint32_t settleTimeSec = 5;     // used to provide additional settling time prior to starting the test
 uint32_t testTimeSec = 500;     // runPid interval = testTimeSec / samples
@@ -387,11 +383,7 @@ float tempLimit = 75;
 uint8_t debounce = 1;
 
 float stInput, stOutput, stSetpoint = 64, stKp, stKi, stKd; // sTune
-sTune tuner = sTune(&stInput, &stOutput, tuner.ZN_PID, tuner.directIP, tuner.printSUMMARY); // printOFF, printALL, printSUMMARY, printDEBUG
-
-// tuner.printDEBUG
-// tuner.printSUMMARY
-// tuner.direct5T
+sTune tuner = sTune(&stInput, &stOutput, tuner.ZN_PID, tuner.directIP, tuner.printSUMMARY); // printOFF, printALL, printSUMMARY, printDEBUG}
 
 // Maischeplan
 #define maxSchritte 15

@@ -49,7 +49,7 @@ public:
         if (type != -100 && type < GPIOPINS)
           digitalWrite(PIN_WHITE, HIGH);
         else
-          pcf8574.write(pcf_pin, HIGH);
+          pcf020.write(pcf_pin, HIGH);
         pins_used[PIN_WHITE] = false;
       }
 
@@ -61,7 +61,7 @@ public:
         if (type != -100 && type < GPIOPINS)
           digitalWrite(PIN_YELLOW, HIGH);
         else
-          pcf8574.write(pcf_pin, HIGH);
+          pcf020.write(pcf_pin, HIGH);
         pins_used[PIN_YELLOW] = false;
       }
 
@@ -100,7 +100,7 @@ public:
         }
         else if (type >= GPIOPINS)
         {
-          pcf8574.write(pcf_pin, HIGH);
+          pcf020.write(pcf_pin, HIGH);
         }
         pins_used[PIN_WHITE] = true;
       }
@@ -117,7 +117,7 @@ public:
         }
         else if (type >= GPIOPINS)
         {
-          pcf8574.write(pcf_pin, HIGH);
+          pcf020.write(pcf_pin, HIGH);
         }
         pins_used[PIN_YELLOW] = true;
       }
@@ -224,7 +224,7 @@ public:
       }
       else if (type >= GPIOPINS)
       {
-        pcf8574.write(pcf_pin, HIGH);
+        pcf020.write(pcf_pin, HIGH);
         // DEBUG_MSG("IDS2 update relay PCF PIN White %s : %d isHigh: %d \n", PinToString(PIN_WHITE).c_str(), pcf_pin, HIGH);
       }
       // digitalWrite(PIN_WHITE, HIGH);
@@ -242,7 +242,7 @@ public:
         }
         else if (type >= GPIOPINS)
         {
-          pcf8574.write(pcf_pin, LOW);
+          pcf020.write(pcf_pin, LOW);
           // DEBUG_MSG("IDS2 update relay PCF PIN White %s : %d isLow: %d \n", PinToString(PIN_WHITE).c_str(), pcf_pin, LOW);
         }
         // digitalWrite(PIN_WHITE, LOW);
@@ -346,7 +346,7 @@ public:
     }
     else if (type >= GPIOPINS)
     {
-      pcf8574.write(pcf_pin, HIGH);
+      pcf020.write(pcf_pin, HIGH);
       // DEBUG_MSG("IDS2 sendCommand PCF PIN Yellow %s : %d isHigh: %d \n",  PinToString(PIN_YELLOW).c_str(), pcf_pin, HIGH);
     }
     // digitalWrite(PIN_YELLOW, HIGH);
@@ -359,7 +359,7 @@ public:
     }
     else if (type >= GPIOPINS)
     {
-      pcf8574.write(pcf_pin, LOW);
+      pcf020.write(pcf_pin, LOW);
       // DEBUG_MSG("IDS2 sendCommand PCF PIN Yellow %s : %d isLow\n",  PinToString(PIN_YELLOW).c_str(), pcf_pin);
     }
     // digitalWrite(PIN_YELLOW, LOW);
@@ -375,7 +375,7 @@ public:
       }
       else if (type >= 9)
       {
-        pcf8574.write(pcf_pin, HIGH);
+        pcf020.write(pcf_pin, HIGH);
         // DEBUG_MSG("IDS2 sendCommand PCF PIN Yellow %s : %d isHigh\n",  PinToString(PIN_YELLOW).c_str(), pcf_pin);
       }
       // digitalWrite(PIN_YELLOW, HIGH);
@@ -387,7 +387,7 @@ public:
       }
       else if (type >= 9)
       {
-        pcf8574.write(pcf_pin, LOW);
+        pcf020.write(pcf_pin, LOW);
         // DEBUG_MSG("IDS2 sendCommand PCF PIN Yellow %s : %d isLow\n",  PinToString(PIN_YELLOW).c_str(), pcf_pin);
       }
 
@@ -480,12 +480,9 @@ void handleInduction()
 
 void handleRequestInduction()
 {
-  DynamicJsonDocument doc(800);
+  DynamicJsonDocument doc(386);
   doc["enabled"] = inductionCooker.isEnabled;
-  if (hltAutoTune)
-      doc["power"] = kettleHLT.power;
-  else
-    doc["power"] = 0;
+  doc["power"] = 0;
   doc["autotune"] = ids2AutoTune;
   doc["setpoint"] = int(ids2Setpoint);
   doc["kp"] = ids2Kp;
@@ -496,10 +493,7 @@ void handleRequestInduction()
   if (inductionCooker.isEnabled)
   {
     doc["relayOn"] = inductionCooker.isRelayon;
-    if (hltAutoTune)
-      doc["power"] = kettleHLT.power;
-    else
-      doc["power"] = inductionCooker.power;
+    doc["power"] = inductionCooker.power;
     doc["relayOn"] = inductionCooker.isRelayon;
     doc["state"] = inductionCooker.induction_state;
     if (inductionCooker.isPower)
@@ -513,9 +507,8 @@ void handleRequestInduction()
   }
 
   doc["topic"] = inductionCooker.mqtttopic;
-  // doc["delay"] = inductionCooker.delayAfteroff / 1000;
   doc["pl"] = inductionCooker.powerLevelOnError;
-
+  /*
   // PID mode values
   doc["tempvalue"] = sensors[0].getTotalValueString();
   if (hltAutoTune)
@@ -535,6 +528,7 @@ void handleRequestInduction()
     doc["target"] = structPlan[actMashStep].temp;
     doc["step"] = structPlan[actMashStep].name;
   }
+  
   if (hltAutoTune)
   {
     if (kettleHLT.state)
@@ -588,7 +582,7 @@ void handleRequestInduction()
   }
   else if (TickerMash.state() == PAUSED)
     doc["timer"] = "paused";
-
+  */
   String response;
   serializeJson(doc, response);
   server.send(200, "application/json", response);

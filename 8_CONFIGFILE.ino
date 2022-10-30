@@ -116,9 +116,10 @@ bool loadConfig()
   // read induction
   JsonArray indArray = doc["induction"];
   JsonObject indObj = indArray[0];
-  if (indObj.containsKey("ENABLED"))
+  inductionCooker.isEnabled = indObj["ENABLED"] | 0;
+  inductionStatus = inductionCooker.isEnabled;
+  if (inductionStatus)
   {
-    inductionStatus = 1;
     inductionCooker.change(StringToPin(indObj["PINWHITE"]), StringToPin(indObj["PINYELLOW"]), StringToPin(indObj["PINBLUE"]), indObj["TOPIC"] | "", true, indObj["PL"] | 100);
     DEBUG_MSG("Induction: %d MQTT: %s Relais (WHITE): %s, Command channel (YELLOW): %s, Backchannel (BLUE): %s, PlOnErr: %d\n", inductionStatus, indObj["TOPIC"].as<const char *>(), indObj["PINWHITE"].as<const char *>(), indObj["PINYELLOW"].as<const char *>(), indObj["PINBLUE"].as<const char *>(), indObj["PL"].as<int>());
   }

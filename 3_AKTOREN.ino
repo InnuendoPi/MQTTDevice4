@@ -49,7 +49,7 @@ public:
           }
           else if (type >= GPIOPINS)
           {
-            pcf8574.write(pcf_actor, OFF);
+            pcf020.write(pcf_actor, OFF);
             // DEBUG_MSG("Actor PCF PIN %d isOFF\n", pcf_actor);
           }
         }
@@ -62,7 +62,7 @@ public:
           }
           else if (type >= GPIOPINS)
           {
-            pcf8574.write(pcf_actor, ON);
+            pcf020.write(pcf_actor, ON);
             // DEBUG_MSG("Actor PCF PIN %d isON\n", pcf_actor);
           }
         }
@@ -76,7 +76,7 @@ public:
         }
         else if (type >= GPIOPINS)
         {
-          pcf8574.write(pcf_actor, OFF);
+          pcf020.write(pcf_actor, OFF);
           // DEBUG_MSG("Actor3 PCF PIN %d isOFF\n", pcf_actor);
         }
       }
@@ -94,7 +94,7 @@ public:
       if (type != -100 && type < GPIOPINS)
         digitalWrite(pin_actor, HIGH);
       else if (type >= GPIOPINS) // PCF PIN
-        pcf8574.write(pcf_actor, HIGH);
+        pcf020.write(pcf_actor, HIGH);
 
       pins_used[pin_actor] = false;
       millis2wait(10);
@@ -114,7 +114,7 @@ public:
       }
       else if (type >= GPIOPINS)
       {
-        pcf8574.write(pcf_actor, HIGH);
+        pcf020.write(pcf_actor, HIGH);
       }
       pins_used[pin_actor] = true;
     }
