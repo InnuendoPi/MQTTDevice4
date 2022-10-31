@@ -1,10 +1,12 @@
 # Changelog
 
-Version 4.31
+Version 4.32
 
+- Fixed:    PCF8574 init
+- Fixed:    AutoTune CPU load
 - Reworked: PID AutoTune
 - Changed:  PID lib to QuickPID
-- Checked:  PID calc
+- Reworked: PID calc
 - Fixed:    change page event display not working correctly
 - Fixed:    Kettlepage no output
 - Changed:  max number of sensors 4

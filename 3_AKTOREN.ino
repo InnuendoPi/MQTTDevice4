@@ -50,7 +50,7 @@ public:
           else if (type >= GPIOPINS)
           {
             pcf020.write(pcf_actor, OFF);
-            // DEBUG_MSG("Actor PCF PIN %d isOFF\n", pcf_actor);
+            DEBUG_MSG("Actor PCF PIN %d isOFF\n", pcf_actor);
           }
         }
         else
@@ -63,7 +63,7 @@ public:
           else if (type >= GPIOPINS)
           {
             pcf020.write(pcf_actor, ON);
-            // DEBUG_MSG("Actor PCF PIN %d isON\n", pcf_actor);
+            DEBUG_MSG("Actor PCF PIN %d isON\n", pcf_actor);
           }
         }
       }

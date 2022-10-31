@@ -55,7 +55,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.32c"
+#define Version "4.32"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -103,15 +103,6 @@ int CMD[6][33] = {
 unsigned char PWR_STEPS[6] = {0, 20, 40, 60, 80, 100};                                                     // Prozentuale Abstufung zwischen den Stufen
 
 bool useI2C = false;
-// bool pins_used[17]; // GPIO
-// const unsigned char numberOfPins = 9;
-// const unsigned char pins[numberOfPins] = {D0, D1, D2, D3, D4, D5, D6, D7, D8};
-// const String pin_names[numberOfPins] = {"D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8"};
-
-// bool ppins_used[8]; // GPIO
-// const unsigned char pnumberOfPins = 8;
-// const unsigned char ppins[pnumberOfPins] = {P0, P1, P2, P3, P4, P5, P6, P7};
-// const String ppin_names[pnumberOfPins] = {"P0", "P1", "P2", "P3", "P4", "P5", "P6", "P7"};
 #define P0 17
 #define P1 18
 #define P2 19
@@ -237,12 +228,6 @@ int activePage = 0;     // die aktuell angezeigte Seite
 const unsigned char numberOfPages = 3;
 const String page_names[numberOfPages] = {"BrewPage", "KettlePage", "InductionPage"};
 #define maxTopicSigns 42
-
-// char cbpi4steps_topic[maxTopicSigns] = "cbpi/stepupdate/+";     // SmqhKAMS6Z6ExTj9wa7y68
-// char cbpi4kettle_topic[maxTopicSigns] = "cbpi/kettleupdate/+";  // BGAEZHXmHUfT44SLNV2xbF
-// char cbpi4sensor_topic[maxTopicSigns] = "cbpi/sensordata/";     // mKdeC6LjHZmz9Sa2mVf5SV
-// char cbpi4actor_topic[maxTopicSigns] = "cbpi/actorupdate/+";
-// char cbpi4notification_topic[maxTopicSigns] = "cbpi/notification";
 
 #define cbpi4steps_topic "cbpi/stepupdate/+"     // SmqhKAMS6Z6ExTj9wa7y68
 #define cbpi4kettle_topic "cbpi/kettleupdate/+"  // BGAEZHXmHUfT44SLNV2xbF

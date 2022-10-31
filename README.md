@@ -21,7 +21,7 @@ A detailed documentation CraftbeerPi4 is available on github pages:: <https://op
 
 ## Sketch Information
 
-Libraries: Version 4.31, 10.2022
+Libraries: Version 4.32, 11.2022
 
 - ESP8266 3.0.2 (LittleFS)
 - Arduino IDE 1.8.19
@@ -31,7 +31,7 @@ Libraries: Version 4.31, 10.2022
 - WiFiManager 2.0.12
 - NextionX2 1.1.2 (NextionX2.h: #define ATTRIBUTE_TEXT_LENGTH 90, added currentPageID)
 - QuickPID
-- sTune (added method calcOptOut)
+- sTune (added calcOptOut)
 - PCF8574 0.3.6
 
 Board configuration:
