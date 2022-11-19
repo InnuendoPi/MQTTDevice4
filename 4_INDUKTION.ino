@@ -35,9 +35,9 @@ public:
   double lastids2Kp = 0, lastids2Ki = 0, lastids2Kd = 0, pidDelta;
   uint8_t ids2NewOut, ids2Treshold, ids2Rule = INDIVIDUAL_PID;
   bool ids2Debug = false;
-  byte ids2Lookback;
-  double ids2Noise;
-  unsigned long ids2Sample;
+  byte ids2Lookback = 75;
+  double ids2Noise = 0.2;
+  unsigned long ids2Sample = 5000;
 
   induction()
   {

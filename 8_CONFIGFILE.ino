@@ -178,7 +178,7 @@ bool loadConfig()
 
   inductionCooker.ids2Treshold = pidObj["tres"] | 98;
   inductionCooker.ids2NewOut = pidObj["newo"] | 100;
-  inductionCooker.ids2Noise = pidObj["no"] | 0.25;
+  inductionCooker.ids2Noise = pidObj["no"] | 0.2;
   inductionCooker.ids2Sample = pidObj["sa"] | 5000;
   inductionCooker.ids2Lookback = pidObj["lb"] | 75;
   inductionCooker.ids2Debug = pidObj["db"] | 0;
