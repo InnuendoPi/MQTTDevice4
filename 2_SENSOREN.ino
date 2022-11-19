@@ -170,7 +170,7 @@ public:
   }
   float getTotalValueFloat()
   {
-    return round((calcOffset() + 0.05) * 10) / 10.0;
+    return round((calcOffset() - 0.05) * 10) / 10.0;
   }
   double getTotalValueDouble()
   {
@@ -180,7 +180,7 @@ public:
   char *getTotalValueString()
   {
     sprintf(buf, "%s", "0.0");
-    dtostrf((round((calcOffset() + 0.05) * 10) / 10.0), 2, 1, buf);
+    dtostrf((round((calcOffset() - 0.05) * 10) / 10.0), 2, 1, buf);
     return buf;
   }
   float calcOffset()
