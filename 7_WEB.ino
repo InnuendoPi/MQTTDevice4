@@ -925,7 +925,6 @@ void handleBtnPlay()
     {
       DEBUG_MSG("WEB: PlayButton1 ids2Setpoint: %.02f ids2Input: %.02f\n", ids2Setpoint, ids2Input);
       ids2Setpoint = structPlan[actMashStep].temp;
-      // handleInduction(); -> Funktion geändert!
       statePlay = false;
     }
     else if (actMashStep > 0 && !statePlay)
@@ -948,8 +947,9 @@ void handleBtnPlay()
   }
 
   if (startBuzzer)
+  {
     sendAlarm(ALARM_INFO);
-
+  }
   server.send(200, "text/plain", "ok");
 }
 void handleBtnPause()

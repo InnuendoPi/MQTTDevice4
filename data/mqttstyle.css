@@ -44,9 +44,6 @@
 .icon-cog:before {
   content: "\f013";
 }
-.icon-cog-on:before {
-  content: "\f013";
-}
 .icon-trash-o:before {
   content: "\f014";
 }
@@ -103,12 +100,6 @@
 }
 .icon-stats-dots:before {
   content: "\e99b";
-}
-.icon-eye:before {
-  content: "\e9ce";
-}
-.icon-eye-blocked:before {
-  content: "\e9d1";
 }
 .input-group>.input-group-append {
   width: 60%;
@@ -198,27 +189,11 @@
   font-size: 1.7em;
   background-size: 120%;
 }
-.icon-cogs-on {
-  color: var(--success);
-  margin-right: 30px;
-  font-size: 1.7em;
-  background-size: 120%;
-}
 .icon-loop {
   color: var(--secondary);
   margin-right: 30px;
   font-size: 1.5em;
   background-size: 120%;
-}
-.icon-eye {
-  color: var(--secondary);
-  margin-right: 30px;
-  font-size: 1.5em;
-}
-.icon-eye-blocked {
-  color: var(--secondary);
-  margin-right: 30px;
-  font-size: 1.5em;
 }
 .mash-button-align {
   margin-right: 30px;
