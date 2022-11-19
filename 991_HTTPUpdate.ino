@@ -117,7 +117,6 @@ void updateTools()
 {
     if (LittleFS.exists("/updateTools.txt"))
     {
-        Serial.println("updateTools.txt existiert");
         fsUploadFile = LittleFS.open("/updateTools.log", "r");
         int anzahlVersuche = 0;
         if (fsUploadFile)
