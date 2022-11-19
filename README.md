@@ -12,7 +12,7 @@ Brewing without CraftbeerPi as simpel as possible. *NEW*
 
 ## MQTTDevice2 or MQTTDevice4?
 
-MQTTDevice2 (firmware versions 2.5x and earlier) was developed using CraftbeerPi version 3. MQTTDevice4 (firmware version 4.x and above) is CraftbeerPi 4 optimzed.
+MQTTDevice2 (firmware versions 2.5x and earlier) was developed using CraftbeerPi version 3. MQTTDevice4 (firmware version 4.x and above) is CraftbeerPi 4 optimized.
 
 ## Documentation
 
@@ -21,7 +21,7 @@ A detailed documentation CraftbeerPi4 is available on github pages:: <https://op
 
 ## Sketch Information
 
-Libraries: Version 4.35, 11.2022
+Libraries: Version 4.36, 11.2022
 
 - ESP8266 3.0.2 (LittleFS)
 - Arduino IDE 1.8.19
@@ -30,15 +30,12 @@ Libraries: Version 4.35, 11.2022
 - ArduinoJSON 6.19.4
 - WiFiManager 2.0.12
 - NextionX2 1.1.2 (NextionX2.h: #define ATTRIBUTE_TEXT_LENGTH 90, added currentPageID)
-- QuickPID
-- sTune (added calcOptOut)
-- PCF8574 0.3.6
+- InnuAPID AutoTune PID controller
+- InnuTicker
+- PCF8574 0.3.7
 
 Board configuration:
 Flash size 4MB (FS:2MB OTA:~1019kB)
-SSL support all SSL ciphers (most comp)
-Exceptions Disabled
-IwIP variant v2 lower mem
 
 Debug output:
 debug port must be set to serial. Set debug level accordingly to needed debug outputs (default none).

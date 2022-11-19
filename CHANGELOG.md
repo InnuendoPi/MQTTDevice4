@@ -2,15 +2,18 @@
 
 Version 4.36
 
+- Changed:  PCF 0.3.7
 - Fixed:    WebUpdate exception OOM
 - Added:    Treshold and new power out (IDS2)
 - Changed:  Bootsrap 4.6.2
 - Changed:  VSCode 1.73.1
-- Rebuild:  PID lib from from source PID_v0
-- Changed:  AutoTune lib calc Ku and Pu only
+- Rebuild:  new lib InnuAPID PID controller
+- Rebuild:  new lib InnuAPID AutoTune
+- Removed:  QuickPID and sTune
 - Changed:  VSCode 1.73
 - Optimze:  Performance mash webpage
 - Optimze:  Performance index webpage
+- Changed:  AutoTune lib calc Ku and Pu only
 - Optimze:  Performance PID calcs
 - Changed:  Resolution DS18B20 11bit (0.125°C steps)
 - Added:    PCF reset at startup
