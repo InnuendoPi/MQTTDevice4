@@ -1,6 +1,7 @@
 void setup()
 {
   Serial.begin(115200);
+
   // Serial.begin(9600);
   // Debug Ausgaben prüfen
 #ifdef DEBUG_ESP_PORT
@@ -9,7 +10,6 @@ void setup()
 
   snprintf(mqtt_clientid, maxHostSign, "ESP8266-%08X", ESP.getChipId());
   Serial.printf("\n*** SYSINFO: start up MQTTDevice - device ID: %s\n", mqtt_clientid);
-
   wifiManager.setDebugOutput(false);
   wifiManager.setMinimumSignalQuality(10);
   wifiManager.setConfigPortalTimeout(300);
@@ -30,12 +30,11 @@ void setup()
     Serial.printf("*** SYSINFO: setup LittleFS free heap: %d\n", ESP.getFreeHeap());
 
     // Prüfe WebUpdate
-    updateTools();
     updateSys();
-
+    updateTools();
+    
     // Erstelle Ticker Objekte
     setTicker();
-
     // Starte NTP
     timeClient.begin();
     timeClient.forceUpdate();
@@ -79,8 +78,8 @@ void setup()
   }
   if (useI2C)
   {
-    Wire.begin(D5, D6);
-    Wire.endTransmission();
+    if (digitalRead(PIN_SCL) == HIGH && digitalRead(PIN_SDA) == LOW)
+      PCF_Reset();
     if (pcf020.begin(D5, D6))
     {
       Serial.printf("*** SYSINFO: PCF8574 init successful lib version %s\n", PCF8574_LIB_VERSION);
@@ -125,15 +124,18 @@ void setupServer()
   server.on("/", handleRoot);
   server.on("/index.htm", handleRoot);
   server.on("/index", handleRoot);
-  server.on("/index.html", handleRoot);
+  // server.on("/index.html", handleRoot);
   server.on("/mash", HTTP_GET, handleGetMash);
-  server.on("/mash.html", HTTP_GET, handleGetMash);
   server.on("/mash.htm", HTTP_GET, handleGetMash);
+  // server.on("/mash.html", HTTP_GET, handleGetMash); 
   server.on("/setupActor", handleSetActor);       // Einstellen der Aktoren
   server.on("/setupSensor", handleSetSensor);     // Einstellen der Sensoren
   server.on("/reqSensors", handleRequestSensors); // Liste der Sensoren ausgeben
   server.on("/reqActors", handleRequestActors);   // Liste der Aktoren ausgeben
   server.on("/reqInduction", handleRequestInduction);
+  server.on("/reqRules", handleRequestRules);
+  server.on("/reqHltRules", handleRequestHltRules);
+  server.on("/setRule", handleSetRule);
   server.on("/reqSearchSensorAdresses", handleRequestSensorAddresses);
   server.on("/reqPins", handlereqPins);             // GPIO Pins actors
   server.on("/reqPages", handleRequestPages);       // Display page
@@ -155,6 +157,8 @@ void setupServer()
   server.on("/setMisc", handleSetMisc);             // Misc ändern
   server.on("/startHTTPUpdate", startHTTPUpdate);   // Firmware WebUpdate
   server.on("/startToolsUpdate", startToolsUpdate); // Firmware WebUpdate
+  server.on("/hltPower", handleHltPower);
+  server.on("/hltSetpoint", handleHltSetpoint);
   server.on("/reqMash", handleRequestMash);
   server.on("/setMash", handleSetMash);
   server.on("/reqStep", handleRequestStep);
@@ -163,10 +167,11 @@ void setupServer()
   server.on("/Btn-Play", handleBtnPlay);
   server.on("/Btn-Next-Step", handleBtnNextStep);
   server.on("/actorPower", handleActorPower);
-  server.on("/hltPower", handleHltPower);
-  server.on("/hltSetpoint", handleHltSetpoint);
   server.on("/setActorPWM", handleSetPWM);
-
+  server.on("/reqChart", handleReqChart);
+  server.on("/setChart", handleSetChart);
+  
+  // server.on("/reqGraph", handleReqGraph);
   // FSBrowser initialisieren
   server.on("/edit", HTTP_GET, handleGetEdit);
   server.on("/status", HTTP_GET, handleStatus);
@@ -181,10 +186,6 @@ void setupServer()
       "/upload", HTTP_POST, []()
       { server.send(200, "text/plain", ""); },
       handleRezeptUp);
-  // server.on(
-  //     "/edit", HTTP_POST, []()
-  //     { server.send(200, "text/plain", ""); loadConfig(); },
-  //     handleFileUpload);
   server.onNotFound(handleWebRequests);
   httpUpdate.setup(&server);
   server.begin();

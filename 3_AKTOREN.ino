@@ -16,7 +16,7 @@ public:
   bool switchable;              // actors switchable on error events?
   bool isOnBeforeError = false; // isOn status before error event
   bool actor_state = true;      // Error state actor
-  
+
   Actor(String pin, String argument, String aname, bool ainverted, bool aswitchable)
   {
     change(pin, argument, aname, ainverted, aswitchable);
@@ -45,12 +45,13 @@ public:
           if (type != -100 && type < GPIOPINS)
           {
             digitalWrite(pin_actor, OFF);
+            // Serial.printf("Actor GPIO PIN %s isOFF\n", PinToString(pin_actor).c_str());
             // DEBUG_MSG("Actor GPIO PIN %s isOFF\n", PinToString(pin_actor).c_str());
           }
           else if (type >= GPIOPINS)
           {
             pcf020.write(pcf_actor, OFF);
-            DEBUG_MSG("Actor PCF PIN %d isOFF\n", pcf_actor);
+            // DEBUG_MSG("Actor PCF PIN %d isOFF\n", pcf_actor);
           }
         }
         else
@@ -58,12 +59,13 @@ public:
           if (type != -100 && type < GPIOPINS)
           {
             digitalWrite(pin_actor, ON);
+            // Serial.printf("Actor GPIO PIN %s isON\n", PinToString(pin_actor).c_str());
             // DEBUG_MSG("Actor GPIO PIN %s isON\n", PinToString(pin_actor).c_str());
           }
           else if (type >= GPIOPINS)
           {
             pcf020.write(pcf_actor, ON);
-            DEBUG_MSG("Actor PCF PIN %d isON\n", pcf_actor);
+            // DEBUG_MSG("Actor PCF PIN %d isON\n", pcf_actor);
           }
         }
       }
@@ -92,41 +94,15 @@ public:
     if (isPin(pin_actor))
     {
       if (type != -100 && type < GPIOPINS)
-        digitalWrite(pin_actor, HIGH);
+        digitalWrite(pin_actor, OFF);
+        // digitalWrite(pin_actor, HIGH);
       else if (type >= GPIOPINS) // PCF PIN
-        pcf020.write(pcf_actor, HIGH);
+        pcf020.write(pcf_actor, OFF);
 
       pins_used[pin_actor] = false;
       millis2wait(10);
     }
 
-    pin_actor = StringToPin(pin);
-
-    type = pinType(pin_actor);
-    pcf_actor = type - GPIOPINS;
-
-    if (isPin(pin_actor))
-    {
-      if (type != -100 && type < GPIOPINS)
-      {
-        pinMode(pin_actor, OUTPUT);
-        digitalWrite(pin_actor, HIGH);
-      }
-      else if (type >= GPIOPINS)
-      {
-        pcf020.write(pcf_actor, HIGH);
-      }
-      pins_used[pin_actor] = true;
-    }
-
-    isOn = false;
-    name_actor = aname;
-    if (argument_actor != argument)
-    {
-      mqtt_unsubscribe();
-      argument_actor = argument;
-      mqtt_subscribe();
-    }
     if (ainverted)
     {
       isInverted = true;
@@ -139,6 +115,35 @@ public:
       ON = LOW;
       OFF = HIGH;
     }
+    pin_actor = StringToPin(pin);
+
+    type = pinType(pin_actor);
+    pcf_actor = type - GPIOPINS;
+
+    if (isPin(pin_actor))
+    {
+      if (type != -100 && type < GPIOPINS)
+      {
+        pinMode(pin_actor, OUTPUT);
+        digitalWrite(pin_actor, OFF);
+        // digitalWrite(pin_actor, HIGH);
+      }
+      else if (type >= GPIOPINS)
+      {
+        pcf020.write(pcf_actor, OFF);
+      }
+      pins_used[pin_actor] = true;
+    }
+
+    isOn = false;
+    name_actor = aname;
+    if (argument_actor != argument)
+    {
+      mqtt_unsubscribe();
+      argument_actor = argument;
+      mqtt_subscribe();
+    }
+
     switchable = aswitchable;
     actor_state = true;
     isOnBeforeError = false;
@@ -310,7 +315,7 @@ void handleSetActor()
   }
   actors[id].change(ac_pin, ac_argument, ac_name, ac_isinverted, ac_switchable);
   saveConfig();
-  server.send(201, "text/plain", "created");
+  server.send(200, "text/plain", "ok");
 }
 
 void handleSetPWM()
@@ -322,13 +327,13 @@ void handleSetPWM()
 
   if (server.argName(1) == "pwm")
   {
-     if (isValidDigit(server.arg(1)))
+    if (isValidDigit(server.arg(1)))
     {
       actors[id].handlePWM(server.arg(1).toInt());
     }
   }
   DEBUG_MSG("ACT: id: %d pwm: %d\n", id, actors[id].pwm);
-  server.send(201, "text/plain", "created");
+  server.send(200, "text/plain", "ok");
 }
 
 void handleDelActor()
@@ -349,7 +354,7 @@ void handleDelActor()
 
   numberOfActors -= 1;
   saveConfig();
-  server.send(200, "text/plain", "deleted");
+  server.send(200, "text/plain", "ok");
 }
 
 void handlereqPins()

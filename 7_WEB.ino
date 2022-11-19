@@ -11,6 +11,7 @@ void handleGetMash()
   server.sendHeader(PSTR("Content-Encoding"), "gzip");
   server.send_P(200, "text/html", mash_htm_gz, sizeof(mash_htm_gz));
 }
+
 void handleWebRequests()
 {
   if (loadFromLittlefs(server.uri()))
@@ -88,11 +89,6 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
   }
   Serial.println(" ");
   */
-
-  // prüfen - Abfrage sollte überflüssig sein, wenn Tickerobjekt TickerSUBPUB gestoppt ist
-  // if (mqttoff)
-  //   return;
-
   if (mqttoff || TickerPUBSUB.state() != RUNNING)
   {
     DEBUG_MSG("WEB: mqttcallback1 ticker pusub %d ticker mqtt %d mqttoff %d\n", TickerPUBSUB.state(), TickerMQTT.state(), mqttoff);
@@ -252,10 +248,6 @@ void handleRequestMisc()
   doc["del_sen_act"] = wait_on_Sensor_error_actor / 1000;
   doc["del_sen_ind"] = wait_on_Sensor_error_induction / 1000;
   doc["mqtt_state"] = mqtt_state; // Anzeige MQTT Status -> mqtt_state verzögerter Status!
-  // doc["alertstate"] = alertState;
-  // if (alertState)
-  //   alertState = false;
-
   String response;
   serializeJson(doc, response);
   server.send(200, "application/json", response);
@@ -408,7 +400,7 @@ void handleSetMisc()
     yield();
   }
   saveConfig();
-  server.send(201, "text/plain", "created");
+  server.send(200, "text/plain", "ok");
 }
 
 // Some helper functions WebIf
@@ -443,7 +435,7 @@ void handleRequestStep()
   // doc["data.step"] doc["data.tempvalue"] doc["data.target"] doc["data.timer"] doc["data.power"]
 
   DynamicJsonDocument doc(386);
-  
+
   doc["power"] = 0;
   doc["tempvalue"] = sensors[0].getTotalValueString();
   if (hltAutoTune)
@@ -459,7 +451,10 @@ void handleRequestStep()
   }
   else
   {
-    doc["power"] = inductionCooker.power;
+    if (statePower)
+      doc["power"] = (int)ids2Output; // Test
+    else
+      doc["power"] = 0; // Test
     doc["target"] = structPlan[actMashStep].temp;
     doc["step"] = structPlan[actMashStep].name;
   }
@@ -468,8 +463,11 @@ void handleRequestStep()
   {
     if (kettleHLT.state)
     {
-      doc["power"] = stOutput;
-      doc["timer"] = "in progress";
+      doc["power"] = kettleHLT.power;
+      char buf[21];
+      sprintf(buf, "in progress %d/5", hltPID.GetpeakCount());
+      doc["timer"] = buf;
+      // doc["timer"] = "in progress";
     }
     else
       doc["timer"] = "press power";
@@ -479,7 +477,10 @@ void handleRequestStep()
     if (statePower)
     {
       doc["power"] = inductionCooker.power;
-      doc["timer"] = "in progress";
+      char buf[21];
+      sprintf(buf, "in progress %d/5", ids2PID.GetpeakCount());
+      doc["timer"] = buf;
+      // doc["timer"] = "in progress";
     }
     else
       doc["timer"] = "press power";
@@ -576,6 +577,60 @@ void handleRequestMash()
   server.send(200, "application/json", planResponse);
   return;
 }
+void handleSetRule()
+{
+  if (server.argName(0) == "ids2")
+  {
+    int val = server.arg(0).toInt();
+    if (val > 0)
+    {
+      if (inductionCooker.ids2Rule == 0) // old rule INDIVIDUAL_PID?
+      {
+        inductionCooker.lastids2Kp = inductionCooker.ids2Kp; // remember values
+        inductionCooker.lastids2Ki = inductionCooker.ids2Ki;
+        inductionCooker.lastids2Kd = inductionCooker.ids2Kd;
+      }
+      inductionCooker.ids2Rule = val;
+      calcPID(2);
+    }
+    else
+    {
+      inductionCooker.ids2Rule = INDIVIDUAL_PID;
+      if (inductionCooker.lastids2Kp > 0) // reset to INDIVIUAL_PID
+      {
+        inductionCooker.ids2Kp = inductionCooker.lastids2Kp;
+        inductionCooker.ids2Ki = inductionCooker.lastids2Ki;
+        inductionCooker.ids2Kd = inductionCooker.lastids2Kd;
+      }
+    }
+  }
+  if (server.argName(0) == "hlt")
+  {
+    int val = server.arg(0).toInt();
+    if (val > 0)
+    {
+      if (kettleHLT.hltRule == 0)
+      {
+        kettleHLT.lasthltKp = kettleHLT.hltKp;
+        kettleHLT.lasthltKi = kettleHLT.hltKi;
+        kettleHLT.lasthltKd = kettleHLT.hltKd;
+      }
+      kettleHLT.hltRule = val;
+      calcPID(3);
+    }
+    else
+    {
+      kettleHLT.hltRule = INDIVIDUAL_PID;
+      if (kettleHLT.lasthltKp > 0) // reset to INDIVIUAL_PID
+      {
+        kettleHLT.hltKp = kettleHLT.lasthltKp;
+        kettleHLT.hltKi = kettleHLT.lasthltKi;
+        kettleHLT.hltKd = kettleHLT.lasthltKd;
+      }
+    }
+  }
+  server.send(200, "text/plain", "ok");
+}
 
 void handleSetMash()
 {
@@ -596,7 +651,7 @@ void handleSetMash()
     mashFile.close();
     initMashPlan();
     readMash();
-    server.send(201, "text/plain", "JSON successful");
+    server.send(202, "text/plain", "JSON accepted");
     if (startBuzzer)
       sendAlarm(ALARM_ON);
   }
@@ -690,8 +745,45 @@ void handleRezeptUp()
   }
 }
 
+void handleReqChart()
+{
+  DynamicJsonDocument doc(128);
+  doc["vis"] = chartVis;
+  doc["tempIds2"] = ids2Input;
+  if (statePower)
+    doc["targetIds2"] = ids2Setpoint;
+  else
+    doc["targetIds2"] = 0;
+  if (kettleHLT.isEnabled == true)
+  {
+    doc["tempHlt"] = hltInput;
+    if (kettleHLT.state)
+      doc["targetHlt"] = hltSetpoint;
+    else
+    doc["targetHlt"] = 0;
+  }
+  else
+  {
+    doc["tempHlt"] = -1;
+    doc["targetHlt"] = -1;
+  }
+  String response;
+  serializeJson(doc, response);
+  server.send(200, "application/json", response);
+}
+
+void handleSetChart()
+{
+  if (server.argName(0) == "vis")
+  {
+    chartVis = checkBool(server.arg(0));
+  }
+  server.send(200, "text/plain", "ok");
+}
+
 void handleBtnPower()
 {
+
   for (int i = 0; i < server.args(); i++)
   {
     if (server.argName(i) == "statePower")
@@ -701,7 +793,6 @@ void handleBtnPower()
         if (hltAutoTune)
         {
           startHltAutoTune();
-          // kettleHLT.isOn = true;
           DEBUG_MSG("WEB: PowerButton on hltAutoTune: %d hltSetpoint: %.01f\n", hltAutoTune, hltSetpoint);
           if (startBuzzer)
             sendAlarm(ALARM_ON);
@@ -719,34 +810,31 @@ void handleBtnPower()
           statePower = true;
           actMashStep = 0;
           pidMode = true;
-          // QuickPID
-          ids2PID.SetOutputLimits(0, outputSpan);                // Set and clamps the output to (0-255 by default)
-          ids2PID.SetSampleTimeUs(outputSpan * 1000 - debounce); // Set PID compute sample time, default = 100000 µs
-          ids2PID.SetTunings(ids2Kp, ids2Ki, ids2Kd,             // update PID with the new tunings
-                             ids2PID.pMode::pOnError,            // Set pTerm based on error (default), measurement, or both
-                             ids2PID.dMode::dOnMeas,             // Set the dTerm, based error or measurement (default).
-                             ids2PID.iAwMode::iAwClamp);         // Set iTerm anti-windup to iAwCondition, iAwClamp or iAwOff
-          ids2PID.SetMode(ids2PID.Control::automatic);           // the PID is turned on
+          // InnuAPID
+          ids2PID.SetMode(INNU_APID::AUTOMATIC);
+          ids2PID.SetTunings(inductionCooker.ids2Kp, inductionCooker.ids2Ki, inductionCooker.ids2Kd);
+          ids2PID.SetSampleTime(inductionCooker.ids2Sample);     // set interval pid controller calculates output
+          ids2PID.SetDebug(inductionCooker.ids2Debug);           // set debug output
+          ids2PID.SetOutputLimits(0, 100);                       // define min and max output
+          ids2PID.SetBoilTreshold(inductionCooker.ids2Treshold); // define treshold temperature
+          ids2PID.SetBoilOutput(inductionCooker.ids2NewOut);     // define max power output when treshold temp is reached
 
           if (TickerPUBSUB.state() == RUNNING)
             TickerPUBSUB.stop();
           if (TickerMQTT.state() == RUNNING)
             TickerMQTT.stop();
-          if (TickerInd.state() == RUNNING)
-            TickerInd.stop();
 
           if (structPlan[actMashStep].duration > 0)
           {
             ids2Setpoint = structPlan[actMashStep].temp;
             inductionCooker.inductionNewPower(0);
-            handleInduction(); // TickerInd stopped
+            handleInduction();
             TickerMash.stop(); // stop mash ticker and configure temp and duration
             TickerMash.config(tickerMashCallback, structPlan[actMashStep].duration * 60 * 1000, 1);
-            DEBUG_MSG("WEB: PowerButton on aktMashStep: %d duration: %lu\n", actMashStep, (structPlan[actMashStep].duration * 60 * 1000));
+            DEBUG_MSG("WEB: PowerButton IDS2 on aktMashStep: %d duration: %lu\n", actMashStep, (structPlan[actMashStep].duration * 60 * 1000));
           }
-          printPID();
-
-          TickerPID.start();
+          if (TickerPID.state() != RUNNING)
+            TickerPID.start();
           if (startBuzzer)
             sendAlarm(ALARM_ON);
         }
@@ -755,16 +843,16 @@ void handleBtnPower()
       {
         if (hltAutoTune)
         {
-          TickerHltPID.stop();
+          TickerPID.stop();
           hltAutoTune = false;
-          Serial.printf("WEB: PowerButton off hltAutoTune: %d\n", hltAutoTune);
           kettleHLT.isOn = false;
           kettleHLT.state = false;
           statePause = false;
           statePlay = false;
-          // TickerHltPID.stop();
+          hltPID.SetMode(INNU_APID::MANUAL);
           kettleHLT.newPower(0);
           kettleHLT.Update(); // TickerHLT stopped
+
           DEBUG_MSG("WEB: PowerButton off hltAutoTune: %d\n", hltAutoTune);
           if (startBuzzer)
             sendAlarm(ALARM_OFF);
@@ -779,6 +867,7 @@ void handleBtnPower()
           TickerPID.stop();
           inductionCooker.inductionNewPower(0);
           handleInduction(); // TickerInd stopped
+          ids2PID.SetMode(INNU_APID::MANUAL);
           if (!mqttoff)
             TickerPUBSUB.start();
 
@@ -798,19 +887,22 @@ void handleBtnPower()
           if (!mqttoff)
             TickerPUBSUB.start();
 
-          TickerInd.start();
+          // TickerInd.start(); //Test
+
           TickerMash.stop();
-          TickerPID.stop();
+          if (TickerHlt.state() != RUNNING) // weder IDS2 noch HLT?
+            TickerPID.stop();
           inductionCooker.inductionNewPower(0);
-          TickerInd.updatenow();
-          DEBUG_MSG("WEB: PowerButton off aktMashStep: %d duration: %lu\n", actMashStep, (structPlan[actMashStep].duration * 60 * 1000));
+          handleInduction();
+          ids2PID.SetMode(INNU_APID::MANUAL);
+          DEBUG_MSG("WEB: PowerButton IDS2 off aktMashStep: %d duration: %lu\n", actMashStep, (structPlan[actMashStep].duration * 60 * 1000));
           if (startBuzzer)
             sendAlarm(ALARM_OFF);
         }
       }
     }
   }
-  server.send(201, "text/plain", "created");
+  server.send(200, "text/plain", "ok");
 }
 void handleBtnPlay()
 {
@@ -846,22 +938,26 @@ void handleBtnPlay()
   }
   else if (TickerMash.state() == RUNNING && actMashStep > 0)
   {
-    server.send(201, "text/plain", "created");
+    server.send(200, "text/plain", "ok");
     return;
   }
   else if (TickerMash.state() == PAUSED && actMashStep > 0)
   {
-    server.send(201, "text/plain", "created");
+    server.send(200, "text/plain", "ok");
     return;
   }
-  server.send(201, "text/plain", "created");
+
+  if (startBuzzer)
+    sendAlarm(ALARM_INFO);
+
+  server.send(200, "text/plain", "ok");
 }
 void handleBtnPause()
 {
   if (!pidMode)
   {
-    server.send(201, "text/plain", "created");
     statePause = false;
+    server.send(200, "text/plain", "ok");
     return;
   }
 
@@ -877,14 +973,18 @@ void handleBtnPause()
     statePause = false;
     TickerMash.resume();
   }
-  server.send(201, "text/plain", "created");
+
+  if (startBuzzer)
+    sendAlarm(ALARM_INFO);
+
+  server.send(200, "text/plain", "ok");
 }
 
 void handleBtnNextStep()
 {
   if (TickerPID.state() != RUNNING || statePause)
   {
-    server.send(201, "text/plain", "created");
+    server.send(200, "text/plain", "ok");
     return;
   }
 
@@ -897,7 +997,11 @@ void handleBtnNextStep()
     TickerMash.stop();
     TickerMash.config(tickerMashCallback, structPlan[actMashStep].duration * 60 * 1000, 1);
     DEBUG_MSG("WEB: handleBtnNextStep new actMashStep: aktMashStep: %d elapsed: %lu remaining: %lu counter: %d\n", actMashStep, TickerMash.elapsed(), TickerMash.remaining(), TickerMash.counter());
-    server.send(201, "text/plain", "created");
+
+    if (startBuzzer)
+      sendAlarm(ALARM_INFO);
+
+    server.send(200, "text/plain", "ok");
     return;
   }
 
@@ -911,8 +1015,9 @@ void handleBtnNextStep()
     TickerMash.config(tickerMashCallback, structPlan[actMashStep].duration * 60 * 1000, 1);
     ids2Setpoint = structPlan[actMashStep].temp;
     inductionCooker.inductionNewPower(int(ids2Output));
-    // handleInduction();
-    TickerInd.updatenow();
+    handleInduction();
+    if (startBuzzer)
+      sendAlarm(ALARM_INFO);
   }
   else // last mash step finished
   {
@@ -921,10 +1026,10 @@ void handleBtnNextStep()
     actMashStep = 0;
     ids2Setpoint = 0.0;
     TickerMash.stop();
-    TickerPID.stop();
+    if (TickerHlt.state() != RUNNING)
+      TickerPID.stop();
     inductionCooker.inductionNewPower(0);
-    // handleInduction();
-    TickerInd.updatenow();
+    handleInduction();
     if (startBuzzer)
       sendAlarm(ALARM_OFF);
     if (!mqttoff)
@@ -933,8 +1038,7 @@ void handleBtnNextStep()
     TickerInd.start();
     DEBUG_MSG("WEB: handleBtnNextStep end aktMashStep: %d elapsed: %lu remaining: %lu counter: %d\n", actMashStep, TickerMash.elapsed(), TickerMash.remaining(), TickerMash.counter());
   }
-
-  server.send(201, "text/plain", "created");
+  server.send(200, "text/plain", "ok");
 }
 
 void handleActorPower()
@@ -942,17 +1046,23 @@ void handleActorPower()
   int id = server.arg(0).toInt();
   if (id < 0 || id > numberOfActorsMax)
   {
-    server.send(201, "text/plain", "created");
+    server.send(400, "text/plain", "bad request"); // 400-499 client error
     return;
   }
 
   actors[id].isOn = !actors[id].isOn;
   if (actors[id].isOn)
+  {
     actors[id].power_actor = actors[id].pwm;
+    if (startBuzzer)
+      sendAlarm(ALARM_ON);
+  }
   else
+  {
     actors[id].power_actor = 0;
-
-  TickerAct.updatenow();
+    if (startBuzzer)
+      sendAlarm(ALARM_OFF);
+  }
+  server.send(200, "text/plain", "ok");
   DEBUG_MSG("Actor ID %d Pin %s switched to %d\n", id, PinToString(actors[id].pin_actor).c_str(), actors[id].isOn);
-  server.send(201, "text/plain", "created");
 }

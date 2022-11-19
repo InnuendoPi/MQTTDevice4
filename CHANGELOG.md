@@ -1,7 +1,19 @@
 # Changelog
 
-Version 4.32
+Version 4.36
 
+- Fixed:    WebUpdate exception OOM
+- Added:    Treshold and new power out (IDS2)
+- Changed:  Bootsrap 4.6.2
+- Changed:  VSCode 1.73.1
+- Rebuild:  PID lib from from source PID_v0
+- Changed:  AutoTune lib calc Ku and Pu only
+- Changed:  VSCode 1.73
+- Optimze:  Performance mash webpage
+- Optimze:  Performance index webpage
+- Optimze:  Performance PID calcs
+- Changed:  Resolution DS18B20 11bit (0.125°C steps)
+- Added:    PCF reset at startup
 - Fixed:    PCF8574 init
 - Fixed:    AutoTune CPU load
 - Reworked: PID AutoTune
@@ -57,7 +69,7 @@ Version 4.32
 - changed:  play button no action if mash step active
 - changed:  play button no action if mash step paused
 - Changed:  moved manual autonext start from pause to play button
-- Optimze:  bootstrap.min.css pured (from 160kb to 26kb)
+- Optimze:  bootstrap.min.css pured
 - Optimze:  awefont pured to only in use glyphs
 - Fixed:    MMum import
 - Changed:  VSCode 1.71

@@ -2,6 +2,7 @@ bool upTools(String url, String fname)
 {
     std::unique_ptr<BearSSL::WiFiClientSecure> clientup(new BearSSL::WiFiClientSecure);
     clientup->setInsecure();
+    clientup->setBufferSizes(1024, 1024);   // ohne setBufferSize exc OOM!
     HTTPClient https;
     if (https.begin(*clientup, url + fname))
     {
@@ -55,7 +56,8 @@ bool upTools(String url, String fname)
         }
         else
         {
-            Serial.printf("*** SYSINFO: error update %s: %s\n", fname, https.errorToString(httpCode).c_str());
+            // Serial.printf("*** SYSINFO: error update %s: %s\n", fname, https.errorToString(httpCode).c_str());
+            Serial.printf("*** SYSINFO: error update %s\n", fname);
             https.end();
             return false;
         }
@@ -67,21 +69,20 @@ void upFirm()
 {
     BearSSL::CertStore certStore;
     int numCerts = certStore.initCertStore(LittleFS, PSTR("/certs.idx"), PSTR("/ce.rts"));
-    Serial.print(F("Number of CA certs read: "));
-    Serial.println(numCerts);
+    // Serial.print(F("Number of CA certs read: "));
+    // Serial.println(numCerts);
     if (numCerts == 0)
     {
-        Serial.println(F("*** SYSINFO: No certs found. Did you run certs-from-mozill.py and upload the LittleFS directory before running?"));
+        // Serial.println(F("*** SYSINFO: No certs found. Did you run certs-from-mozill.py and upload the LittleFS directory before running?"));
         return; // Can't connect to anything w/o certs!
     }
 
     BearSSL::WiFiClientSecure clientFirm;
+    clientFirm.setBufferSizes(1024, 1024);  // ohne setBufferSize exc OOM!
     clientFirm.setCertStore(&certStore);
     clientFirm.setInsecure();
 
-    ESPhttpUpdate.onStart(update_started);
     ESPhttpUpdate.onEnd(update_finished);
-    // ESPhttpUpdate.onProgress(update_progress);
     ESPhttpUpdate.onError(update_error);
 
     t_httpUpdate_return ret;
@@ -116,11 +117,13 @@ void updateTools()
 {
     if (LittleFS.exists("/updateTools.txt"))
     {
-        fsUploadFile = LittleFS.open("/updateTools.txt", "r");
+        Serial.println("updateTools.txt existiert");
+        fsUploadFile = LittleFS.open("/updateTools.log", "r");
         int anzahlVersuche = 0;
         if (fsUploadFile)
         {
-            anzahlVersuche = char(fsUploadFile.read()) - '0';
+            char anzahlV = char(fsUploadFile.read()) - '0';
+            anzahlVersuche = (int)anzahlV;
         }
         fsUploadFile.close();
         if (anzahlVersuche > 3)
@@ -130,15 +133,10 @@ void updateTools()
             return;
         }
         anzahlVersuche++;
-        fsUploadFile = LittleFS.open("/updateTools.txt", "w");
-        uint8_t bytesWritten = fsUploadFile.print(anzahlVersuche);
-        // bytesWritten = fsUploadFile.print(statusUpdate);
-        fsUploadFile.close();
         fsUploadFile = LittleFS.open("/updateTools.log", "w");
-        bytesWritten = fsUploadFile.print((anzahlVersuche));
-        // bytesWritten = fsUploadFile.print(statusUpdate);
+        int bytesWritten = fsUploadFile.print((anzahlVersuche));
         fsUploadFile.close();
-        Serial.print("*** SYSINFO: Update tools started - free heap: ");
+        Serial.printf("*** SYSINFO: Update tools #%d started - free heap: ", anzahlVersuche);
         Serial.println(ESP.getFreeHeap());
         bool test;
         if (LittleFS.exists("/dev.txt"))
@@ -149,6 +147,7 @@ void updateTools()
             test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "bootstrap.min.js");
             test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "jquery.min.js");
             test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "jquery.tabletojson.min.js");
+            test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "chart.umd.min.js");
         }
         else
         {
@@ -158,6 +157,7 @@ void updateTools()
             test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "bootstrap.min.js");
             test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "jquery.min.js");
             test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "jquery.tabletojson.min.js");
+            test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "chart.umd.min.js");
         }
 
         LittleFS.remove("/updateTools.txt");
@@ -170,12 +170,13 @@ void updateSys()
 {
     if (LittleFS.exists("/updateSys.txt"))
     {
-        fsUploadFile = LittleFS.open("/updateSys.txt", "r");
+        fsUploadFile = LittleFS.open("/updateSys.log", "r");
 
         int anzahlVersuche = 0;
         if (fsUploadFile)
         {
-            anzahlVersuche = char(fsUploadFile.read()) - '0';
+            char anzahlV = char(fsUploadFile.read()) - '0';
+            anzahlVersuche = (int)anzahlV;
         }
         fsUploadFile.close();
         if (anzahlVersuche > 3)
@@ -188,7 +189,7 @@ void updateSys()
         anzahlVersuche++;
         int bytesWritten = fsUploadFile.print(anzahlVersuche);
         fsUploadFile.close();
-        Serial.print("*** SYSINFO: Update firmware started - free heap: ");
+        Serial.printf("*** SYSINFO: Update firmware #%d started - free heap: ", anzahlVersuche);
         Serial.println(ESP.getFreeHeap());
         if (LittleFS.exists("/ce.rts"))
             upFirm();
@@ -197,10 +198,11 @@ void updateSys()
 
 void startToolsUpdate()
 {
+    server.send(200, "text/plain", "ok");
     fsUploadFile = LittleFS.open("/updateTools.txt", "w");
     if (!fsUploadFile)
     {
-        DEBUG_MSG("%s\n", "*** Error WebUpdate create file (LittleFS)");
+        Serial.println("*** Error WebUpdate create file (LittleFS)");
         return;
     }
     else
@@ -214,7 +216,7 @@ void startToolsUpdate()
         fsUploadFile = LittleFS.open("/dev.txt", "w");
         if (!fsUploadFile)
         {
-            DEBUG_MSG("%s\n", "*** Error WebUpdate create file (LittleFS)");
+            Serial.println("*** Error WebUpdate create file (LittleFS)");
             return;
         }
         else
@@ -234,11 +236,11 @@ void startToolsUpdate()
 
 void startHTTPUpdate()
 {
-    // Starte Updates
+    server.send(200, "text/plain", "ok");
     fsUploadFile = LittleFS.open("/updateSys.txt", "w");
     if (!fsUploadFile)
     {
-        DEBUG_MSG("%s\n", "*** Error WebUpdate create file (LittleFS)");
+        Serial.println("*** Error WebUpdate create file (LittleFS)");
         return;
     }
     else
@@ -251,7 +253,7 @@ void startHTTPUpdate()
         fsUploadFile = LittleFS.open("/dev.txt", "w");
         if (!fsUploadFile)
         {
-            DEBUG_MSG("%s\n", "*** Error WebUpdate create file (LittleFS)");
+            Serial.println("*** Error WebUpdate create file (LittleFS)");
             return;
         }
         else
@@ -269,19 +271,10 @@ void startHTTPUpdate()
     ESP.restart();
 }
 
-void update_progress(int cur, int total)
-{
-    Serial.printf("*** SYSINFO:  Firmware Update %d - %d Bytes\n", cur, total);
-}
-
-void update_started()
-{
-    Serial.println("*** SYSINFO:  Firmware Update started");
-}
 
 void update_finished()
 {
-    Serial.println("*** SYSINFO:  Firmware Update beendet");
+    Serial.println("*** SYSINFO:  Firmware update finished");
     LittleFS.remove("/updateSys.txt");
     LittleFS.end();
 }

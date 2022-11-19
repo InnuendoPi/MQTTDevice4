@@ -36,7 +36,7 @@ bool loadConfig()
 
   StopOnMQTTError = miscObj["enable_mqtt"] | 0;
   wait_on_error_mqtt = miscObj["delay_mqtt"] | 120000;
-  
+
   DEBUG_MSG("Switch off actors on MQTT error: %d after %d sec\n", StopOnMQTTError, (wait_on_error_mqtt / 1000));
 
   startBuzzer = miscObj["buzzer"] | 0;
@@ -47,6 +47,7 @@ bool loadConfig()
     mqttBuzzer = false;
   DEBUG_MSG("Buzzer: %d mqttBuzzer: %d\n", startBuzzer, mqttBuzzer);
 
+  chartVis = miscObj["chart"] | 1;
   useDisplay = miscObj["display"] | 0;
   startPage = miscObj["page"] | 0;
   devBranch = miscObj["devbranch"] | 0;
@@ -144,22 +145,50 @@ bool loadConfig()
   {
     DEBUG_MSG("HLT: %d\n", hltStatus);
   }
-  hltKp = hltObj["kp"] | 0.0;
-  hltKi = hltObj["ki"] | 0.0;
-  hltKd = hltObj["kd"] | 0.0;
+  kettleHLT.hltKp = hltObj["kp"] | 0.0;
+  kettleHLT.hltKi = hltObj["ki"] | 0.0;
+  kettleHLT.hltKd = hltObj["kd"] | 0.0;
+  kettleHLT.hltKu = hltObj["ku"] | 0.0;
+  kettleHLT.hltPu = hltObj["pu"] | 0.0;
+  kettleHLT.hltRule = hltObj["rule"] | INDIVIDUAL_PID;
+  kettleHLT.lasthltKp = kettleHLT.hltKp;
+  kettleHLT.lasthltKi = kettleHLT.hltKi;
+  kettleHLT.lasthltKd = kettleHLT.hltKd;
+  kettleHLT.hltNoise = hltObj["no"] | 0.5;
+  kettleHLT.hltSample = hltObj["sa"] | 5000;
+  kettleHLT.hltLookback = hltObj["lb"] | 50;
+  kettleHLT.hltDebug = hltObj["db"] | 0;
   hltSetpoint = hltObj["SETP"] | 78.0;
-  DEBUG_MSG("PID HLT: Kp %.06f Ki %.06f Kd %.06f Setpoint %.01f\n", hltKp, hltKi, hltKd, hltSetpoint);
+  DEBUG_MSG("PID HLT: Kp %.06f Ki %.06f Kd %.06f Setpoint %.01f\n", kettleHLT.hltKp, kettleHLT.hltKi, kettleHLT.hltKd, hltSetpoint);
   DEBUG_MSG("%s\n", "--------------------");
 
   // PID stuff
   JsonArray pidArray = doc["pid"];
   JsonObject pidObj = pidArray[0];
 
-  ids2Kp = pidObj["kp"] | 0.0;
-  ids2Ki = pidObj["ki"] | 0.0;
-  ids2Kd = pidObj["kd"] | 0.0;
-  pidDelta = pidObj["piddelta"] | 0.0;
-  DEBUG_MSG("PID IDS2: Kp: %.06f Ki: %.06f Kd: %.06f piddelta: %.01f\n", ids2Kp, ids2Ki, ids2Kd, pidDelta);
+  inductionCooker.ids2Kp = pidObj["kp"] | 0.0;
+  inductionCooker.ids2Ki = pidObj["ki"] | 0.0;
+  inductionCooker.ids2Kd = pidObj["kd"] | 0.0;
+  inductionCooker.ids2Ku = pidObj["ku"] | 0.0;
+  inductionCooker.ids2Pu = pidObj["pu"] | 0.0;
+
+  inductionCooker.lastids2Kp = inductionCooker.ids2Kp;
+  inductionCooker.lastids2Ki = inductionCooker.ids2Ki;
+  inductionCooker.lastids2Kd = inductionCooker.ids2Kd;
+
+  inductionCooker.ids2Treshold = pidObj["tres"] | 98;
+  inductionCooker.ids2NewOut = pidObj["newo"] | 100;
+  inductionCooker.ids2Noise = pidObj["no"] | 0.25;
+  inductionCooker.ids2Sample = pidObj["sa"] | 5000;
+  inductionCooker.ids2Lookback = pidObj["lb"] | 75;
+  inductionCooker.ids2Debug = pidObj["db"] | 0;
+  inductionCooker.ids2Rule = pidObj["rule"] | INDIVIDUAL_PID;
+  inductionCooker.pidDelta = pidObj["piddelta"] | 0.3;
+
+  DEBUG_MSG("PID IDS2: Kp: %.06f Ki: %.06f Kd: %.06f piddelta: %.01f\n", inductionCooker.ids2Kp, inductionCooker.ids2Ki, inductionCooker.ids2Kd, inductionCooker.pidDelta);
+
+  if (inductionCooker.ids2Rule > 0) // calc PIDs
+    calcPID(2);
 
   DEBUG_MSG("%s\n", "------ loadConfig finished ------");
 
@@ -277,12 +306,31 @@ bool saveConfig()
   // Write PID Stuff
   JsonArray pidArray = doc.createNestedArray("pid");
   JsonObject pidObj = pidArray.createNestedObject();
-  pidObj["kp"] = ids2Kp;
-  pidObj["ki"] = ids2Ki;
-  pidObj["kd"] = ids2Kd;
-  pidObj["piddelta"] = (int(pidDelta * 100)) / 100.0;
 
-  DEBUG_MSG("PID IDS2: Kp: %.06f Ki: %.06f Kd: %.06f pidDelta: %.01f ids2AutoTune: %d Setpoint: %.01f\n", ids2Kp, ids2Ki, ids2Kd, pidDelta, ids2AutoTune, ids2Setpoint);
+  pidObj["ku"] = inductionCooker.ids2Ku;
+  pidObj["pu"] = inductionCooker.ids2Pu;
+  pidObj["rule"] = inductionCooker.ids2Rule;
+  if (inductionCooker.ids2Rule == 0) // INDIVIDUAL_PID: save Kp, Ki, Kd
+  {
+    pidObj["kp"] = inductionCooker.ids2Kp;
+    pidObj["ki"] = inductionCooker.ids2Ki;
+    pidObj["kd"] = inductionCooker.ids2Kd;
+  }
+  else // all other rule: save INDIVIDUAL_PID Kp, Ki, Kd
+  {
+    pidObj["kp"] = inductionCooker.lastids2Kp;
+    pidObj["ki"] = inductionCooker.lastids2Ki;
+    pidObj["kd"] = inductionCooker.lastids2Kd;
+  }
+  pidObj["tres"] = inductionCooker.ids2Treshold;
+  pidObj["newo"] = inductionCooker.ids2NewOut;
+  pidObj["piddelta"] = (int(inductionCooker.pidDelta * 100)) / 100.0;
+  pidObj["no"] = (int(inductionCooker.ids2Noise * 1000)) / 1000.0;
+  pidObj["sa"] = inductionCooker.ids2Sample;
+  pidObj["lb"] = inductionCooker.ids2Lookback;
+  pidObj["db"] = (int)inductionCooker.ids2Debug;
+
+  DEBUG_MSG("PID IDS2: Kp: %.06f Ki: %.06f Kd: %.06f pidDelta: %.01f ids2AutoTune: %d Setpoint: %.01f\n", inductionCooker.ids2Kp, inductionCooker.ids2Ki, inductionCooker.ids2Kd, inductionCooker.pidDelta, ids2AutoTune, inductionCooker.ids2Setpoint);
   DEBUG_MSG("%s\n", "--------------------");
 
   // Write HLT
@@ -297,10 +345,26 @@ bool saveConfig()
     hltObj["INV"] = (int)kettleHLT.isInverted;
     hltObj["SENID"] = kettleHLT.senid;
     hltObj["SETP"] = int(hltSetpoint);
-    hltObj["kp"] = hltKp;
-    hltObj["ki"] = hltKi;
-    hltObj["kd"] = hltKd;
-      
+    hltObj["ku"] = kettleHLT.hltKu;
+    hltObj["pu"] = kettleHLT.hltPu;
+    hltObj["rule"] = kettleHLT.hltRule;
+    if (kettleHLT.hltRule == INDIVIDUAL_PID)
+    {
+      hltObj["kp"] = kettleHLT.hltKp;
+      hltObj["ki"] = kettleHLT.hltKi;
+      hltObj["kd"] = kettleHLT.hltKd;
+    }
+    else
+    {
+      hltObj["kp"] = kettleHLT.lasthltKp;
+      hltObj["ki"] = kettleHLT.lasthltKi;
+      hltObj["kd"] = kettleHLT.lasthltKd;
+    }
+    hltObj["no"] = (int(kettleHLT.hltNoise * 1000)) / 1000.0;
+    hltObj["sa"] = kettleHLT.hltSample;
+    hltObj["lb"] = kettleHLT.hltLookback;
+    hltObj["db"] = (int)kettleHLT.hltDebug;
+
     DEBUG_MSG("HLT: %d PIN: %s Invert: %d SenID: %d\n", kettleHLT.isEnabled, PinToString(kettleHLT.pin_hlt).c_str(), kettleHLT.isInverted, kettleHLT.senid);
   }
   else
@@ -308,7 +372,7 @@ bool saveConfig()
     hltStatus = 0;
     DEBUG_MSG("HLT: %d\n", kettleHLT.isEnabled);
   }
-  DEBUG_MSG("PID HLT: Kp: %.06f Ki: %.06f Kd: %.06f hltAutoTune: %d Setpoint: %.01f\n", hltKp, hltKi, hltKd, hltAutoTune, hltSetpoint);
+  DEBUG_MSG("PID HLT: Kp: %.06f Ki: %.06f Kd: %.06f hltAutoTune: %d Setpoint: %.01f\n", kettleHLT.hltKp, kettleHLT.hltKi, kettleHLT.hltKd, hltAutoTune, hltSetpoint);
   DEBUG_MSG("%s\n", "--------------------");
 
   // Write Misc Stuff
@@ -329,7 +393,8 @@ bool saveConfig()
     miscObj["mqbuz"] = (int)mqttBuzzer;
   else
     miscObj["mqbuz"] = 0;
-
+    
+  miscObj["chart"] = (int)chartVis;
   miscObj["display"] = (int)useDisplay;
   miscObj["page"] = startPage;
   miscObj["devbranch"] = (int)devBranch;

@@ -31,6 +31,13 @@ public:
   int powerLevelOnError = 100;   // 100% schaltet das Event handling für Induktion aus
   int powerLevelBeforeError = 0; // in error event save last power state
   bool induction_state = true;   // Error state induction
+  double ids2Kp = 0, ids2Ki = 0, ids2Kd = 0, ids2Ku = 0.0, ids2Pu = 0.0;
+  double lastids2Kp = 0, lastids2Ki = 0, lastids2Kd = 0, pidDelta;
+  uint8_t ids2NewOut, ids2Treshold, ids2Rule = INDIVIDUAL_PID;
+  bool ids2Debug = false;
+  byte ids2Lookback;
+  double ids2Noise;
+  unsigned long ids2Sample;
 
   induction()
   {
@@ -485,11 +492,19 @@ void handleRequestInduction()
   doc["power"] = 0;
   doc["autotune"] = ids2AutoTune;
   doc["setpoint"] = int(ids2Setpoint);
-  doc["kp"] = ids2Kp;
-  doc["ki"] = ids2Ki;
-  doc["kd"] = ids2Kd;
-  doc["piddelta"] = pidDelta;
-
+  doc["kp"] = inductionCooker.ids2Kp;
+  doc["ki"] = inductionCooker.ids2Ki;
+  doc["kd"] = inductionCooker.ids2Kd;
+  doc["ku"] = inductionCooker.ids2Ku;
+  doc["pu"] = inductionCooker.ids2Pu;
+  doc["tres"] = inductionCooker.ids2Treshold;
+  doc["newo"] = inductionCooker.ids2NewOut;
+  doc["rule"] = inductionCooker.ids2Rule;
+  doc["piddelta"] = inductionCooker.pidDelta;
+  doc["noise"] = inductionCooker.ids2Noise;
+  doc["lookback"] = inductionCooker.ids2Lookback;
+  doc["sample"] = inductionCooker.ids2Sample;
+  doc["debug"] = inductionCooker.ids2Debug;
   if (inductionCooker.isEnabled)
   {
     doc["relayOn"] = inductionCooker.isRelayon;
@@ -508,81 +523,6 @@ void handleRequestInduction()
 
   doc["topic"] = inductionCooker.mqtttopic;
   doc["pl"] = inductionCooker.powerLevelOnError;
-  /*
-  // PID mode values
-  doc["tempvalue"] = sensors[0].getTotalValueString();
-  if (hltAutoTune)
-  {
-    doc["power"] = kettleHLT.power;
-    // doc["power"] = hltOutput;
-    doc["target"] = hltSetpoint;
-    doc["step"] = "AutoTune HLT";
-  }
-  else if (ids2AutoTune)
-  {
-    doc["target"] = int(ids2Setpoint);
-    doc["step"] = "AutoTune IDS2";
-  }
-  else
-  {
-    doc["target"] = structPlan[actMashStep].temp;
-    doc["step"] = structPlan[actMashStep].name;
-  }
-  
-  if (hltAutoTune)
-  {
-    if (kettleHLT.state)
-      doc["timer"] = "in progress";
-    else
-      doc["timer"] = "press power";
-  }
-  else if (ids2AutoTune)
-  {
-    if (statePower)
-      doc["timer"] = "in progress";
-    else
-      doc["timer"] = "press power";
-  }
-  else if (TickerMash.state() == RUNNING)
-  {
-    unsigned long allSeconds = TickerMash.remaining() / 1000;
-    int runHours = allSeconds / 3600;
-    int secsRemaining = allSeconds % 3600;
-    int runMinutes = secsRemaining / 60;
-    int runSeconds = secsRemaining % 60;
-    char buf[21];
-    if (runHours > 0)
-      runMinutes += runHours * 60;
-    sprintf(buf, "%02d:%02d", runMinutes, runSeconds);
-    doc["timer"] = buf;
-  }
-  else if (TickerMash.state() == STOPPED)
-  {
-    if (actMashStep > 0 && statePause)
-    {
-      doc["timer"] = "pause to continue";
-    }
-    else
-    {
-      unsigned long allSeconds = structPlan[actMashStep].duration * 60;
-      int runHours = allSeconds / 3600;
-      int secsRemaining = allSeconds % 3600;
-      int runMinutes = secsRemaining / 60;
-      int runSeconds = secsRemaining % 60;
-      char buf[21];
-      if (runHours > 0)
-        runMinutes += runHours * 60;
-      sprintf(buf, "%02d:%02d", runMinutes, runSeconds);
-      doc["timer"] = buf;
-    }
-  }
-  else if (TickerMash.state() == PAUSED && TickerMash.counter() >= 1)
-  {
-    doc["timer"] = "click forward";
-  }
-  else if (TickerMash.state() == PAUSED)
-    doc["timer"] = "paused";
-  */
   String response;
   serializeJson(doc, response);
   server.send(200, "application/json", response);
@@ -669,10 +609,6 @@ void handleSetIndu()
     {
       pin_blue = StringToPin(server.arg(i));
     }
-    // if (server.argName(i) == "delay")
-    // {
-    //   delayoff = server.arg(i).toInt() * 1000;
-    // }
     if (server.argName(i) == "pl")
     {
       if (isValidInt(server.arg(i)))
@@ -689,31 +625,94 @@ void handleSetIndu()
       if (isValidDigit(server.arg(i)))
       {
         ids2Setpoint = server.arg(i).toInt();
-        DEBUG_MSG("WEB: ids2Setpoint %.02f\n", ids2Setpoint);
       }
     }
     if (server.argName(i) == "kp")
     {
-      ids2Kp = formatDOT(server.arg(i));
+      inductionCooker.ids2Kp = formatDOT(server.arg(i));
     }
     if (server.argName(i) == "ki")
     {
-      ids2Ki = formatDOT(server.arg(i));
+      inductionCooker.ids2Ki = formatDOT(server.arg(i));
     }
     if (server.argName(i) == "kd")
     {
-      ids2Kd = formatDOT(server.arg(i));
+      inductionCooker.ids2Kd = formatDOT(server.arg(i));
+    }
+    if (server.argName(i) == "ku")
+    {
+      inductionCooker.ids2Ku = formatDOT(server.arg(i));
+    }
+    if (server.argName(i) == "pu")
+    {
+      inductionCooker.ids2Pu = formatDOT(server.arg(i));
+    }
+    if (server.argName(i) == "rule")
+    {
+      int val = StringToRule(server.arg(i));
+      if (val == -1 || val > numberOfRules)
+        inductionCooker.ids2Rule = INDIVIDUAL_PID;
+      else
+        inductionCooker.ids2Rule = val;
     }
     if (server.argName(i) == "piddelta")
     {
-      pidDelta = formatDOT(server.arg(i));
+      inductionCooker.pidDelta = formatDOT(server.arg(i));
+    }
+    if (server.argName(i) == "newo")
+    {
+      if (isValidInt(server.arg(i)))
+        inductionCooker.ids2NewOut = server.arg(i).toInt();
+    }
+    if (server.argName(i) == "tres")
+    {
+      if (isValidInt(server.arg(i)))
+        inductionCooker.ids2Treshold = server.arg(i).toInt();
+    }
+    if (server.argName(i) == "noise")
+    {
+      inductionCooker.ids2Noise = formatDOT(server.arg(i));
+    }
+    if (server.argName(i) == "sample")
+    {
+      if (isValidDigit(server.arg(i)))
+        inductionCooker.ids2Sample = server.arg(i).toInt();
+    }
+    if (server.argName(i) == "lookback")
+    {
+      if (isValidInt(server.arg(i)))
+        inductionCooker.ids2Lookback = server.arg(i).toInt();
+    }
+    if (server.argName(i) == "debug")
+    {
+      inductionCooker.ids2Debug = checkBool(server.arg(i));
     }
     yield();
   }
 
   inductionCooker.change(pin_white, pin_yellow, pin_blue, topic, is_enabled, pl);
   saveConfig();
-  server.send(201, "text/plain", "created");
+  server.send(200, "text/plain", "ok");
+}
+
+void handleRequestRules()
+{
+  int id = server.arg(0).toInt();
+  String message;
+  message += F("<option>");
+  message += rules_names[inductionCooker.ids2Rule];
+  message += F("</option><option disabled>──────────</option>");
+
+  for (int i = 0; i < numberOfRules; i++)
+  {
+    if (i != inductionCooker.ids2Rule)
+    {
+      message += F("<option>");
+      message += rules_names[i];
+      message += F("</option>");
+    }
+  }
+  server.send(200, "text/plain", message);
 }
 
 // void indERR()

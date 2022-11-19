@@ -332,8 +332,8 @@ Sensor setting
 
 4. PIDmanager
 
-    PID controller configuration page. For best results autoTune should find optimale PID values Kp, Ki and Kd. Keep in mind: brewing without CBPi requires MQTT disabled (see MQTTsettings!).
-    Run Autotune only with a normale average amount of water in your kettle. The value AutoTune setpoint is a target temperature. AutoTune setpointshould be minimum 10 better 20 degrees above actual water temperature in your kettle. If done enable chekcbox "Start PID autotune now". Switch to webpage mash and press the power button. Autotune takes approx 5min. PID values are saved automatically.
+    PID controller configuration page. For best results autoTune should find optimale PID values Kp, Ki and Kd.
+    Run Autotune with a normale average amount of water in your kettle. The value AutoTune setpoint is a target temperature. AutoTune setpoint should be minimum 10 better 20 degrees above actual water temperature in your kettle. If done enable chekcbox "Start PID autotune now". Switch to webpage mash and press the power button. Autotune takes approx 60min. PID values are saved automatically.
 
     ![misc](img/pidmanager.jpg)
 
@@ -342,6 +342,104 @@ Sensor setting
     Target temperature: 64°C
     Temperature delta to target: 0.3
     Mash step will be started, when measured temperature reaches 63.7°C
+
+    Treshold temperature: When this temperature is reached, power will be set to to Treshold power output. Default treshold is 98°C and corresponding output 100%. These two values can be used for boiling. If temperature is 98°C or above treshold power output defines the maximum output. For example 100% output means PID controller will not reduce output. Another example is a small kettle environment. Set Treshold temperature to 40°C and treshold power output to 80%. IDS2 will operate with a maximum of 80% power above 40°C.
+
+    Serveral predefined values are profided on the PID manager page. Beside standard tunings rules like Ziegler-Nichols two tuning rules for brewing are offered: BREWING_20L and BREWING_50L. Take one of these rules as a staring point to find best individual PID values.
+    Copy starting values from predefined rule into INDIVIDUAL_PID rule.
+
+    Lookback and noiseBand are very important for a successful AutoTune. If AutoTune fails try increasing lookback to 60 [values between 30 and 100] and/or noieeBand to 0.5
+
+    Enable DEBUG and rerun AutoTune. Open FileManager and check the log file. Identify the lines "New peak". AutoTune needs at least 5 new peaks, starting with a Maximum (greater than Setpoint), followed by a Minimum (lower than Setpoint) followed by a Maximum and so on. If you identify two or more new peaks in a row, which are all maximum or minimum, increase lookback and/or noiseBand like described above. Also check sampleTime.
+
+    AutoTune needs more than 5 peaks, if final convergence` criterion check has failed. In this case Webif will show "in progress 6/5" or even more (than required 5).
+
+    AutoTune log file example: 36l kettle with 20l water
+
+```cpp
+    08:36:06	PID AutoTune started
+    *** SYSINFO:  WLAN RSSI: -77 free heap: 16352 Firmware: 4.36
+    *** AutoTune: noiseBand: 0.200 SampleTime: 5000 Lookback: 75 Temperature: 30.196 Setpoint: 40.000
+    6min16sec: 	peakCount: 0	refVal: 39.063	peak type: 1	isMin: 0	isMax: 1
+    0min5sec: 	peakCount: 0	refVal: 39.189	peak type: 1	isMin: 0	isMax: 1
+    0min5sec: 	peakCount: 0	refVal: 39.316	peak type: 1	isMin: 0	isMax: 1
+    0min4sec: 	peakCount: 0	refVal: 39.443	peak type: 1	isMin: 0	isMax: 1
+    0min5sec: 	peakCount: 0	refVal: 39.696	peak type: 1	isMin: 0	isMax: 1
+    0min5sec: 	peakCount: 0	refVal: 39.823	peak type: 1	isMin: 0	isMax: 1
+    0min5sec: 	peakCount: 0	refVal: 39.949	peak type: 1	isMin: 0	isMax: 1
+    0min5sec: 	peakCount: 0	refVal: 40.076	peak type: 1	isMin: 0	isMax: 1
+    0min4sec: 	changed:   state from RELAY_STEP_UP to RELAY_STEP_DOWN at temp: 40.203
+    0min0sec: 	peakCount: 0	refVal: 40.203	peak type: 1	isMin: 0	isMax: 1
+    0min4sec: 	peakCount: 0	refVal: 40.329	peak type: 1	isMin: 0	isMax: 1
+    0min5sec: 	peakCount: 0	refVal: 40.456	peak type: 1	isMin: 0	isMax: 1
+    0min5sec: 	peakCount: 0	refVal: 40.583	peak type: 1	isMin: 0	isMax: 1
+    0min5sec: 	peakCount: 0	refVal: 40.709	peak type: 1	isMin: 0	isMax: 1
+    0min5sec: 	peakCount: 0	refVal: 40.836	peak type: 1	isMin: 0	isMax: 1
+    0min5sec: 	peakCount: 0	refVal: 40.963	peak type: 1	isMin: 0	isMax: 1
+    0min4sec: 	peakCount: 0	refVal: 41.089	peak type: 1	isMin: 0	isMax: 1
+    0min4sec: 	peakCount: 0	refVal: 41.216	peak type: 1	isMin: 0	isMax: 1
+    0min5sec: 	peakCount: 0	refVal: 41.343	peak type: 1	isMin: 0	isMax: 1
+    0min5sec: 	peakCount: 0	refVal: 41.469	peak type: 1	isMin: 0	isMax: 1
+    3min58sec: 	new peak:  1    peak:   41.469
+    0min0sec: 	peakCount: 1	refVal: 41.216	peak type: -1	isMin: 1	isMax: 0
+    0min5sec: 	peakCount: 1	refVal: 41.089	peak type: -1	isMin: 1	isMax: 0
+    0min5sec: 	peakCount: 1	refVal: 40.963	peak type: -1	isMin: 1	isMax: 0
+    0min5sec: 	peakCount: 1	refVal: 40.836	peak type: -1	isMin: 1	isMax: 0
+    0min5sec: 	peakCount: 1	refVal: 40.709	peak type: -1	isMin: 1	isMax: 0
+    0min5sec: 	peakCount: 1	refVal: 40.583	peak type: -1	isMin: 1	isMax: 0
+    0min5sec: 	peakCount: 1	refVal: 40.456	peak type: -1	isMin: 1	isMax: 0
+    0min5sec: 	peakCount: 1	refVal: 40.329	peak type: -1	isMin: 1	isMax: 0
+    0min5sec: 	peakCount: 1	refVal: 40.203	peak type: -1	isMin: 1	isMax: 0
+    0min5sec: 	peakCount: 1	refVal: 40.076	peak type: -1	isMin: 1	isMax: 0
+    0min5sec: 	peakCount: 1	refVal: 39.949	peak type: -1	isMin: 1	isMax: 0
+    0min5sec: 	peakCount: 1	refVal: 39.823	peak type: -1	isMin: 1	isMax: 0
+    0min5sec: 	changed:   state from RELAY_STEP_DOWN to RELAY_STEP_UP at temp: 39.696
+    0min0sec: 	peakCount: 1	refVal: 39.696	peak type: -1	isMin: 1	isMax: 0
+    0min44sec: 	new peak:  2    peak: 39.696
+    0min0sec: 	peakCount: 2	refVal: 39.949	peak type: 1	isMin: 0	isMax: 1
+    0min5sec: 	peakCount: 2	refVal: 40.076	peak type: 1	isMin: 0	isMax: 1
+    0min4sec: 	changed:   state from RELAY_STEP_UP to RELAY_STEP_DOWN at temp: 40.203
+    0min0sec: 	peakCount: 2	refVal: 40.203	peak type: 1	isMin: 0	isMax: 1
+    0min4sec: 	peakCount: 2	refVal: 40.329	peak type: 1	isMin: 0	isMax: 1
+    0min6sec: 	peakCount: 2	refVal: 40.456	peak type: 1	isMin: 0	isMax: 1
+    0min5sec: 	peakCount: 2	refVal: 40.583	peak type: 1	isMin: 0	isMax: 1
+    0min5sec: 	peakCount: 2	refVal: 40.709	peak type: 1	isMin: 0	isMax: 1
+    0min5sec: 	peakCount: 2	refVal: 40.836	peak type: 1	isMin: 0	isMax: 1
+    0min5sec: 	peakCount: 2	refVal: 40.963	peak type: 1	isMin: 0	isMax: 1
+    0min15sec: 	peakCount: 2	refVal: 41.089	peak type: 1	isMin: 0	isMax: 1
+    2min10sec: 	new peak:  3	peak: 41.089
+    0min0sec: 	peakCount: 3	refVal: 40.836	peak type: -1	isMin: 1	isMax: 0
+    0min5sec: 	peakCount: 3	refVal: 40.709	peak type: -1	isMin: 1	isMax: 0
+    0min5sec: 	peakCount: 3	refVal: 40.583	peak type: -1	isMin: 1	isMax: 0
+    0min5sec: 	peakCount: 3	refVal: 40.456	peak type: -1	isMin: 1	isMax: 0
+    0min5sec: 	peakCount: 3	refVal: 40.329	peak type: -1	isMin: 1	isMax: 0
+    0min4sec: 	peakCount: 3	refVal: 40.203	peak type: -1	isMin: 1	isMax: 0
+    0min5sec: 	peakCount: 3	refVal: 40.076	peak type: -1	isMin: 1	isMax: 0
+    0min5sec: 	peakCount: 3	refVal: 39.949	peak type: -1	isMin: 1	isMax: 0
+    0min5sec: 	peakCount: 3	refVal: 39.823	peak type: -1	isMin: 1	isMax: 0
+    0min5sec: 	changed:   state from RELAY_STEP_DOWN to RELAY_STEP_UP at temp: 39.696
+    0min4sec: 	peakCount: 3	refVal: 39.696	peak type: -1	isMin: 1	isMax: 0
+    0min20sec: 	new peak:  4    peak: 39.696
+    0min0sec: 	peakCount: 4	refVal: 39.949	peak type: 1	isMin: 0	isMax: 1
+    0min5sec: 	peakCount: 4	refVal: 40.076	peak type: 1	isMin: 0	isMax: 1
+    0min4sec: 	changed:   state from RELAY_STEP_UP to RELAY_STEP_DOWN at temp: 40.203
+    0min0sec: 	peakCount: 4	refVal: 40.203	peak type: 1	isMin: 0	isMax: 1
+    0min4sec: 	peakCount: 4	refVal: 40.329	peak type: 1	isMin: 0	isMax: 1
+    0min5sec: 	peakCount: 4	refVal: 40.456	peak type: 1	isMin: 0	isMax: 1
+    0min7sec: 	peakCount: 4	refVal: 40.583	peak type: 1	isMin: 0	isMax: 1
+    0min5sec: 	peakCount: 4	refVal: 40.709	peak type: 1	isMin: 0	isMax: 1
+    0min4sec: 	peakCount: 4	refVal: 40.836	peak type: 1	isMin: 0	isMax: 1
+    0min5sec: 	peakCount: 4	refVal: 40.963	peak type: 1	isMin: 0	isMax: 1
+    0min10sec: 	peakCount: 4	refVal: 41.089	peak type: 1	isMin: 0	isMax: 1
+    1min31sec: 	new peak:  5	peak: 41.089
+    0min0sec: 	peakCount: 5	refVal: 40.963	peak type: -1	isMin: 1	isMax: 0
+    0min0sec: 	convergence criterion ok: 0.00/0.05 - amplitude: 0.697 absMin: 39.696 absMax: 41.089
+    0min0sec: 	Peaks:	1: 41.089	2: 39.696	3: 41.089	4: 39.696
+    0min0sec: 	Time: 	1: 6033392	2: 5664286	3: 3779556	4: 3426414
+    0min0sec: 	Ultimate gain Ku:	182.762144
+    0min0sec: 	Ultimate period Pu:	2245.854000
+    09:10:03	PID AutoTune finished
+```
 
 ---
 

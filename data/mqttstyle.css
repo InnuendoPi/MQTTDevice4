@@ -23,17 +23,28 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-
 .icon-loop:before {
+  content: "\e900";
+}
+.icon-loop-button:before {
   content: "\e900";
 }
 .icon-plus:before {
   content: "\f067";
 }
+.icon-power-button:before {
+  content: "\f011";
+}
 .icon-power-off:before {
   content: "\f011";
 }
+.icon-power-on:before {
+  content: "\f011";
+}
 .icon-cog:before {
+  content: "\f013";
+}
+.icon-cog-on:before {
   content: "\f013";
 }
 .icon-trash-o:before {
@@ -43,6 +54,9 @@
   content: "\f017";
 }
 .icon-download:before {
+  content: "\f019";
+}
+.icon-download2:before {
   content: "\f019";
 }
 .icon-pencil:before {
@@ -60,6 +74,9 @@
 .icon-fire:before {
   content: "\f06d";
 }
+.icon-fire-red:before {
+  content: "\f06d";
+}
 .icon-chevron-up:before {
   content: "\f077";
 }
@@ -72,6 +89,9 @@
 .icon-eraser:before {
   content: "\f12d";
 }
+.icon-eraser2:before {
+  content: "\f12d";
+}
 .icon-bullseye:before {
   content: "\f140";
 }
@@ -80,4 +100,149 @@
 }
 .icon-thermometer-three-quarters:before {
   content: "\f2c8";
+}
+.icon-stats-dots:before {
+  content: "\e99b";
+}
+.icon-eye:before {
+  content: "\e9ce";
+}
+.icon-eye-blocked:before {
+  content: "\e9d1";
+}
+.input-group>.input-group-append {
+  width: 60%;
+}
+.icon-chevron-up {
+  color: var(--secondary);
+  margin-right: 30px;
+  font-size: 1.5em;
+}
+.icon-chevron-down {
+  color: var(--secondary);
+  margin-right: 30px;
+  font-size: 1.5em;
+}
+.icon-pencil {
+  color: var(--success);
+  margin-right: 30px;
+  font-size: 1.5em;
+}
+.icon-trash-o {
+ color: var(--danger);
+  margin-right: 30px;
+  font-size: 1.5em;
+}
+.icon-download {
+  /*margin-right: 7.5%;*/
+  font-size: 1.5em;
+  /*background-size: 120%;*/
+}
+.icon-sliders {
+  color: var(--secondary);
+  margin-right: 30px;
+  font-size: 1.5em;
+  background-size: 120%;
+}
+.icon-clock-o {
+  color: var(--primary);
+  margin-right: 30px;
+  font-size: 1.7em;
+  background-size: 120%;
+}
+.icon-bullseye {
+  color: var(--primary);
+  margin-right: 30px;
+  font-size: 1.7em;
+  background-size: 120%;
+}
+.icon-thermometer-three-quarters {
+  color: var(--success);
+  margin-right: 30px;
+  font-size: 1.7em;
+  background-size: 120%;
+}
+.icon-fire-red {
+  color: var(--danger);
+  margin-right: 30px;
+  font-size: 1.7em;
+  background-size: 120%;
+}
+.icon-fire {
+  color: var(--secondary);
+  margin-right: 30px;
+  font-size: 1.7em;
+  background-size: 120%;
+}
+.icon-power-off {
+  color: var(--secondary);
+  margin-right: 30px;
+  font-size: 1.7em;
+  background-size: 120%;
+}
+.icon-power-on {
+  color: var(--success);
+  margin-right: 30px;
+  font-size: 1.7em;
+  background-size: 120%;
+}
+.icon-cog {
+  color: var(--secondary);
+  margin-right: 30px;
+  font-size: 1.7em;
+  background-size: 120%;
+}
+.icon-cogs {
+  color: var(--secondary);
+  margin-right: 30px;
+  font-size: 1.7em;
+  background-size: 120%;
+}
+.icon-cogs-on {
+  color: var(--success);
+  margin-right: 30px;
+  font-size: 1.7em;
+  background-size: 120%;
+}
+.icon-loop {
+  color: var(--secondary);
+  margin-right: 30px;
+  font-size: 1.5em;
+  background-size: 120%;
+}
+.icon-eye {
+  color: var(--secondary);
+  margin-right: 30px;
+  font-size: 1.5em;
+}
+.icon-eye-blocked {
+  color: var(--secondary);
+  margin-right: 30px;
+  font-size: 1.5em;
+}
+.mash-button-align {
+  margin-right: 30px;
+  width: 140px;
+}
+.mash-button-style {
+  text-align: center;
+  border-style: none;
+  width: 100%;
+}
+.label-30 {
+  width: 30%;
+}
+.myalign
+{
+  float:right;
+}
+.mash-button-align-left {
+  /*margin-right: 30px;*/
+  width: 140px;
+}
+.mash-button-style-left {
+  /*margin-left: 100px;*/
+  text-align: center;
+  /*border-style: none;*/
+  width: 100%;
 }

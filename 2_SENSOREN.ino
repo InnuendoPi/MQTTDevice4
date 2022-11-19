@@ -174,7 +174,8 @@ public:
   }
   double getTotalValueDouble()
   {
-    return round((calcOffset() + 0.05) * 10) / 10.0;
+    // return (double) round((calcOffset()) * 1000) / 1000.0;
+    return (double) calcOffset();
   }
   char *getTotalValueString()
   {
@@ -182,7 +183,6 @@ public:
     dtostrf((round((calcOffset() + 0.05) * 10) / 10.0), 2, 1, buf);
     return buf;
   }
-
   float calcOffset()
   {
     if (sens_value == -127.00)
@@ -203,6 +203,12 @@ public:
     {
       return sens_value + sens_offset1;
     }
+  }
+  double upSen2()
+  {
+    DS18B20.requestTemperatures();                        // new conversion to get recent temperatures
+    sens_value = DS18B20.getTempC(sens_address);
+    return (double) sens_value;
   }
 };
 
@@ -316,7 +322,7 @@ void handleSetSensor()
 
   sensors[id].change(new_address, new_mqtttopic, new_name, new_id, new_offset1, new_offset2, new_sw);
   saveConfig();
-  server.send(201, "text/plain", "created");
+  server.send(200, "text/plain", "ok");
 }
 
 void handleDelSensor()
@@ -335,7 +341,7 @@ void handleDelSensor()
   }
   numberOfSensors--;
   saveConfig();
-  server.send(200, "text/plain", "deleted");
+  server.send(200, "text/plain", "ok");
 }
 
 void handleRequestSensorAddresses()
@@ -412,4 +418,40 @@ void handleRequestSensors()
   String response;
   serializeJson(doc, response);
   server.send(200, "application/json", response);
+}
+
+void sendCurrentTemp()
+{
+  if (true)
+  {
+  
+    // String NTPClient::getFormattedTime() const
+    // {
+    //   unsigned long rawTime = this->getEpochTime();
+    //   unsigned short hours = (rawTime % 86400L) / 3600;
+    //   String hoursStr = hours < 10 ? "0" + String(hours) : String(hours);
+
+    //   unsigned short minutes = (rawTime % 3600) / 60;
+    //   String minuteStr = minutes < 10 ? "0" + String(minutes) : String(minutes);
+
+    //   unsigned short seconds = rawTime % 60;
+    //   String secondStr = seconds < 10 ? "0" + String(seconds) : String(seconds);
+
+    //   return hoursStr + ":" + minuteStr + ":" + secondStr;
+    // }
+
+
+    //   <!-- {'time':'2018-12-12 01:01:01', 'temperature':'20'} -->
+    DynamicJsonDocument doc(128);
+    // doc["time"] = timeClient.getFormattedTime();
+    doc["temperature"] = sensors[0].getTotalValueString();
+    doc["target"] = int(ids2Setpoint);
+    // doc["temperature"] = String(sensors[0].getTotalValueString());
+
+    String response;
+    serializeJson(doc, response);
+    server.send(200, "application/json", response);
+  }
+  else
+    server.send(500, "application/json", "");
 }

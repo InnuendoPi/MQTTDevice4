@@ -304,7 +304,7 @@ void tickerIndCallback() // Timer Objekt Sensoren
 }
 void tickerHltCallback() // Timer Objekt Sensoren
 {
-  kettleHLT.Update();
+  handleHLT();
 }
 
 void tickerPUBSUBCallback() // Timer Objekt Sensoren
@@ -346,44 +346,35 @@ void tickerMashCallback() // Ticker helper function calling Event WLAN Error
 {
   handleMash();
 }
-
-void tickerPIDCallback() // Ticker helper function calling Event WLAN Error
+void tickerPIDCallback()
 {
   if (ids2AutoTune)
   {
     runAutoTune();
     return;
   }
-
-  sensors[0].Update(); // IDS2 Sensor abfragen
-  ids2Input = sensors[0].getTotalValueFloat();
-  ids2PID.Compute(); // QuickPID
-  inductionCooker.inductionNewPower(int(ids2Output));
-  if (TickerInd.state() == RUNNING)
-    TickerInd.updatenow();
-  else
-    handleInduction();
-
-  if (TickerMash.state() != RUNNING && TickerMash.state() != PAUSED)
-  {
-    checkTemp(); // check piddelta
-  }
-}
-
-void tickerHltPIDCallback() // Ticker helper function calling Event WLAN Error
-{
   if (hltAutoTune)
   {
     runHltAutoTune();
     return;
   }
-  sensors[kettleHLT.senid].Update();
-  hltInput = sensors[kettleHLT.senid].getTotalValueFloat();
-  hltPID.Compute(); // QuickPID
-  kettleHLT.newPower(int(hltOutput));
-  TickerHlt.updatenow();
-  // DEBUG_MSG("Ticker hltPID hltInput: %.02f hltOutput: %.02f intOutput %d hltSetpoint: %.02f\n", hltInput, hltOutput, int(hltOutput), hltSetpoint);
-  // Serial.printf("Ticker HltPID hltInput: %.02f hltOutput: %.02f intOutput %d hltSetpoint: %.02f\n", hltInput, hltOutput, int(hltOutput), hltSetpoint);
+  if (TickerHlt.state() == RUNNING)
+  {
+    hltInput = sensors[kettleHLT.senid].getTotalValueDouble();
+    hltPID.Compute();
+    kettleHLT.newPower(int(hltOutput));
+  }
+  if (pidMode)
+  {
+    ids2Input = sensors[0].getTotalValueDouble();
+    ids2PID.Compute();
+    inductionCooker.inductionNewPower(int(ids2Output));
+    // Serial.printf("Ticker: ids2Input %.03f\tdiff: %.03f\tids2Output: %.03f\n", ids2Input, (ids2Input-ids2Setpoint), ids2Output);
+    if (TickerMash.state() != RUNNING && TickerMash.state() != PAUSED)
+    {
+      checkTemp(); // check piddelta
+    }
+  }
 }
 
 void tickerMQTTCallback() // Ticker helper function calling Event MQTT Error

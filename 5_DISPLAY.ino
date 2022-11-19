@@ -1,13 +1,14 @@
 void initDisplay()
 {
+
   // register callback functions
-  p0ForButton.touch(pageCallback);          // BrewPage forward to KettlePage
-  p0BackButton.touch(pageCallback);         // BrewPage backward to InductionPage
-  p1ForButton.touch(pageCallback);          // KelltlePage forward to InductionPage
-  p1BackButton.touch(pageCallback);         // KettlePage backward to BrewPage
-  p2ForButton.touch(pageCallback);          // InductionPage forward to BrewPage
-  p2BackButton.touch(pageCallback);         // InductionPage backward to KettlePage
-  
+  p0ForButton.touch(pageCallback);  // BrewPage forward to KettlePage
+  p0BackButton.touch(pageCallback); // BrewPage backward to InductionPage
+  p1ForButton.touch(pageCallback);  // KelltlePage forward to InductionPage
+  p1BackButton.touch(pageCallback); // KettlePage backward to BrewPage
+  p2ForButton.touch(pageCallback);  // InductionPage forward to BrewPage
+  p2BackButton.touch(pageCallback); // InductionPage backward to KettlePage
+
   // p0ForButton.release(pageCallback);          // BrewPage forward to KettlePage
   // p0BackButton.release(pageCallback);         // BrewPage backward to InductionPage
   // p1ForButton.release(pageCallback);          // KelltlePage forward to InductionPage
@@ -15,7 +16,7 @@ void initDisplay()
   // p2ForButton.release(pageCallback);          // InductionPage forward to BrewPage
   // p2BackButton.release(pageCallback);         // InductionPage backward to KettlePage
   powerButton.release(powerButtonCallback); // buttonBack auf induction page backward auf page 1
-  
+
   activePage = startPage;
   switch (startPage)
   {
@@ -140,7 +141,7 @@ void InductionPage()
     int32_t aktSlider = p2slider.value();
     if (aktSlider >= 0 && aktSlider <= 100)
       inductionCooker.inductionNewPower(aktSlider); // inductionCooker.handleInductionPage(aktSlider);
-      
+
     // String aktTemp = strcat(structKettles[0].current_temp, "°C");
     p2temp_text.attribute("txt", String(structKettles[0].current_temp).c_str());
   }
@@ -381,7 +382,6 @@ void cbpi4steps_handlemqtt(char *payload)
     int valTimer = 0;
     int min = 0;
     int sec = 0;
-
 
     if (currentStepName != doc["name"]) // New active step
     {
