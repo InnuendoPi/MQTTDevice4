@@ -132,7 +132,7 @@ unsigned char numberOfActors = 0; // Gesamtzahl der Aktoren
 char mqtthost[maxHostSign]; // MQTT Server
 char mqttuser[maxUserSign];
 char mqttpass[maxPassSign];
-int mqttport = 1883;
+int mqttport;
 char mqtt_clientid[maxHostSign]; // AP-Mode und Gerätename
 bool alertState = false;         // WebUpdate Status
 

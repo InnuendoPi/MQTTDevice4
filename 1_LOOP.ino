@@ -1,20 +1,23 @@
 void loop()
 {
-  server.handleClient(); // Webserver handle
-
+  server.handleClient();              // Webserver handle
   if (WiFi.status() == WL_CONNECTED)
   {
     if (!mqttoff)
-      TickerPUBSUB.update(); // Ticker PubSubClient
-
-    if (startMDNS) // MDNS handle
+    {
+      TickerPUBSUB.update();          // Ticker PubSubClient
+    }
+    if (startMDNS)                    // mDNS handle
+    {
       mdns.update();
-    TickerNTP.update(); // Ticker NTP
+    }
+    TickerNTP.update();               // Ticker NTP
   }
   else
   {
-    EM_WLAN();
+    EM_WLAN();                        // Event handing WLAN
   }
+
   if (numberOfSensors > 0)            // Ticker Sensoren
     TickerSen.update();
   if (numberOfActors > 0)             // Ticker Aktoren

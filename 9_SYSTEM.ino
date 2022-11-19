@@ -343,7 +343,8 @@ void EM_LOG()
 
 void EM_MDNSET() // MDNS setup
 {
-  if (startMDNS && nameMDNS[0] != '\0' && WiFi.status() == WL_CONNECTED)
+  // if (startMDNS && nameMDNS[0] != '\0' && WiFi.status() == WL_CONNECTED)
+  if (startMDNS)
   {
     if (mdns.begin(nameMDNS))
       Serial.printf("*** SYSINFO: mDNS started as %s connected to %s Time: %s RSSI=%d\n", nameMDNS, WiFi.localIP().toString().c_str(), timeClient.getFormattedTime().c_str(), WiFi.RSSI());
