@@ -2,7 +2,7 @@ bool upTools(String url, String fname)
 {
     std::unique_ptr<BearSSL::WiFiClientSecure> clientup(new BearSSL::WiFiClientSecure);
     clientup->setInsecure();
-    clientup->setBufferSizes(1024, 1024);   // ohne setBufferSize exc OOM!
+    clientup->setBufferSizes(1024, 1024); // ohne setBufferSize exc OOM!
     HTTPClient https;
     if (https.begin(*clientup, url + fname))
     {
@@ -78,7 +78,7 @@ void upFirm()
     }
 
     BearSSL::WiFiClientSecure clientFirm;
-    clientFirm.setBufferSizes(1024, 1024);  // ohne setBufferSize exc OOM!
+    clientFirm.setBufferSizes(1024, 1024); // ohne setBufferSize exc OOM!
     clientFirm.setCertStore(&certStore);
     clientFirm.setInsecure();
 
@@ -270,10 +270,15 @@ void startHTTPUpdate()
     ESP.restart();
 }
 
-
 void update_finished()
 {
     Serial.println("*** SYSINFO:  Firmware update finished");
+    fsUploadFile = LittleFS.open("/updateTools.txt", "w");
+    if (fsUploadFile)
+    {
+        uint8_t bytesWritten = fsUploadFile.print(0);
+        fsUploadFile.close();
+    }
     LittleFS.remove("/updateSys.txt");
     LittleFS.end();
 }
