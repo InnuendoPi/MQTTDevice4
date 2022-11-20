@@ -186,6 +186,10 @@ void setupServer()
       "/upload", HTTP_POST, []()
       { server.send(200, "text/plain", ""); },
       handleRezeptUp);
+  server.on(
+      "/restore", HTTP_POST, []()
+      { server.send(200, "text/plain", ""); },
+      handleRestore);
   server.onNotFound(handleWebRequests);
   httpUpdate.setup(&server);
   server.begin();

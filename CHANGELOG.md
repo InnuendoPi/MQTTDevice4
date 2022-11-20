@@ -2,10 +2,14 @@
 
 Version 4.36
 
+- Added:    Backup and restore configuration
+- Changed:  Recipe import css style
+- Fixed:    Update buttons
+- Resize:   Chart
 - Changed:  PCF 0.3.7
 - Fixed:    WebUpdate exception OOM
 - Added:    Treshold and new power out (IDS2)
-- Changed:  Bootsrap 4.6.2
+- Changed:  Bootstrap 4.6.2
 - Changed:  VSCode 1.73.1
 - Rebuild:  new lib InnuAPID PID controller
 - Rebuild:  new lib InnuAPID AutoTune

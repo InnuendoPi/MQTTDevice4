@@ -662,6 +662,35 @@ void handleSetMash()
       sendAlarm(ALARM_ERROR);
   }
 }
+void handleRestore()
+{
+  HTTPUpload &upload = server.upload();
+  if (upload.status == UPLOAD_FILE_START)
+  {
+    String filename = "config.txt"; // upload.filename;
+    if (!filename.startsWith("/"))
+      filename = "/" + filename;
+    DEBUG_MSG("WEB restore config file: %s\n", filename.c_str());
+    fsUploadFile = LittleFS.open(filename, "w"); // Open the file for writing in LittleFS (create if it doesn't exist)
+    filename = String();
+  }
+  else if (upload.status == UPLOAD_FILE_WRITE)
+  {
+    if (fsUploadFile)
+      fsUploadFile.write(upload.buf, upload.currentSize); // Write the received bytes to the file
+  }
+  else if (upload.status == UPLOAD_FILE_END)
+  {
+    if (fsUploadFile)
+    {                       // If the file was successfully created
+      fsUploadFile.close(); // Close the file again
+      DEBUG_MSG("WEB restore configuration Size: %d\n", upload.totalSize);
+      server.sendHeader("Location", "/index.html"); // Redirect the client to the success page
+      server.send(303);
+      EM_REBOOT();
+    }
+  }
+}
 
 void handleRezeptUp()
 {
