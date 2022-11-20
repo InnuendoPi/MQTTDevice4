@@ -2,6 +2,8 @@
 
 Version 4.36
 
+- Fixed:    AutoTune restart reset values
+- Changed:  Auto start WebUpdate tools after WebUpdate firmware
 - Added:    Backup and restore configuration
 - Changed:  Recipe import css style
 - Fixed:    Update buttons
