@@ -921,8 +921,8 @@ void handleBtnPower()
           if (startBuzzer)
             sendAlarm(ALARM_OFF);
           
-          toastMessage = "Power off AutoTune HLT";
-          toastHide = false;
+          // toastMessage = "Power off AutoTune HLT";
+          // toastHide = false;
         }
         else if (ids2AutoTune)
         {
@@ -943,13 +943,13 @@ void handleBtnPower()
           if (startBuzzer)
             sendAlarm(ALARM_OFF);
           
-          toastMessage = "Power off AutoTune IDS2";
-          toastHide = false;
+          // toastMessage = "Power off AutoTune IDS2";
+          // toastHide = false;
         }
         else
         {
-          toastMessage = "Power off mash process";
-          toastHide = false;
+          // toastMessage = "Power off mash process";
+          // toastHide = false;
 
           pidMode = false;
           statePower = false;
