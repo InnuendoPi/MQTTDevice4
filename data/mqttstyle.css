@@ -202,31 +202,24 @@
 .mash-button-style {
   text-align: center;
   border-style: none;
-  width: 100%;
+  width: 80%;
+}
+.mash-button-style-chart {
+  text-align: center;
+  width: 80px;
 }
 .label-30 {
   width: 30%;
 }
-.myalign
+.myalign-right
 {
   float:right;
 }
-.mash-button-align-left {
-  /*margin-right: 30px;*/
-  width: 140px;
-}
-.mash-button-style-left {
-  /*margin-left: 100px;*/
-  text-align: center;
-  /*border-style: none;*/
-  width: 100%;
+.myalign-left
+{
+  float:left;
 }
 .input[readonly]{
-  /*background-color:transparent;*/
-  /*border: 0;*/
-  /*font-size: 1em;*/
-  /*border-color: #28a745;*/
-  /*box-shadow: none;*/
   position: relative;
   z-index: 2;
   width: 100%;
@@ -234,4 +227,14 @@
   margin: 0;
   overflow: hidden;
   opacity: 0;
+}
+.chart-buttons {
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+  -ms-flex-align: center;
+  align-items: center;
+  -ms-flex-pack: end;
+  justify-content: flex-end;
 }

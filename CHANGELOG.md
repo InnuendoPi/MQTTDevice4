@@ -1,7 +1,9 @@
 # Changelog
 
-Version 4.36
+Version 4.37
 
+- Optimzed: WebIf for Mobiles
+- Added:    Toast messages
 - Fixed:    AutoTune restart reset values
 - Changed:  Auto start WebUpdate tools after WebUpdate firmware
 - Added:    Backup and restore configuration

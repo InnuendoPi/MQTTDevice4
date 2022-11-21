@@ -86,10 +86,12 @@ void setup()
       pins_used[D5] = true;
       pins_used[D6] = true;
       // pcf8574.selectNone(); // set all PCF8574 pins to low
+      statePCF = true;
     }
     else
     {
       Serial.println("*** SYSINFO: PCF8574 init error");
+      statePCF = false;
       if (startBuzzer)
         sendAlarm(ALARM_ERROR);
     }
@@ -170,6 +172,8 @@ void setupServer()
   server.on("/setActorPWM", handleSetPWM);
   server.on("/reqChart", handleReqChart);
   server.on("/setChart", handleSetChart);
+  server.on("/reqToast", handleRequestToast);
+  
   
   // server.on("/reqGraph", handleReqGraph);
   // FSBrowser initialisieren

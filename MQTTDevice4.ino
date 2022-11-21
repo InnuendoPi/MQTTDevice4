@@ -53,7 +53,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.36a"
+#define Version "4.37"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -72,6 +72,7 @@ DallasTemperature DS18B20(&oneWire);
 PCF8574 pcf020(0x20);
 #define PIN_SDA D5
 #define PIN_SCL D6
+bool statePCF = false;
 
 // WiFi und MQTT
 ESP8266WebServer server(80);
@@ -135,6 +136,8 @@ char mqttpass[maxPassSign];
 int mqttport;
 char mqtt_clientid[maxHostSign]; // AP-Mode und Gerätename
 bool alertState = false;         // WebUpdate Status
+String toastMessage = "";
+bool toastHide = true;
 
 // Zeitserver Einstellungen
 #define NTP_OFFSET 60 * 60                // Offset Winterzeit in Sekunden
