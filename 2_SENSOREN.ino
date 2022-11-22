@@ -1,8 +1,9 @@
 class TemperatureSensor
 {
   int sens_err = 0;
+  // int sens_err_prev = 0;
   bool sens_sw = false;          // Events aktivieren
-  bool sens_state = true;        // Fehlerstatus ensor
+  bool sens_state = true;        // Fehlerstatus ensor  
   bool sens_isConnected;         // ist der Sensor verbunden
   float sens_offset1 = 0.0;      // Offset - Temp kalibrieren
   float sens_offset2 = 0.0;      // Offset - Temp kalibrieren
@@ -30,9 +31,14 @@ public:
     sens_isConnected ? sens_value = DS18B20.getTempC(sens_address) : sens_value = -127.0;
     sensorsStatus = 0;
     sens_state = true;
-
+    
     if (OneWire::crc8(sens_address, 7) != sens_address[7])
     {
+      if (sens_err == 0)
+      {
+        toastMessage = "Sensor " + sens_name + " error: CRC failed";
+        toastHide = TOAST_ERROR;
+      }
       sensorsStatus = EM_CRCER;
       sens_state = false;
     }
@@ -40,11 +46,21 @@ public:
     {
       if (sens_isConnected && sens_address[0] != 0xFF)
       { // Sensor connected AND sensor address exists (not default FF)
+        if (sens_err == 0)
+        {
+          toastMessage = "Sensor " + sens_name + " device error: -127°C";
+          toastHide = TOAST_ERROR;
+        }
         sensorsStatus = EM_DEVER;
         sens_state = false;
       }
       else if (!sens_isConnected && sens_address[0] != 0xFF)
       { // Sensor with valid address not connected
+        if (sens_err == 0)
+        {
+          toastMessage = "Sensor " + sens_name + " error: unplugged";
+          toastHide = TOAST_ERROR;
+        }
         sensorsStatus = EM_UNPL;
         sens_state = false;
       }
@@ -60,6 +76,7 @@ public:
       sens_state = true;
     }
     sens_err = sensorsStatus;
+    // sens_err_prev = sens_err;
     if (!mqttoff && TickerPUBSUB.state() == RUNNING && TickerMQTT.state() != RUNNING)
       publishmqtt();
   } // void Update
@@ -175,7 +192,7 @@ public:
   double getTotalValueDouble()
   {
     // return (double) round((calcOffset()) * 1000) / 1000.0;
-    return (double) calcOffset();
+    return (double)calcOffset();
   }
   char *getTotalValueString()
   {
@@ -186,7 +203,7 @@ public:
   float calcOffset()
   {
     if (sens_value == -127.00)
-      return 0.0;
+      return 0.05;
     if (sens_offset1 == 0.0 && sens_offset2 == 0.0) // keine Kalibrierung
     {
       return sens_value;
@@ -206,9 +223,9 @@ public:
   }
   double upSen2()
   {
-    DS18B20.requestTemperatures();                        // new conversion to get recent temperatures
+    DS18B20.requestTemperatures(); // new conversion to get recent temperatures
     sens_value = DS18B20.getTempC(sens_address);
-    return (double) sens_value;
+    return (double)sens_value;
   }
 };
 
@@ -424,7 +441,7 @@ void sendCurrentTemp()
 {
   if (true)
   {
-  
+
     // String NTPClient::getFormattedTime() const
     // {
     //   unsigned long rawTime = this->getEpochTime();
@@ -439,7 +456,6 @@ void sendCurrentTemp()
 
     //   return hoursStr + ":" + minuteStr + ":" + secondStr;
     // }
-
 
     //   <!-- {'time':'2018-12-12 01:01:01', 'temperature':'20'} -->
     DynamicJsonDocument doc(128);

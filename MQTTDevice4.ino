@@ -53,7 +53,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.37"
+#define Version "4.37a"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -136,9 +136,14 @@ char mqttpass[maxPassSign];
 int mqttport;
 char mqtt_clientid[maxHostSign]; // AP-Mode und Gerätename
 bool alertState = false;         // WebUpdate Status
+// Toast messages
+#define TOAST_INFO 0
+#define TOAST_SUCCESS 1
+#define TOAST_WARNING 2
+#define TOAST_ERROR 3
 String toastMessage = "";
-bool toastHide = true;
-
+byte toastHide = TOAST_INFO; 
+unsigned long toastLast = 0;
 // Zeitserver Einstellungen
 #define NTP_OFFSET 60 * 60                // Offset Winterzeit in Sekunden
 #define NTP_INTERVAL 60 * 60 * 1000       // Aktualisierung NTP in ms

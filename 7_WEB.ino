@@ -804,29 +804,49 @@ void handleReqChart()
 void handleRequestToast()
 {
   DynamicJsonDocument doc(256);
-  if (toastMessage != "")
+  unsigned long now = millis();
+  
+  if ( (now - toastLast) < 5000 && toastMessage != "" )
   {
-    doc["title"] = "Brautomat";
+    if ( toastHide == 0 )
+    {
+      doc["title"] = "Info";
+    }
+    else if ( toastHide == 1 )
+    {
+      doc["title"] = "Success";
+    }
+    else if ( toastHide == 2 )
+    {
+      doc["title"] = "Warning";
+    }
+    else if ( toastHide == 3 )
+    {
+      doc["title"] = "Error";
+    }
+    else
+    {
+      doc["title"] = "Info";
+    }
     doc["time"] = timeClient.getFormattedTime();
     doc["message"] = toastMessage;
     doc["hide"] = toastHide;
-    // String response;
-    // serializeJson(doc, response);
-    // server.send(200, "application/json", response);
-    toastMessage = "";
-    toastHide = true;
   }
   else
   {
-    doc["title"] = "";
-    doc["time"] = "";
-    doc["message"] = "";
-    doc["hide"] = true;
+    doc["message"] = toastMessage;
   }
+  if ((now - toastLast) >= 5000 )
+  {
+    doc["hide"] = -1;
+    toastMessage = "";
+    doc["message"] = toastMessage;
+    toastLast = now;
+  }
+  
   String response;
   serializeJson(doc, response);
   server.send(200, "application/json", response);
-
 }
 
 void handleSetChart()
@@ -848,28 +868,30 @@ void handleBtnPower()
       {
         if (hltAutoTune)
         {
+          toastMessage = "AutoTune HLT started";
+          toastHide = TOAST_INFO;
+
           startHltAutoTune();
           DEBUG_MSG("WEB: PowerButton on hltAutoTune: %d hltSetpoint: %.01f\n", hltAutoTune, hltSetpoint);
           if (startBuzzer)
             sendAlarm(ALARM_ON);
-          
-          toastMessage = "AutoTune HLT started";
-          toastHide = false;
+
         }
         else if (ids2AutoTune)
         {
+          toastMessage = "AutoTune IDS2 started";
+          toastHide = TOAST_INFO;
+
           startAutoTune();
           statePower = true;
           DEBUG_MSG("WEB: PowerButton on ids2AutoTune: %d ids2Setpoint: %.01f\n", ids2AutoTune, ids2Setpoint);
           if (startBuzzer)
             sendAlarm(ALARM_ON);
-          toastMessage = "AutoTune IDS2 started";
-          toastHide = false;
         }
         else
         {
           toastMessage = "Mash process started";
-          toastHide = false;
+          toastHide = TOAST_INFO;
 
           statePower = true;
           actMashStep = 0;
@@ -907,6 +929,8 @@ void handleBtnPower()
       {
         if (hltAutoTune)
         {
+          toastMessage = "Power off AutoTune HLT";
+          toastHide = TOAST_INFO;
           TickerPID.stop();
           hltAutoTune = false;
           kettleHLT.isOn = false;
@@ -920,12 +944,13 @@ void handleBtnPower()
           DEBUG_MSG("WEB: PowerButton off hltAutoTune: %d\n", hltAutoTune);
           if (startBuzzer)
             sendAlarm(ALARM_OFF);
-          
-          // toastMessage = "Power off AutoTune HLT";
-          // toastHide = false;
+
         }
         else if (ids2AutoTune)
         {
+          toastMessage = "Power off AutoTune IDS2";
+          toastHide = TOAST_INFO;
+
           statePower = false;
           ids2AutoTune = false;
           statePause = false;
@@ -942,14 +967,12 @@ void handleBtnPower()
           DEBUG_MSG("WEB: PowerButton off ids2AutoTune: %d\n", ids2AutoTune);
           if (startBuzzer)
             sendAlarm(ALARM_OFF);
-          
-          // toastMessage = "Power off AutoTune IDS2";
-          // toastHide = false;
+
         }
         else
         {
-          // toastMessage = "Power off mash process";
-          // toastHide = false;
+          toastMessage = "Power off mash process";
+          toastHide = TOAST_INFO;
 
           pidMode = false;
           statePower = false;
