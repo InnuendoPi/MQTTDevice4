@@ -26,6 +26,9 @@
 .icon-loop:before {
   content: "\e900";
 }
+.icon-loop2:before {
+  content: "\e900";
+}
 .icon-loop-button:before {
   content: "\e900";
 }
@@ -194,6 +197,13 @@
   margin-right: 30px;
   font-size: 1.5em;
   background-size: 120%;
+}
+.icon-loop2 {
+  color: var(--secondary);
+  margin-right: 5px;
+  margin-left: 5px;
+  font-size: 1.1em;
+  background-size: 100%;
 }
 .mash-button-align {
   margin-right: 30px;
