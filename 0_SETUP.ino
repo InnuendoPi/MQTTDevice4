@@ -129,7 +129,7 @@ void setupServer()
   server.on("/index.html", handleRoot);
   server.on("/mash", HTTP_GET, handleGetMash);
   server.on("/mash.htm", HTTP_GET, handleGetMash);
-  // server.on("/mash.html", HTTP_GET, handleGetMash); 
+  server.on("/mash.html", HTTP_GET, handleGetMash); 
   server.on("/setupActor", handleSetActor);       // Einstellen der Aktoren
   server.on("/setupSensor", handleSetSensor);     // Einstellen der Sensoren
   server.on("/reqSensors", handleRequestSensors); // Liste der Sensoren ausgeben
