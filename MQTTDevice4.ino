@@ -53,7 +53,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.37a"
+#define Version "4.37b"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -361,6 +361,7 @@ const int PIN_BUZZER = D8; // Buzzer
 bool startBuzzer = false;  // Aktiviere Buzzer
 bool mqttBuzzer = false;   // MQTTBuzzer für CBPi4
 bool chartVis = true;
+bool toastVis = true;
 
 void configModeCallback(WiFiManager *myWiFiManager)
 {

@@ -805,50 +805,64 @@ void handleRequestToast()
 {
   DynamicJsonDocument doc(256);
   unsigned long now = millis();
-  
-  if ( (now - toastLast) < 5000 && toastMessage != "" )
+  doc["vis"] = toastVis;
+  if (toastVis)
   {
-    if ( toastHide == 0 )
+    if ((now - toastLast) < 5000 && toastMessage != "")
     {
-      doc["title"] = "Info";
-    }
-    else if ( toastHide == 1 )
-    {
-      doc["title"] = "Success";
-    }
-    else if ( toastHide == 2 )
-    {
-      doc["title"] = "Warning";
-    }
-    else if ( toastHide == 3 )
-    {
-      doc["title"] = "Error";
+      if (toastHide == 0)
+      {
+        doc["title"] = "Info";
+      }
+      else if (toastHide == 1)
+      {
+        doc["title"] = "Success";
+      }
+      else if (toastHide == 2)
+      {
+        doc["title"] = "Warning";
+      }
+      else if (toastHide == 3)
+      {
+        doc["title"] = "Error";
+      }
+      else
+      {
+        doc["title"] = "Info";
+      }
+      doc["time"] = timeClient.getFormattedTime();
+      doc["message"] = toastMessage;
+      doc["hide"] = toastHide;
     }
     else
     {
-      doc["title"] = "Info";
+      doc["message"] = toastMessage;
     }
-    doc["time"] = timeClient.getFormattedTime();
-    doc["message"] = toastMessage;
-    doc["hide"] = toastHide;
+    if ((now - toastLast) >= 5000)
+    {
+      doc["hide"] = -1;
+      toastMessage = "";
+      doc["message"] = toastMessage;
+      toastLast = now;
+    }
   }
   else
-  {
-    doc["message"] = toastMessage;
-  }
-  if ((now - toastLast) >= 5000 )
   {
     doc["hide"] = -1;
     toastMessage = "";
     doc["message"] = toastMessage;
-    toastLast = now;
   }
-  
   String response;
   serializeJson(doc, response);
   server.send(200, "application/json", response);
 }
 
+void handleSetToast()
+{
+  toastVis = !toastVis;
+  saveConfig();
+  server.send(200, "text/plain", "ok");
+}
 void handleSetChart()
 {
   if (server.argName(0) == "vis")
@@ -875,7 +889,6 @@ void handleBtnPower()
           DEBUG_MSG("WEB: PowerButton on hltAutoTune: %d hltSetpoint: %.01f\n", hltAutoTune, hltSetpoint);
           if (startBuzzer)
             sendAlarm(ALARM_ON);
-
         }
         else if (ids2AutoTune)
         {
@@ -944,7 +957,6 @@ void handleBtnPower()
           DEBUG_MSG("WEB: PowerButton off hltAutoTune: %d\n", hltAutoTune);
           if (startBuzzer)
             sendAlarm(ALARM_OFF);
-
         }
         else if (ids2AutoTune)
         {
@@ -967,7 +979,6 @@ void handleBtnPower()
           DEBUG_MSG("WEB: PowerButton off ids2AutoTune: %d\n", ids2AutoTune);
           if (startBuzzer)
             sendAlarm(ALARM_OFF);
-
         }
         else
         {

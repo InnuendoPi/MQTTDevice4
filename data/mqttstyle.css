@@ -62,6 +62,12 @@
 .icon-pencil:before {
   content: "\f040";
 }
+.icon-edit:before {
+  content: "\f044";
+}
+.icon-pencil-square-o:before {
+  content: "\f044";
+}
 .icon-play:before {
   content: "\f04b";
 }

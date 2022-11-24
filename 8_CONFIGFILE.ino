@@ -48,6 +48,7 @@ bool loadConfig()
   DEBUG_MSG("Buzzer: %d mqttBuzzer: %d\n", startBuzzer, mqttBuzzer);
 
   chartVis = miscObj["chart"] | 1;
+  toastVis = miscObj["toast"] | 1;
   useDisplay = miscObj["display"] | 0;
   startPage = miscObj["page"] | 0;
   devBranch = miscObj["devbranch"] | 0;
@@ -395,6 +396,7 @@ bool saveConfig()
     miscObj["mqbuz"] = 0;
     
   miscObj["chart"] = (int)chartVis;
+  miscObj["toast"] = (int)toastVis;
   miscObj["display"] = (int)useDisplay;
   miscObj["page"] = startPage;
   miscObj["devbranch"] = (int)devBranch;

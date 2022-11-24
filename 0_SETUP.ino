@@ -173,7 +173,7 @@ void setupServer()
   server.on("/reqChart", handleReqChart);
   server.on("/setChart", handleSetChart);
   server.on("/reqToast", handleRequestToast);
-  
+  server.on("/setToast", handleSetToast);
   
   // server.on("/reqGraph", handleReqGraph);
   // FSBrowser initialisieren
