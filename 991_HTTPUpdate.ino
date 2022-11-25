@@ -204,6 +204,7 @@ void updateSys()
 void startToolsUpdate()
 {
     server.send(200, "text/plain", "ok");
+    millis2wait(1000);
     fsUploadFile = LittleFS.open("/updateTools.txt", "w");
     if (!fsUploadFile)
     {
@@ -239,12 +240,14 @@ void startToolsUpdate()
     }
     Serial.println("*** WebUpdate tools reboot");
     LittleFS.end(); // unmount LittleFS
+    millis2wait(1000);
     ESP.restart();
 }
 
 void startHTTPUpdate()
 {
     server.send(200, "text/plain", "ok");
+    millis2wait(1000);
     fsUploadFile = LittleFS.open("/updateSys.txt", "w");
     if (!fsUploadFile)
     {
@@ -279,6 +282,7 @@ void startHTTPUpdate()
     }
     Serial.println("*** WebUpdate firmware reboot");
     LittleFS.end();
+    millis2wait(1000);
     ESP.restart();
 }
 
