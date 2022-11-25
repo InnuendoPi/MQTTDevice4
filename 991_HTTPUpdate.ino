@@ -207,11 +207,12 @@ void startToolsUpdate()
     fsUploadFile = LittleFS.open("/updateTools.txt", "w");
     if (!fsUploadFile)
     {
-        Serial.println("*** Error WebUpdate create file (LittleFS)");
+        Serial.println("*** Error WebUpdate tools create file (LittleFS)");
         return;
     }
     else
     {
+        Serial.println("*** WebUpdate tools create file (LittleFS)");
         uint8_t bytesWritten = fsUploadFile.print(0);
         fsUploadFile.close();
     }
@@ -221,11 +222,12 @@ void startToolsUpdate()
         fsUploadFile = LittleFS.open("/dev.txt", "w");
         if (!fsUploadFile)
         {
-            Serial.println("*** Error WebUpdate create file (LittleFS)");
+            Serial.println("*** Error WebUpdate tools dev create file (LittleFS)");
             return;
         }
         else
         {
+            Serial.println("*** WebUpdate tools dev create file (LittleFS)");
             uint8_t bytesWritten = fsUploadFile.print("0");
             fsUploadFile.close();
         }
@@ -235,6 +237,7 @@ void startToolsUpdate()
         bool check = LittleFS.remove("/dev.txt");
         // url = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/";
     }
+    Serial.println("*** WebUpdate tools reboot");
     LittleFS.end(); // unmount LittleFS
     ESP.restart();
 }
@@ -245,11 +248,12 @@ void startHTTPUpdate()
     fsUploadFile = LittleFS.open("/updateSys.txt", "w");
     if (!fsUploadFile)
     {
-        Serial.println("*** Error WebUpdate create file (LittleFS)");
+        Serial.println("*** Error WebUpdate firmware create file (LittleFS)");
         return;
     }
     else
     {
+        Serial.println("*** WebUpdate firmware create file (LittleFS)");
         int bytesWritten = fsUploadFile.print("0");
         fsUploadFile.close();
     }
@@ -258,11 +262,12 @@ void startHTTPUpdate()
         fsUploadFile = LittleFS.open("/dev.txt", "w");
         if (!fsUploadFile)
         {
-            Serial.println("*** Error WebUpdate create file (LittleFS)");
+            Serial.println("*** Error WebUpdate firmware dev create file (LittleFS)");
             return;
         }
         else
         {
+            Serial.println("*** WebUpdate firmware dev create file (LittleFS)");
             int bytesWritten = fsUploadFile.print("0");
             fsUploadFile.close();
         }
@@ -272,6 +277,7 @@ void startHTTPUpdate()
         if (LittleFS.exists("/dev.txt"))
             bool check = LittleFS.remove("/dev.txt");
     }
+    Serial.println("*** WebUpdate firmware reboot");
     LittleFS.end();
     ESP.restart();
 }
