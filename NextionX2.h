@@ -224,8 +224,9 @@ class NextionComPort
 {
 
 public:
-	int currentPageID;
-	int lastPageID;
+	int currentPageID = 0;
+	int lastPageID = 0;
+	int errCount = 0;
 
 	/**
 	 * @brief Construct a new Nex Comm object
@@ -555,27 +556,30 @@ void NextionComPort::command(const char *cmd)
 	// 	}
 }
 
+// https://wiki.iteadstudio.com/Nextion_Instruction_Set#Format_of_Device_Return_Data
+// sendme -> sendet event 0x66
+// printh 23 00 ff ff ff
+// printh 66 00 ff ff ff
+
 void NextionComPort::update()
 {
 	componentId_t component;
 	length = readNextionReturn();
-
-	if ((length > 0) && (debugSerial != nullptr)) dbgLoop();
-	if ((length == 4) && (inputString[0] == 0x65))	// Touch event 0x65 + ID Seite + ID Komponente + Event ( 1 = press 0 = release) ) + Terminierung 0xff
+	if ((length > 0) && (debugSerial != nullptr))
+		dbgLoop();
+	if ((length == 4) && (inputString[0] == 0x65))
 	{
-		// Serial.printf("NEX touch event input1 %x input2 %x input3 %x len %d\n", inputString[1], inputString[2], inputString[3], length);
-
 		component.page = inputString[1];
 		component.object = inputString[2];
 		uint8_t listpos = indexByGuid(component.guid);
 		if (listpos < MAX_LIST_LENGTH)
 			lastList[listpos].component->callback(inputString[3]);
 	}
-	else if ( inputString[0] == 0x23 ) // Preinit Seite 0x23 + Seiten ID + 0x00
+	else if ( (length == 2) && ((inputString[0] == 0x23) || (inputString[0] == 0x24)) ) // printh 0x24 pageID FF FF FF
 	{
 		lastPageID = currentPageID;
 		currentPageID = inputString[1];
-		// Serial.printf("NEX currentPageID %d lastPageID %d input1 %x len %d\n", currentPageID, lastPageID, inputString[1], length);
+		// Serial.printf("NEX input0 %x currentPageID %x lastPageID %d len %d\n", inputString[0], inputString[1], lastPageID, length );
 	}
 }
 
@@ -597,7 +601,7 @@ void NextionComPort::dbgLoop()
 	if ((length == 1) && ((inputString[0] < 0x25) || (inputString[0] > 0x85)))
 	{
 		if (inputString[0] == 1)
-		{ 
+		{
 			// debugSerial->write("Success\n");
 		}
 		else if (inputString[0] < 0x25)
@@ -613,14 +617,7 @@ void NextionComPort::dbgLoop()
 			debugSerial->println();
 		}
 	}
-	else if (inputString[0] == 0x23)
-	{
-		debugSerial->write("Preinit page command ");
-		debugSerial->println(inputString[0], HEX);
-		debugSerial->write("new page ID ");
-		debugSerial->println(inputString[1], HEX);
-	}
-	else if ((length == 4) && (inputString[0] == 0x65))
+	else if ((length == 4) && (inputString[0] == 0x65)) // 0x65 touch event
 	{
 		if (inputString[3] == 1)
 			debugSerial->write("Touch");
@@ -632,6 +629,11 @@ void NextionComPort::dbgLoop()
 		debugSerial->println(inputString[2], DEC);
 		debugSerial->println();
 	}
+	else if ((length == 2) && (inputString[0] == 0x24)) // 0x24 preinit page event
+	{
+		debugSerial->write(" currentPageID ");
+		debugSerial->println(inputString[1], DEC);
+	}
 }
 
 uint8_t NextionComPort::readNextionReturn()
@@ -640,7 +642,8 @@ uint8_t NextionComPort::readNextionReturn()
 	while (nextionSerial->available() && counterFF < 3)
 	{
 		uint8_t inputByte = nextionSerial->read();
-		inputString[inputPointer++] = inputByte;
+		inputString[inputPointer] = inputByte;
+		inputPointer++;
 		if (inputByte == 255)
 			counterFF++;
 		else
