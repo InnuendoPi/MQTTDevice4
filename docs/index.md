@@ -603,7 +603,7 @@ The following components are required:
 | 4 | Jumper 2,54 | (eg voelkner S655251) |
 | 1 | Resistor 4,7kOhm | (eg voelkner S620751) |
 | 1 | D1 mini NodeMcu ESP8266-12E | (eg amazon ASIN B01N9RXGHY) |
-| 1 | LevelShifter 8 Channel 5V 3.3V | (eg amazon ASIN B01MZ76GN5) |
+| 1 | LevelShifter 8 Channel 5V 3.3V | (eg amazon ASIN B07HC5PB58) |
 
 *amazon and voelkner are purely informative as a search aid*
 *to be understood by well-known providers (in germany)*
