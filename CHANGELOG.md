@@ -1,7 +1,12 @@
 # Changelog
 
-Version 4.37
+Version 4.40
 
+- Fixed:    MQTT reconnect
+- Fixed:    MQTT connection state
+- Fixed:    IP address length
+- Removed:  mode brew without CBPi (mqttoff)
+- Update:   ESP8266 Arduino 3.1.0
 - Optimzed: WebIf for Mobiles
 - Added:    Toast messages
 - Fixed:    AutoTune restart reset values

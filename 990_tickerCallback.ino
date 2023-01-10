@@ -25,154 +25,28 @@ void tickerDispCallback()
   else
     sprintf_P(ipMQTT, (PGM_P)F("http://%s"), WiFi.localIP().toString().c_str());
 
-  activePage = nextion.currentPageID;
+  activePage = nextion.getCurrentPageID();
   switch (activePage)
   {
-  case 0: // BrewPage
-    if (mqttoff)
-    {
-      // DEBUG_MSG("Ticker: dispCallback BrewPage activePage: %d\n", activePage);
-      currentStepName_text.attribute("txt", structPlan[actMashStep].name.c_str());
-      currentStepRemain_text.attribute("txt", calcRemaining().c_str());
-      if (actMashStep < maxActMashSteps)
-      {
-        nextStepRemain_text.attribute("txt", String(structPlan[actMashStep + 1].duration).c_str());
-        nextStepName_text.attribute("txt", structPlan[actMashStep + 1].name.c_str());
-      }
-      else
-      {
-        nextStepRemain_text.attribute("txt", "");
-        nextStepName_text.attribute("txt", "");
-      }
-      if (inductionStatus)
-      {
-        kettleName1_text.attribute("txt", "GGM IDS2");
-        if (ids2Setpoint > 0)
-          kettleSoll1_text.attribute("txt", String(int(ids2Setpoint * 10) / 10.0).c_str());
-        else
-          kettleSoll1_text.attribute("txt", String(int(structPlan[actMashStep].temp * 10) / 10.0).c_str());
+  case 0:            // BrewPage
+    if (!activeBrew) // aktiver Step vorhanden?
+      strlcpy(currentStepName, "BrewPage", maxStepSign);
 
-        // kettleIst1_text.attribute("txt", String(int(ids2Input * 10) / 10.0).c_str());
-        kettleIst1_text.attribute("txt", sensors[0].getTotalValueString());
-        if (hltStatus)
-        {
-          kettleName2_text.attribute("txt", "HLT sparge");
-          kettleSoll2_text.attribute("txt", String(int(hltSetpoint * 10) / 10.0).c_str());
-          kettleIst2_text.attribute("txt", sensors[kettleHLT.senid].getTotalValueString()); // String(int(hltInput * 10) / 10.0).c_str());
-        }
-      }
-      else if (hltStatus)
-      {
-        kettleName1_text.attribute("txt", "HLT sparge");
-        kettleSoll1_text.attribute("txt", String(int(hltSetpoint * 10) / 10.0).c_str());
-        kettleIst1_text.attribute("txt", sensors[kettleHLT.senid].getTotalValueString()); // String(int(hltInput * 10) / 10.0).c_str());
-      }
+    uhrzeit_text.attribute("txt", uhrzeit);
+    mqttDevice.attribute("txt", ipMQTT);
 
-      uhrzeit_text.attribute("txt", uhrzeit);
-      mqttDevice.attribute("txt", ipMQTT);
-      int sliderval = 100;
-      if (TickerMash.state() == RUNNING)
-        sliderval = TickerMash.remaining() / 1000 * 100 / structPlan[actMashStep].duration;
-
-      progress.value(sliderval);
-    }
-    else
-    {
-      if (!activeBrew) // aktiver Step vorhanden?
-        strlcpy(currentStepName, "BrewPage", maxStepSign);
-
-      uhrzeit_text.attribute("txt", uhrzeit);
-      mqttDevice.attribute("txt", ipMQTT);
-
-      BrewPage();
-    }
+    BrewPage();
     break;
-  case 1: // KettlePage
-    if (mqttoff)
-    {
-      char buf[5];
-      sprintf(buf, "%s", "0.0");
+  case 1:            // KettlePage
+    if (!activeBrew) // aktiver Step vorhanden?
+      strlcpy(currentStepName, sensors[0].getName().c_str(), maxStepSign);
 
-      // DEBUG_MSG("Ticker: dispCallback KettlePage activePage: %d\n", activePage);
-      if (inductionStatus)
-      {
-        // p1temp_text.attribute("txt", String(int(ids2Input * 10) / 10.0).c_str());
-        p1temp_text.attribute("txt", sensors[0].getTotalValueString());
-        if (ids2AutoTune)
-        {
-          dtostrf(ids2Setpoint, 2, 1, buf);
-          p1target_text.attribute("txt", buf);
-          // p1target_text.attribute("txt", String(int(ids2Setpoint)).c_str());
-        }
-        else
-        {
-          dtostrf(structPlan[actMashStep].temp, 2, 1, buf);
-          p1target_text.attribute("txt", buf);
-          // p1target_text.attribute("txt", String(int(structPlan[actMashStep].temp * 100) / 100.0).c_str());
-        }
+    strlcpy(structKettles[0].current_temp, sensors[0].getTotalValueString(), maxTempSign);
 
-        // p1current_text.attribute("txt", structPlan[actMashStep].name.c_str());
-        // p1remain_text.attribute("txt", calcRemaining().c_str());
-        // p1mqttDevice.attribute("txt", ipMQTT);
-        // p1uhrzeit_text.attribute("txt", uhrzeit);
+    p1mqttDevice.attribute("txt", ipMQTT);
+    p1uhrzeit_text.attribute("txt", uhrzeit);
 
-        // unsigned long allSeconds = TickerMash.remaining() / 1000;
-        // int secsRemaining = allSeconds % 3600;
-
-        // int sliderval = 100;
-        // if (TickerMash.state() == RUNNING)
-        //   p1slider.value(secsRemaining * 100 / structPlan[actMashStep].duration / 60);
-        // else
-        //   p1slider.value(100);
-      }
-      else if (hltStatus)
-      {
-        p1temp_text.attribute("txt", sensors[kettleHLT.senid].getTotalValueString());
-        dtostrf(hltSetpoint, 2, 1, buf);
-        p1target_text.attribute("txt", buf);
-        // p1target_text.attribute("txt", String(int(hltSetpoint)).c_str());
-      }
-
-      if (ids2AutoTune)
-      {
-        p1current_text.attribute("txt", "AutoTune IDS2");
-        p1remain_text.attribute("txt", "");
-      }
-      else if (hltAutoTune)
-      {
-        p1current_text.attribute("txt", "AutoTune HLT");
-        p1remain_text.attribute("txt", "");
-      }
-      else
-      {
-        p1current_text.attribute("txt", structPlan[actMashStep].name.c_str());
-        p1remain_text.attribute("txt", calcRemaining().c_str());
-      }
-      p1mqttDevice.attribute("txt", ipMQTT);
-      p1uhrzeit_text.attribute("txt", uhrzeit);
-
-      unsigned long allSeconds = TickerMash.remaining() / 1000;
-      int secsRemaining = allSeconds % 3600;
-
-      int sliderval = 100;
-      if (TickerMash.state() == RUNNING)
-        sliderval = secsRemaining * 100 / structPlan[actMashStep].duration / 60;
-
-      p1progress.value(sliderval);
-      break;
-    }
-    else
-    {
-      if (!activeBrew) // aktiver Step vorhanden?
-        strlcpy(currentStepName, sensors[0].getName().c_str(), maxStepSign);
-
-      strlcpy(structKettles[0].current_temp, sensors[0].getTotalValueString(), maxTempSign);
-
-      p1mqttDevice.attribute("txt", ipMQTT);
-      p1uhrzeit_text.attribute("txt", uhrzeit);
-
-      KettlePage();
-    }
+    KettlePage();
     break;
   case 2: // Induction mode
     // DEBUG_MSG("Ticker: dispCallback InductionPage activePage: %d\n", activePage);
@@ -302,15 +176,9 @@ void tickerIndCallback() // Timer Objekt Sensoren
 {
   handleInduction();
 }
-void tickerHltCallback() // Timer Objekt Sensoren
-{
-  handleHLT();
-}
 
 void tickerPUBSUBCallback() // Timer Objekt Sensoren
 {
-  if (TickerMQTT.state() != RUNNING)
-  {
     if (pubsubClient.connected())
     {
       mqtt_state = true;
@@ -319,62 +187,24 @@ void tickerPUBSUBCallback() // Timer Objekt Sensoren
         TickerMQTT.stop();
       return;
     }
-    if (!pubsubClient.connected()) // if (!pubsubClient.connected())
+    else
     {
       if (TickerMQTT.state() != RUNNING)
       {
-        // DEBUG_MSG("%s\n", "Ticker PubSub Error: TickerMQTT started");
-        // DEBUG_MSG("Ticker PubSub error rc=%d \n", pubsubClient.state());
-        // mqtt_state = false;
-        TickerMQTT.resume();
+        DEBUG_MSG("%s\n", "Ticker PubSub Error: TickerMQTT started");
+        DEBUG_MSG("Ticker PubSub error rc=%d \n", pubsubClient.state());
+        mqtt_state = false;
+        TickerMQTT.start();
         mqttconnectlasttry = millis();
       }
       TickerMQTT.update();
     }
-  }
-  else
-    TickerMQTT.update();
 }
 
 void tickerNTPCallback() // Ticker helper function calling Event WLAN Error
 {
   timeClient.update();
   Serial.printf("*** SYSINFO: %s\n", timeClient.getFormattedTime().c_str());
-}
-
-void tickerMashCallback() // Ticker helper function calling Event WLAN Error
-{
-  handleMash();
-}
-void tickerPIDCallback()
-{
-  if (ids2AutoTune)
-  {
-    runAutoTune();
-    return;
-  }
-  if (hltAutoTune)
-  {
-    runHltAutoTune();
-    return;
-  }
-  if (TickerHlt.state() == RUNNING)
-  {
-    hltInput = sensors[kettleHLT.senid].getTotalValueDouble();
-    hltPID.Compute();
-    kettleHLT.newPower(int(hltOutput));
-  }
-  if (pidMode)
-  {
-    ids2Input = sensors[0].getTotalValueDouble();
-    ids2PID.Compute();
-    inductionCooker.inductionNewPower(int(ids2Output));
-    // Serial.printf("Ticker: ids2Input %.03f\tdiff: %.03f\tids2Output: %.03f\n", ids2Input, (ids2Input-ids2Setpoint), ids2Output);
-    if (TickerMash.state() != RUNNING && TickerMash.state() != PAUSED)
-    {
-      checkTemp(); // check piddelta
-    }
-  }
 }
 
 void tickerMQTTCallback() // Ticker helper function calling Event MQTT Error

@@ -39,3 +39,6 @@ board_settings.jpg
 InnuAPID.cpp
 InnuAPID.h
 MQTTDevice.h
+*.hintrc
+*.alt
+

@@ -6,13 +6,6 @@ MQTTDevice4 is an Arduino sketch for the ESP8266 Wemos D1 mini modules. MQTTDevi
 
 ![Startseite](img/startseite.jpg)
 
-*NEW*
-Brewing without CraftbeerPi as simpel as possible.
-
-![mash](img/Mashplan_2.jpg)
-
-An easy but reliable PID based mash controller without the hassle of setting up, configuring and updating a raspberrypi for CBPi4.
-
 **What does this firmware offer?**
 
 * A configuration web interface (WebIf)
@@ -31,7 +24,6 @@ An easy but reliable PID based mash controller without the hassle of setting up,
 * Update firmware and LittleFS via file upload
 * Event handling
 * File explorer
-* Brew without CraftbeerPi4 (standalone) *NEW*
 
 This project was started in the hobbybrauer forum and serves the exchange of information.
 Forum: <https://hobbybrauer.de/forum/viewtopic.php?f=58&t=23509>
@@ -190,10 +182,6 @@ The firmware offers two options for installing updates very easily.
 
 The WebUpdate can take a few minutes, depending on your internet connection. The web interface is not available during the web update. If only a very slow internet connection is available, the message "Browser not responding" is displayed after approx. 60 seconds. Please wait and let the WebUpdate run through.
 
-WebUpdate Changed
-
-Version 4.30 and up WebUpdate is divided into firmware and tools update. In most cases only firmware update is needed. CSS, fonts and js files are updated via tools.
-
 **Backup and Restore:**
 
 The file explorer can be reached via the web browser <http://mqttdevice/edit>
@@ -293,9 +281,6 @@ Sensor setting
     On this page you have to enter IP address, Port and credentials of your MQTT broker. In most cases, this is likely to be mosquitto on the CBPi. The default port is 1883.
     Important: the firmware MQTTDevice tries constantly to establish a connection with the MQTT broker. If the MQTT broker is not available, this will severely affect the speed of the MQTT device (web interface).
 
-    New configuration parameter: Disable MQTT (brew without CBPi4)
-    If enabled MQTT communication is disabled. Disabled MQTT is requiered for brewing without CBPi4.
-
 3. Event manager
 
     The event manager handles events and misconduct. Handling of malfunctions (event handling) is deactivated in the standard setting!
@@ -329,161 +314,6 @@ Sensor setting
     * Agitator actor event handling is disabled
 
     This easy example prevents the mash kettle from uncontrolled heating, when MQTT connection drops or DS18B20 sensor suddenly reports device unplugged.
-
-4. PIDmanager
-
-    PID controller configuration page. For best results autoTune should find optimale PID values Kp, Ki and Kd.
-    Run Autotune with a normale average amount of water in your kettle. The value AutoTune setpoint is a target temperature. AutoTune setpoint should be minimum 10 better 20 degrees above actual water temperature in your kettle. If done enable chekcbox "Start PID autotune now". Switch to webpage mash and press the power button. Autotune takes approx 60min. PID values are saved automatically.
-
-    ![misc](img/pidmanager.jpg)
-
-    Temperature delta to target is a defined gap beetween measured temperature and mash step target temperature. Within this gap next mash step will start. The main taks of this parameter is to shorten the delay due to PID calculations in the last tenth of degrees before reaching target (slope of the temperature graph flats down).
-    Example:
-    Target temperature: 64°C
-    Temperature delta to target: 0.3
-    Mash step will be started, when measured temperature reaches 63.7°C
-
-    Treshold temperature: When this temperature is reached, power will be set to to Treshold power output. Default treshold is 98°C and corresponding output 100%. These two values can be used for boiling. If temperature is 98°C or above treshold power output defines the maximum output. For example 100% output means PID controller will not reduce output. Another example is a small kettle environment. Set Treshold temperature to 40°C and treshold power output to 80%. IDS2 will operate with a maximum of 80% power above 40°C.
-
-    Serveral predefined values are profided on the PID manager page. Beside standard tunings rules like Ziegler-Nichols two tuning rules for brewing are offered: BREWING_20L and BREWING_50L. Take one of these rules as a staring point to find best individual PID values.
-    Copy starting values from predefined rule into INDIVIDUAL_PID rule.
-
-    Lookback and noiseBand are very important for a successful AutoTune. If AutoTune fails try increasing lookback to 60 [values between 30 and 100] and/or noieeBand to 0.5
-
-    Enable DEBUG and rerun AutoTune. Open FileManager and check the log file. Identify the lines "New peak". AutoTune needs at least 5 new peaks, starting with a Maximum (greater than Setpoint), followed by a Minimum (lower than Setpoint) followed by a Maximum and so on. If you identify two or more new peaks in a row, which are all maximum or minimum, increase lookback and/or noiseBand like described above. Also check sampleTime.
-
-    AutoTune needs more than 5 peaks, if final convergence` criterion check has failed. In this case Webif will show "in progress 6/5" or even more (than required 5).
-
-    AutoTune log file example: 36l kettle with 20l water
-
-```cpp
-    08:36:06	PID AutoTune started
-    *** SYSINFO:  WLAN RSSI: -77 free heap: 16352 Firmware: 4.36
-    *** AutoTune: noiseBand: 0.200 SampleTime: 5000 Lookback: 75 Temperature: 30.196 Setpoint: 40.000
-    6min16sec: 	peakCount: 0	refVal: 39.063	peak type: 1	isMin: 0	isMax: 1
-    0min5sec: 	peakCount: 0	refVal: 39.189	peak type: 1	isMin: 0	isMax: 1
-    0min5sec: 	peakCount: 0	refVal: 39.316	peak type: 1	isMin: 0	isMax: 1
-    0min4sec: 	peakCount: 0	refVal: 39.443	peak type: 1	isMin: 0	isMax: 1
-    0min5sec: 	peakCount: 0	refVal: 39.696	peak type: 1	isMin: 0	isMax: 1
-    0min5sec: 	peakCount: 0	refVal: 39.823	peak type: 1	isMin: 0	isMax: 1
-    0min5sec: 	peakCount: 0	refVal: 39.949	peak type: 1	isMin: 0	isMax: 1
-    0min5sec: 	peakCount: 0	refVal: 40.076	peak type: 1	isMin: 0	isMax: 1
-    0min4sec: 	changed:   state from RELAY_STEP_UP to RELAY_STEP_DOWN at temp: 40.203
-    0min0sec: 	peakCount: 0	refVal: 40.203	peak type: 1	isMin: 0	isMax: 1
-    0min4sec: 	peakCount: 0	refVal: 40.329	peak type: 1	isMin: 0	isMax: 1
-    0min5sec: 	peakCount: 0	refVal: 40.456	peak type: 1	isMin: 0	isMax: 1
-    0min5sec: 	peakCount: 0	refVal: 40.583	peak type: 1	isMin: 0	isMax: 1
-    0min5sec: 	peakCount: 0	refVal: 40.709	peak type: 1	isMin: 0	isMax: 1
-    0min5sec: 	peakCount: 0	refVal: 40.836	peak type: 1	isMin: 0	isMax: 1
-    0min5sec: 	peakCount: 0	refVal: 40.963	peak type: 1	isMin: 0	isMax: 1
-    0min4sec: 	peakCount: 0	refVal: 41.089	peak type: 1	isMin: 0	isMax: 1
-    0min4sec: 	peakCount: 0	refVal: 41.216	peak type: 1	isMin: 0	isMax: 1
-    0min5sec: 	peakCount: 0	refVal: 41.343	peak type: 1	isMin: 0	isMax: 1
-    0min5sec: 	peakCount: 0	refVal: 41.469	peak type: 1	isMin: 0	isMax: 1
-    3min58sec: 	new peak:  1    peak:   41.469
-    0min0sec: 	peakCount: 1	refVal: 41.216	peak type: -1	isMin: 1	isMax: 0
-    0min5sec: 	peakCount: 1	refVal: 41.089	peak type: -1	isMin: 1	isMax: 0
-    0min5sec: 	peakCount: 1	refVal: 40.963	peak type: -1	isMin: 1	isMax: 0
-    0min5sec: 	peakCount: 1	refVal: 40.836	peak type: -1	isMin: 1	isMax: 0
-    0min5sec: 	peakCount: 1	refVal: 40.709	peak type: -1	isMin: 1	isMax: 0
-    0min5sec: 	peakCount: 1	refVal: 40.583	peak type: -1	isMin: 1	isMax: 0
-    0min5sec: 	peakCount: 1	refVal: 40.456	peak type: -1	isMin: 1	isMax: 0
-    0min5sec: 	peakCount: 1	refVal: 40.329	peak type: -1	isMin: 1	isMax: 0
-    0min5sec: 	peakCount: 1	refVal: 40.203	peak type: -1	isMin: 1	isMax: 0
-    0min5sec: 	peakCount: 1	refVal: 40.076	peak type: -1	isMin: 1	isMax: 0
-    0min5sec: 	peakCount: 1	refVal: 39.949	peak type: -1	isMin: 1	isMax: 0
-    0min5sec: 	peakCount: 1	refVal: 39.823	peak type: -1	isMin: 1	isMax: 0
-    0min5sec: 	changed:   state from RELAY_STEP_DOWN to RELAY_STEP_UP at temp: 39.696
-    0min0sec: 	peakCount: 1	refVal: 39.696	peak type: -1	isMin: 1	isMax: 0
-    0min44sec: 	new peak:  2    peak: 39.696
-    0min0sec: 	peakCount: 2	refVal: 39.949	peak type: 1	isMin: 0	isMax: 1
-    0min5sec: 	peakCount: 2	refVal: 40.076	peak type: 1	isMin: 0	isMax: 1
-    0min4sec: 	changed:   state from RELAY_STEP_UP to RELAY_STEP_DOWN at temp: 40.203
-    0min0sec: 	peakCount: 2	refVal: 40.203	peak type: 1	isMin: 0	isMax: 1
-    0min4sec: 	peakCount: 2	refVal: 40.329	peak type: 1	isMin: 0	isMax: 1
-    0min6sec: 	peakCount: 2	refVal: 40.456	peak type: 1	isMin: 0	isMax: 1
-    0min5sec: 	peakCount: 2	refVal: 40.583	peak type: 1	isMin: 0	isMax: 1
-    0min5sec: 	peakCount: 2	refVal: 40.709	peak type: 1	isMin: 0	isMax: 1
-    0min5sec: 	peakCount: 2	refVal: 40.836	peak type: 1	isMin: 0	isMax: 1
-    0min5sec: 	peakCount: 2	refVal: 40.963	peak type: 1	isMin: 0	isMax: 1
-    0min15sec: 	peakCount: 2	refVal: 41.089	peak type: 1	isMin: 0	isMax: 1
-    2min10sec: 	new peak:  3	peak: 41.089
-    0min0sec: 	peakCount: 3	refVal: 40.836	peak type: -1	isMin: 1	isMax: 0
-    0min5sec: 	peakCount: 3	refVal: 40.709	peak type: -1	isMin: 1	isMax: 0
-    0min5sec: 	peakCount: 3	refVal: 40.583	peak type: -1	isMin: 1	isMax: 0
-    0min5sec: 	peakCount: 3	refVal: 40.456	peak type: -1	isMin: 1	isMax: 0
-    0min5sec: 	peakCount: 3	refVal: 40.329	peak type: -1	isMin: 1	isMax: 0
-    0min4sec: 	peakCount: 3	refVal: 40.203	peak type: -1	isMin: 1	isMax: 0
-    0min5sec: 	peakCount: 3	refVal: 40.076	peak type: -1	isMin: 1	isMax: 0
-    0min5sec: 	peakCount: 3	refVal: 39.949	peak type: -1	isMin: 1	isMax: 0
-    0min5sec: 	peakCount: 3	refVal: 39.823	peak type: -1	isMin: 1	isMax: 0
-    0min5sec: 	changed:   state from RELAY_STEP_DOWN to RELAY_STEP_UP at temp: 39.696
-    0min4sec: 	peakCount: 3	refVal: 39.696	peak type: -1	isMin: 1	isMax: 0
-    0min20sec: 	new peak:  4    peak: 39.696
-    0min0sec: 	peakCount: 4	refVal: 39.949	peak type: 1	isMin: 0	isMax: 1
-    0min5sec: 	peakCount: 4	refVal: 40.076	peak type: 1	isMin: 0	isMax: 1
-    0min4sec: 	changed:   state from RELAY_STEP_UP to RELAY_STEP_DOWN at temp: 40.203
-    0min0sec: 	peakCount: 4	refVal: 40.203	peak type: 1	isMin: 0	isMax: 1
-    0min4sec: 	peakCount: 4	refVal: 40.329	peak type: 1	isMin: 0	isMax: 1
-    0min5sec: 	peakCount: 4	refVal: 40.456	peak type: 1	isMin: 0	isMax: 1
-    0min7sec: 	peakCount: 4	refVal: 40.583	peak type: 1	isMin: 0	isMax: 1
-    0min5sec: 	peakCount: 4	refVal: 40.709	peak type: 1	isMin: 0	isMax: 1
-    0min4sec: 	peakCount: 4	refVal: 40.836	peak type: 1	isMin: 0	isMax: 1
-    0min5sec: 	peakCount: 4	refVal: 40.963	peak type: 1	isMin: 0	isMax: 1
-    0min10sec: 	peakCount: 4	refVal: 41.089	peak type: 1	isMin: 0	isMax: 1
-    1min31sec: 	new peak:  5	peak: 41.089
-    0min0sec: 	peakCount: 5	refVal: 40.963	peak type: -1	isMin: 1	isMax: 0
-    0min0sec: 	convergence criterion ok: 0.00/0.05 - amplitude: 0.697 absMin: 39.696 absMax: 41.089
-    0min0sec: 	Peaks:	1: 41.089	2: 39.696	3: 41.089	4: 39.696
-    0min0sec: 	Time: 	1: 6033392	2: 5664286	3: 3779556	4: 3426414
-    0min0sec: 	Ultimate gain Ku:	182.762144
-    0min0sec: 	Ultimate period Pu:	2245.854000
-    09:10:03	PID AutoTune finished
-```
-
----
-
-## Brewing without CBPi
-
-Brewing without CraftbeerPi as simpel as possible. This modes requires disabled MQTT (misc settings)
-
-![mash](img/Mashplan_2.jpg)
-
-Main features of this half automatic mash control are:
-
-* Import recipes from kbh2, MMum and MQTTDevice files
-* Export mash scheme to file download
-
-Table mash scheme:
-
-* column name: mash step name
-* column temperature: define the mash step target temprature
-* column duratiuon: define the mash step timer
-* column autonext: define start next mash step automatically when timer ends
-* edit mash scheme in a table. Each line is a mash step
-* column actions: add, edit or delete a mash step eg. a line
-* column actions: move a mash step up or down
-
-Buttons:
-
-* Power: On / Off brewing
-* Play: starts the timer regardless the gap between measured and target temperature
-* Play: will change to red, when autonext is disabled. While waiting on click GGM IDS2 turns off.
-* Pause: will change to red, when mash step is paused. While pausing actual temperature is kept.
-* Skip forward: skip to next mash step
-
-Hot liquid tank
-
-Version 4.31 an up a new object HLT was implemented. HLT or sparge water can be configured like an actor plus PID control settings. Use autotune to get best results. On webpage mash HLT is displayed in a single row table behind. Use the edit pencil to set target temperature.
-
-actors:
-Configured actors are listed with a simple on/off button.
-
-There are some limitations in brew without CBPi mode:
-
-1. the first configured sensor is reserved for the mash tune (no config options yet)
-2. the second configured sensor should be used for HLT (config option availible)
-3. In an environment without a mash tune the first sensor can be used for HLT
 
 ---
 

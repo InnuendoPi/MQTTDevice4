@@ -4,8 +4,8 @@
 #include "Arduino.h"
 
 #define MAX_BUFFER_LENGTH 14
-#define MAX_LIST_LENGTH 24
-#define ATTRIBUTE_TEXT_LENGTH 90
+#define MAX_LIST_LENGTH 24 // number of objects which can be handled
+#define ATTRIBUTE_TEXT_LENGTH 90 // 50
 #define ATTRIBUTE_TEXT_LENGTH_X 64
 #define ATTRIBUTE_NUM_LENGTH 32
 #define ATTRIBUTE_NUM_LENGTH_X 48
@@ -224,9 +224,6 @@ class NextionComPort
 {
 
 public:
-	int currentPageID = 0;
-	int lastPageID = 0;
-	int errCount = 0;
 
 	/**
 	 * @brief Construct a new Nex Comm object
@@ -271,6 +268,18 @@ public:
 	 * @param color
 	 */
 	void cls(uint16_t color);
+
+	/**
+	 * @brief return currentPage
+	 *
+	 */
+	uint8_t getCurrentPageID();
+
+	/**
+	 * @brief return lastPage
+	 *
+	 */
+	uint8_t getLastPageID();
 
 	/**
 	 * @brief draw a line
@@ -392,6 +401,9 @@ private:
 	uint8_t counterFF = 0;
 	uint8_t lastPointer = 0;
 	listElement_t lastList[MAX_LIST_LENGTH];
+	uint8_t currentPageID = 0;
+	uint8_t lastPageID = 0;
+
 
 	friend NextionComponent;
 };
@@ -575,12 +587,23 @@ void NextionComPort::update()
 		if (listpos < MAX_LIST_LENGTH)
 			lastList[listpos].component->callback(inputString[3]);
 	}
-	else if ( (length == 2) && ((inputString[0] == 0x23) || (inputString[0] == 0x24)) ) // printh 0x24 pageID FF FF FF
+	// else if ( (length == 2) && ((inputString[0] == 0x23) || (inputString[0] == 0x24)) ) // printh 0x24 pageID FF FF FF
+	else if ( (length == 2) && (inputString[0] == 0x66) ) // printh 0x66 pageID FF FF FF
 	{
 		lastPageID = currentPageID;
 		currentPageID = inputString[1];
 		// Serial.printf("NEX input0 %x currentPageID %x lastPageID %d len %d\n", inputString[0], inputString[1], lastPageID, length );
 	}
+}
+
+uint8_t NextionComPort::getCurrentPageID()
+{
+	return currentPageID;
+}
+
+uint8_t NextionComPort::getLastPageID()
+{
+	return lastPageID;
 }
 
 void NextionComPort::addComponentList(NextionComponent *component)
@@ -629,7 +652,7 @@ void NextionComPort::dbgLoop()
 		debugSerial->println(inputString[2], DEC);
 		debugSerial->println();
 	}
-	else if ((length == 2) && (inputString[0] == 0x24)) // 0x24 preinit page event
+	else if ((length == 2) && (inputString[0] == 0x66)) // 0x66 preinit page event
 	{
 		debugSerial->write(" currentPageID ");
 		debugSerial->println(inputString[1], DEC);

@@ -15,7 +15,7 @@ void setup()
   wifiManager.setConfigPortalTimeout(300);
   wifiManager.setAPCallback(configModeCallback);
   wifiManager.setSaveConfigCallback(saveConfigCallback);
-  WiFiManagerParameter p_hint("<small>*Conect your MQTTDevice to WLAN. When connected open http://mqttdevice in your brower</small>");
+  WiFiManagerParameter p_hint("<small>*Connect your MQTTDevice to WLAN. When connected open http://mqttdevice in your brower</small>");
   wifiManager.addParameter(&p_hint);
   wifiManager.autoConnect(mqtt_clientid);
   WiFi.setSleepMode(WIFI_NONE_SLEEP);
@@ -32,7 +32,7 @@ void setup()
     // Prüfe WebUpdate
     updateSys();
     updateTools();
-    
+
     // Erstelle Ticker Objekte
     setTicker();
     // Starte NTP
@@ -40,9 +40,6 @@ void setup()
     timeClient.forceUpdate();
     checkSummerTime();
     TickerNTP.start();
-
-    // if (shouldSaveConfig) // WiFiManager
-    //   saveConfig();
 
     if (LittleFS.exists("/config.txt")) // Lade Konfiguration
       loadConfig();
@@ -111,14 +108,10 @@ void setup()
     Serial.printf("*** SYSINFO: ESP8266 IP address: %s Time: %s RSSI: %d\n", WiFi.localIP().toString().c_str(), timeClient.getFormattedTime().c_str(), WiFi.RSSI());
   }
 
-  // Starte MQTT
-  if (!mqttoff)
-  {
-    EM_MQTTCON();
-    EM_MQTTSUB();
-    TickerPUBSUB.start(); // PubSubClient loop ticker
-  }
-  EM_LOG(); // webUpdate log
+  EM_MQTTCON();
+  EM_MQTTSUB();
+  TickerPUBSUB.start(); // PubSubClient loop ticker
+  EM_LOG();             // webUpdate log
 }
 
 void setupServer()
@@ -127,55 +120,28 @@ void setupServer()
   server.on("/index.htm", handleRoot);
   server.on("/index", handleRoot);
   server.on("/index.html", handleRoot);
-  server.on("/mash", HTTP_GET, handleGetMash);
-  server.on("/mash.htm", HTTP_GET, handleGetMash);
-  server.on("/mash.html", HTTP_GET, handleGetMash); 
   server.on("/setupActor", handleSetActor);       // Einstellen der Aktoren
   server.on("/setupSensor", handleSetSensor);     // Einstellen der Sensoren
   server.on("/reqSensors", handleRequestSensors); // Liste der Sensoren ausgeben
   server.on("/reqActors", handleRequestActors);   // Liste der Aktoren ausgeben
   server.on("/reqInduction", handleRequestInduction);
-  server.on("/reqRules", handleRequestRules);
-  server.on("/reqHltRules", handleRequestHltRules);
-  server.on("/setRule", handleSetRule);
   server.on("/reqSearchSensorAdresses", handleRequestSensorAddresses);
-  server.on("/reqPins", handlereqPins);             // GPIO Pins actors
-  server.on("/reqPages", handleRequestPages);       // Display page
-  server.on("/reqIndu", handleRequestIndu);         // Induction für WebConfig
-  server.on("/reqHLT", handleReqHlt);               // HLT
-  server.on("/reqHLT2", handleReqHlt2);             // HLT
-  server.on("/reqHLTPIN", handleReqHltPin);         // HLT
-  server.on("/setHLT", handleSetHLT);               // HLT
-  server.on("/setSensor", handleSetSensor);         // Sensor ändern
-  server.on("/setActor", handleSetActor);           // Aktor ändern
-  server.on("/setIndu", handleSetIndu);             // Indu ändern
-  server.on("/delSensor", handleDelSensor);         // Sensor löschen
-  server.on("/delActor", handleDelActor);           // Aktor löschen
-  server.on("/reboot", rebootDevice);               // reboots the whole Device
-  server.on("/reqMisc2", handleRequestMisc2);       // Misc Infos für WebConfig
-  server.on("/reqMisc3", handleRequestMisc3);       // Misc Infos für WebConfig
+  server.on("/reqPins", handlereqPins);       // GPIO Pins actors
+  server.on("/reqPages", handleRequestPages); // Display page
+  server.on("/reqIndu", handleRequestIndu);   // Induction für WebConfig
+  server.on("/setSensor", handleSetSensor);   // Sensor ändern
+  server.on("/setActor", handleSetActor);     // Aktor ändern
+  server.on("/setIndu", handleSetIndu);       // Indu ändern
+  server.on("/delSensor", handleDelSensor);   // Sensor löschen
+  server.on("/delActor", handleDelActor);     // Aktor löschen
+  server.on("/reboot", rebootDevice);         // reboots the whole Device
+  server.on("/reqMisc2", handleRequestMisc2); // Misc Infos für WebConfig
   server.on("/reqMisc", handleRequestMisc);         // Misc Infos für WebConfig
   server.on("/reqFirm", handleRequestFirm);         // Firmware version
   server.on("/setMisc", handleSetMisc);             // Misc ändern
   server.on("/startHTTPUpdate", startHTTPUpdate);   // Firmware WebUpdate
   server.on("/startToolsUpdate", startToolsUpdate); // Firmware WebUpdate
-  server.on("/hltPower", handleHltPower);
-  server.on("/hltSetpoint", handleHltSetpoint);
-  server.on("/reqMash", handleRequestMash);
-  server.on("/setMash", handleSetMash);
-  server.on("/reqStep", handleRequestStep);
-  server.on("/Btn-Power", handleBtnPower);
-  server.on("/Btn-Pause", handleBtnPause);
-  server.on("/Btn-Play", handleBtnPlay);
-  server.on("/Btn-Next-Step", handleBtnNextStep);
-  server.on("/actorPower", handleActorPower);
-  server.on("/setActorPWM", handleSetPWM);
-  server.on("/reqChart", handleReqChart);
-  server.on("/setChart", handleSetChart);
-  server.on("/reqToast", handleRequestToast);
-  server.on("/setToast", handleSetToast);
-  
-  // server.on("/reqGraph", handleReqGraph);
+
   // FSBrowser initialisieren
   server.on("/edit", HTTP_GET, handleGetEdit);
   server.on("/status", HTTP_GET, handleStatus);
@@ -186,10 +152,6 @@ void setupServer()
       "/edit", HTTP_POST, []()
       { server.send(200, "text/plain", ""); },
       handleFileUpload);
-  server.on(
-      "/upload", HTTP_POST, []()
-      { server.send(200, "text/plain", ""); },
-      handleRezeptUp);
   server.on(
       "/restore", HTTP_POST, []()
       { server.send(200, "text/plain", ""); },

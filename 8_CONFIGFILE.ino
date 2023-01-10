@@ -47,8 +47,6 @@ bool loadConfig()
     mqttBuzzer = false;
   DEBUG_MSG("Buzzer: %d mqttBuzzer: %d\n", startBuzzer, mqttBuzzer);
 
-  chartVis = miscObj["chart"] | 1;
-  toastVis = miscObj["toast"] | 1;
   useDisplay = miscObj["display"] | 0;
   startPage = miscObj["page"] | 0;
   devBranch = miscObj["devbranch"] | 0;
@@ -63,9 +61,7 @@ bool loadConfig()
   strlcpy(mqttuser, miscObj["MQTTUSER"] | "", maxUserSign);
   strlcpy(mqttpass, miscObj["MQTTPASS"] | "", maxPassSign);
   mqttport = miscObj["MQTTPORT"] | 1883;
-  mqttoff = miscObj["MQTTOFF"] | 0;
-  if (!mqttoff)
-    DEBUG_MSG("MQTT server IP: %s Port: %d User: %s Pass: %s Off: %d\n", mqtthost, mqttport, mqttuser, mqttpass, mqttoff);
+  DEBUG_MSG("MQTT server IP: %s Port: %d User: %s Pass: %s\n", mqtthost, mqttport, mqttuser, mqttpass);
 
   if (useI2C)
     numberOfPins = ALLPINS;
@@ -132,65 +128,6 @@ bool loadConfig()
   }
   DEBUG_MSG("%s\n", "--------------------");
 
-  // read HLT
-  JsonArray hltArray = doc["hlt"];
-  JsonObject hltObj = hltArray[0];
-  kettleHLT.isEnabled = hltObj["ENABLED"] | 0;
-  hltStatus = kettleHLT.isEnabled;
-  if (hltStatus)
-  {
-    kettleHLT.change(hltStatus, hltObj["PIN"] | "", hltObj["INV"] | 0, hltObj["SENID"] | 1);
-    DEBUG_MSG("HLT: %d PIN: %s invert GPIO: %d SenID: %d\n", hltStatus, hltObj["PIN"].as<const char *>(), hltObj["INV"].as<int>(), hltObj["SENID"].as<int>());
-  }
-  else
-  {
-    DEBUG_MSG("HLT: %d\n", hltStatus);
-  }
-  kettleHLT.hltKp = hltObj["kp"] | 0.0;
-  kettleHLT.hltKi = hltObj["ki"] | 0.0;
-  kettleHLT.hltKd = hltObj["kd"] | 0.0;
-  kettleHLT.hltKu = hltObj["ku"] | 0.0;
-  kettleHLT.hltPu = hltObj["pu"] | 0.0;
-  kettleHLT.hltRule = hltObj["rule"] | INDIVIDUAL_PID;
-  kettleHLT.lasthltKp = kettleHLT.hltKp;
-  kettleHLT.lasthltKi = kettleHLT.hltKi;
-  kettleHLT.lasthltKd = kettleHLT.hltKd;
-  kettleHLT.hltNoise = hltObj["no"] | 0.5;
-  kettleHLT.hltSample = hltObj["sa"] | 5000;
-  kettleHLT.hltLookback = hltObj["lb"] | 50;
-  kettleHLT.hltDebug = hltObj["db"] | 0;
-  hltSetpoint = hltObj["SETP"] | 78.0;
-  DEBUG_MSG("PID HLT: Kp %.06f Ki %.06f Kd %.06f Setpoint %.01f\n", kettleHLT.hltKp, kettleHLT.hltKi, kettleHLT.hltKd, hltSetpoint);
-  DEBUG_MSG("%s\n", "--------------------");
-
-  // PID stuff
-  JsonArray pidArray = doc["pid"];
-  JsonObject pidObj = pidArray[0];
-
-  inductionCooker.ids2Kp = pidObj["kp"] | 0.0;
-  inductionCooker.ids2Ki = pidObj["ki"] | 0.0;
-  inductionCooker.ids2Kd = pidObj["kd"] | 0.0;
-  inductionCooker.ids2Ku = pidObj["ku"] | 0.0;
-  inductionCooker.ids2Pu = pidObj["pu"] | 0.0;
-
-  inductionCooker.lastids2Kp = inductionCooker.ids2Kp;
-  inductionCooker.lastids2Ki = inductionCooker.ids2Ki;
-  inductionCooker.lastids2Kd = inductionCooker.ids2Kd;
-
-  inductionCooker.ids2Treshold = pidObj["tres"] | 98;
-  inductionCooker.ids2NewOut = pidObj["newo"] | 100;
-  inductionCooker.ids2Noise = pidObj["no"] | 0.2;
-  inductionCooker.ids2Sample = pidObj["sa"] | 5000;
-  inductionCooker.ids2Lookback = pidObj["lb"] | 75;
-  inductionCooker.ids2Debug = pidObj["db"] | 0;
-  inductionCooker.ids2Rule = pidObj["rule"] | INDIVIDUAL_PID;
-  inductionCooker.pidDelta = pidObj["piddelta"] | 0.3;
-
-  DEBUG_MSG("PID IDS2: Kp: %.06f Ki: %.06f Kd: %.06f piddelta: %.01f\n", inductionCooker.ids2Kp, inductionCooker.ids2Ki, inductionCooker.ids2Kd, inductionCooker.pidDelta);
-
-  if (inductionCooker.ids2Rule > 0) // calc PIDs
-    calcPID(2);
-
   DEBUG_MSG("%s\n", "------ loadConfig finished ------");
 
   configFile.close();
@@ -203,9 +140,6 @@ bool loadConfig()
   if (inductionStatus > 0) // Induktion
     TickerInd.start();
 
-  if (hltStatus > 0) // Ticker HLT
-    TickerHlt.start();
-
   DEBUG_MSG("Config file size %d\n", size);
   size_t len = measureJson(doc);
   DEBUG_MSG("JSON config length: %d\n", len);
@@ -217,9 +151,6 @@ bool loadConfig()
     numberOfPins = ALLPINS;
   else
     numberOfPins = GPIOPINS;
-
-  if (LittleFS.exists("/mashplan.json")) // Lade Maischeplan
-    readMash();
 
   if (startBuzzer)
   {
@@ -303,79 +234,6 @@ bool saveConfig()
   }
 
   DEBUG_MSG("%s\n", "--------------------");
-
-  // Write PID Stuff
-  JsonArray pidArray = doc.createNestedArray("pid");
-  JsonObject pidObj = pidArray.createNestedObject();
-
-  pidObj["ku"] = inductionCooker.ids2Ku;
-  pidObj["pu"] = inductionCooker.ids2Pu;
-  pidObj["rule"] = inductionCooker.ids2Rule;
-  if (inductionCooker.ids2Rule == 0) // INDIVIDUAL_PID: save Kp, Ki, Kd
-  {
-    pidObj["kp"] = inductionCooker.ids2Kp;
-    pidObj["ki"] = inductionCooker.ids2Ki;
-    pidObj["kd"] = inductionCooker.ids2Kd;
-  }
-  else // all other rule: save INDIVIDUAL_PID Kp, Ki, Kd
-  {
-    pidObj["kp"] = inductionCooker.lastids2Kp;
-    pidObj["ki"] = inductionCooker.lastids2Ki;
-    pidObj["kd"] = inductionCooker.lastids2Kd;
-  }
-  pidObj["tres"] = inductionCooker.ids2Treshold;
-  pidObj["newo"] = inductionCooker.ids2NewOut;
-  pidObj["piddelta"] = (int(inductionCooker.pidDelta * 100)) / 100.0;
-  pidObj["no"] = (int(inductionCooker.ids2Noise * 1000)) / 1000.0;
-  pidObj["sa"] = inductionCooker.ids2Sample;
-  pidObj["lb"] = inductionCooker.ids2Lookback;
-  pidObj["db"] = (int)inductionCooker.ids2Debug;
-
-  DEBUG_MSG("PID IDS2: Kp: %.06f Ki: %.06f Kd: %.06f pidDelta: %.01f ids2AutoTune: %d Setpoint: %.01f\n", inductionCooker.ids2Kp, inductionCooker.ids2Ki, inductionCooker.ids2Kd, inductionCooker.pidDelta, ids2AutoTune, inductionCooker.ids2Setpoint);
-  DEBUG_MSG("%s\n", "--------------------");
-
-  // Write HLT
-  JsonArray hltArray = doc.createNestedArray("hlt");
-  JsonObject hltObj = hltArray.createNestedObject();
-  hltObj["ENABLED"] = (int)kettleHLT.isEnabled;
-
-  if (kettleHLT.isEnabled)
-  {
-    hltStatus = 1;
-    hltObj["PIN"] = PinToString(kettleHLT.pin_hlt);
-    hltObj["INV"] = (int)kettleHLT.isInverted;
-    hltObj["SENID"] = kettleHLT.senid;
-    hltObj["SETP"] = int(hltSetpoint);
-    hltObj["ku"] = kettleHLT.hltKu;
-    hltObj["pu"] = kettleHLT.hltPu;
-    hltObj["rule"] = kettleHLT.hltRule;
-    if (kettleHLT.hltRule == INDIVIDUAL_PID)
-    {
-      hltObj["kp"] = kettleHLT.hltKp;
-      hltObj["ki"] = kettleHLT.hltKi;
-      hltObj["kd"] = kettleHLT.hltKd;
-    }
-    else
-    {
-      hltObj["kp"] = kettleHLT.lasthltKp;
-      hltObj["ki"] = kettleHLT.lasthltKi;
-      hltObj["kd"] = kettleHLT.lasthltKd;
-    }
-    hltObj["no"] = (int(kettleHLT.hltNoise * 1000)) / 1000.0;
-    hltObj["sa"] = kettleHLT.hltSample;
-    hltObj["lb"] = kettleHLT.hltLookback;
-    hltObj["db"] = (int)kettleHLT.hltDebug;
-
-    DEBUG_MSG("HLT: %d PIN: %s Invert: %d SenID: %d\n", kettleHLT.isEnabled, PinToString(kettleHLT.pin_hlt).c_str(), kettleHLT.isInverted, kettleHLT.senid);
-  }
-  else
-  {
-    hltStatus = 0;
-    DEBUG_MSG("HLT: %d\n", kettleHLT.isEnabled);
-  }
-  DEBUG_MSG("PID HLT: Kp: %.06f Ki: %.06f Kd: %.06f hltAutoTune: %d Setpoint: %.01f\n", kettleHLT.hltKp, kettleHLT.hltKi, kettleHLT.hltKd, hltAutoTune, hltSetpoint);
-  DEBUG_MSG("%s\n", "--------------------");
-
   // Write Misc Stuff
   JsonArray miscArray = doc.createNestedArray("misc");
   JsonObject miscObj = miscArray.createNestedObject();
@@ -394,9 +252,7 @@ bool saveConfig()
     miscObj["mqbuz"] = (int)mqttBuzzer;
   else
     miscObj["mqbuz"] = 0;
-    
-  miscObj["chart"] = (int)chartVis;
-  miscObj["toast"] = (int)toastVis;
+
   miscObj["display"] = (int)useDisplay;
   miscObj["page"] = startPage;
   miscObj["devbranch"] = (int)devBranch;
@@ -410,10 +266,9 @@ bool saveConfig()
   miscObj["MQTTPORT"] = mqttport;
   miscObj["MQTTUSER"] = mqttuser;
   miscObj["MQTTPASS"] = mqttpass;
-  miscObj["MQTTOFF"] = (int)mqttoff;
   miscObj["VER"] = Version;
 
-  DEBUG_MSG("MQTT broker IP: %s Port: %d User: %s Pass: %s Off: %d\n", mqtthost, mqttport, mqttuser, mqttpass, mqttoff);
+  DEBUG_MSG("MQTT broker IP: %s Port: %d User: %s Pass: %s\n", mqtthost, mqttport, mqttuser, mqttpass);
   DEBUG_MSG("%s\n", "--------------------");
 
   // size_t len = measureJson(doc);
@@ -469,11 +324,6 @@ bool saveConfig()
   else
     TickerInd.stop();
 
-  if (hltStatus > 0) // Ticker HLT
-    TickerHlt.start();
-  else
-    TickerHlt.stop();
-
   if (!useDisplay) // Ticker Display
     TickerDisp.stop();
   else
@@ -492,17 +342,7 @@ bool saveConfig()
     }
   }
 
-  if (mqttoff)
-  {
-    if (TickerPUBSUB.state() == RUNNING)
-      TickerPUBSUB.stop();
-    if (TickerMQTT.state() == RUNNING)
-      TickerMQTT.stop();
-  }
-  else
-  {
-    TickerPUBSUB.start();
-  }
+  TickerPUBSUB.start();
 
   String Network = WiFi.SSID();
   DEBUG_MSG("ESP8266 device IP Address: %s\n", WiFi.localIP().toString().c_str());

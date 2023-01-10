@@ -1,9 +1,8 @@
 class TemperatureSensor
 {
   int sens_err = 0;
-  // int sens_err_prev = 0;
   bool sens_sw = false;          // Events aktivieren
-  bool sens_state = true;        // Fehlerstatus ensor  
+  bool sens_state = true;        // Fehlerstatus ensor
   bool sens_isConnected;         // ist der Sensor verbunden
   float sens_offset1 = 0.0;      // Offset - Temp kalibrieren
   float sens_offset2 = 0.0;      // Offset - Temp kalibrieren
@@ -31,14 +30,9 @@ public:
     sens_isConnected ? sens_value = DS18B20.getTempC(sens_address) : sens_value = -127.0;
     sensorsStatus = 0;
     sens_state = true;
-    
+
     if (OneWire::crc8(sens_address, 7) != sens_address[7])
     {
-      if (sens_err == 0)
-      {
-        toastMessage = "Sensor " + sens_name + " error: CRC failed";
-        toastHide = TOAST_ERROR;
-      }
       sensorsStatus = EM_CRCER;
       sens_state = false;
     }
@@ -46,21 +40,11 @@ public:
     {
       if (sens_isConnected && sens_address[0] != 0xFF)
       { // Sensor connected AND sensor address exists (not default FF)
-        if (sens_err == 0)
-        {
-          toastMessage = "Sensor " + sens_name + " device error: -127°C";
-          toastHide = TOAST_ERROR;
-        }
         sensorsStatus = EM_DEVER;
         sens_state = false;
       }
       else if (!sens_isConnected && sens_address[0] != 0xFF)
       { // Sensor with valid address not connected
-        if (sens_err == 0)
-        {
-          toastMessage = "Sensor " + sens_name + " error: unplugged";
-          toastHide = TOAST_ERROR;
-        }
         sensorsStatus = EM_UNPL;
         sens_state = false;
       }
@@ -76,8 +60,7 @@ public:
       sens_state = true;
     }
     sens_err = sensorsStatus;
-    // sens_err_prev = sens_err;
-    if (!mqttoff && TickerPUBSUB.state() == RUNNING && TickerMQTT.state() != RUNNING)
+    if (TickerPUBSUB.state() == RUNNING && TickerMQTT.state() != RUNNING)
       publishmqtt();
   } // void Update
 
@@ -178,10 +161,9 @@ public:
     return sens_id;
   }
 
-  char buf[5];
+  char buf[8];
   char *getValueString()
   {
-    // char buf[5];
     dtostrf(sens_value, 2, 1, buf);
     return buf;
   }
@@ -220,6 +202,7 @@ public:
     {
       return sens_value + sens_offset1;
     }
+    return sens_value;
   }
   double upSen2()
   {
@@ -429,45 +412,9 @@ void handleRequestSensors()
     doc["sw"] = sensors[id].getSw();
     doc["script"] = sensors[id].getTopic();
     doc["cbpiid"] = sensors[id].getId();
-    // doc["value"] = sensors[id].getTotalValueString();
   }
 
   String response;
   serializeJson(doc, response);
   server.send(200, "application/json", response);
-}
-
-void sendCurrentTemp()
-{
-  if (true)
-  {
-
-    // String NTPClient::getFormattedTime() const
-    // {
-    //   unsigned long rawTime = this->getEpochTime();
-    //   unsigned short hours = (rawTime % 86400L) / 3600;
-    //   String hoursStr = hours < 10 ? "0" + String(hours) : String(hours);
-
-    //   unsigned short minutes = (rawTime % 3600) / 60;
-    //   String minuteStr = minutes < 10 ? "0" + String(minutes) : String(minutes);
-
-    //   unsigned short seconds = rawTime % 60;
-    //   String secondStr = seconds < 10 ? "0" + String(seconds) : String(seconds);
-
-    //   return hoursStr + ":" + minuteStr + ":" + secondStr;
-    // }
-
-    //   <!-- {'time':'2018-12-12 01:01:01', 'temperature':'20'} -->
-    DynamicJsonDocument doc(128);
-    // doc["time"] = timeClient.getFormattedTime();
-    doc["temperature"] = sensors[0].getTotalValueString();
-    doc["target"] = int(ids2Setpoint);
-    // doc["temperature"] = String(sensors[0].getTotalValueString());
-
-    String response;
-    serializeJson(doc, response);
-    server.send(200, "application/json", response);
-  }
-  else
-    server.send(500, "application/json", "");
 }

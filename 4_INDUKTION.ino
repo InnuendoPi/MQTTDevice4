@@ -2,19 +2,35 @@ class induction
 {
   unsigned long timeTurnedoff;
 
-  // long timeOutCommand = 5000;  // TimeOut für Seriellen Befehl
-  // long timeOutReaction = 2000; // TimeOut für Induktionskochfeld
   unsigned long lastInterrupt;
   unsigned long lastCommand;
   bool inputStarted = false;
   unsigned char inputCurrent = 0;
   unsigned char inputBuffer[33];
-  // bool isError = false;
   unsigned char error = 0;
   long powerSampletime = 20000;
   unsigned long powerLast;
   long powerHigh = powerSampletime; // Dauer des "HIGH"-Anteils im Schaltzyklus
   long powerLow = 0;
+  // Induktion Signallaufzeiten
+  const int SIGNAL_HIGH = 5120;
+  const int SIGNAL_HIGH_TOL = 1500;
+  const int SIGNAL_LOW = 1280;
+  const int SIGNAL_LOW_TOL = 500;
+  const int SIGNAL_START = 25;
+  const int SIGNAL_START_TOL = 10;
+  const int SIGNAL_WAIT = 10;
+  const int SIGNAL_WAIT_TOL = 5;
+
+  /*  Binäre Signale für Induktionsplatte */
+  int CMD[6][33] = {
+      {1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0},  // Aus
+      {1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0},  // P1
+      {1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0},  // P2
+      {1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0},  // P3
+      {1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0},  // P4
+      {1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0}}; // P5
+  unsigned char PWR_STEPS[6] = {0, 20, 40, 60, 80, 100};
 
 public:
   unsigned char PIN_WHITE = 13;     // D7 Relay white
@@ -31,13 +47,6 @@ public:
   int powerLevelOnError = 100;   // 100% schaltet das Event handling für Induktion aus
   int powerLevelBeforeError = 0; // in error event save last power state
   bool induction_state = true;   // Error state induction
-  double ids2Kp = 0, ids2Ki = 0, ids2Kd = 0, ids2Ku = 0.0, ids2Pu = 0.0;
-  double lastids2Kp = 0, lastids2Ki = 0, lastids2Kd = 0, pidDelta;
-  uint8_t ids2NewOut, ids2Treshold, ids2Rule = INDIVIDUAL_PID;
-  bool ids2Debug = false;
-  byte ids2Lookback = 75;
-  double ids2Noise = 0.2;
-  unsigned long ids2Sample = 5000;
 
   induction()
   {
@@ -188,18 +197,6 @@ public:
     return PIN_INTERRUPT;
   }
 
-  // void handleInductionPage(int value)
-  // {
-  //   if (value > 0)
-  //   {
-  //     newPower = value;
-  //   }
-  //   else
-  //   {
-  //     newPower = 0;
-  //   }
-  // }
-  
   void setupCommands()
   {
     for (int i = 0; i < 33; i++)
@@ -293,13 +290,13 @@ public:
       sendCommand(CMD[0]);
     }
   }
-  
+
   void inductionNewPower(int value)
   {
     newPower = min(100, value);
     newPower = max(0, newPower);
   }
-  
+
   void updatePower()
   {
     if (power != newPower) // Neuer Befehl empfangen
@@ -312,7 +309,7 @@ public:
 
       newPower = min(100, newPower);
       power = max(0, newPower);
-     
+
       timeTurnedoff = 0;
       isInduon = true;
       if (power == 0)
@@ -490,21 +487,6 @@ void handleRequestInduction()
   DynamicJsonDocument doc(386);
   doc["enabled"] = inductionCooker.isEnabled;
   doc["power"] = 0;
-  doc["autotune"] = ids2AutoTune;
-  doc["setpoint"] = int(ids2Setpoint);
-  doc["kp"] = inductionCooker.ids2Kp;
-  doc["ki"] = inductionCooker.ids2Ki;
-  doc["kd"] = inductionCooker.ids2Kd;
-  doc["ku"] = inductionCooker.ids2Ku;
-  doc["pu"] = inductionCooker.ids2Pu;
-  doc["tres"] = inductionCooker.ids2Treshold;
-  doc["newo"] = inductionCooker.ids2NewOut;
-  doc["rule"] = inductionCooker.ids2Rule;
-  doc["piddelta"] = inductionCooker.pidDelta;
-  doc["noise"] = inductionCooker.ids2Noise;
-  doc["lookback"] = inductionCooker.ids2Lookback;
-  doc["sample"] = inductionCooker.ids2Sample;
-  doc["debug"] = inductionCooker.ids2Debug;
   if (inductionCooker.isEnabled)
   {
     doc["relayOn"] = inductionCooker.isRelayon;
@@ -582,7 +564,6 @@ void handleSetIndu()
   unsigned char pin_white = inductionCooker.PIN_WHITE;
   unsigned char pin_blue = inductionCooker.PIN_INTERRUPT;
   unsigned char pin_yellow = inductionCooker.PIN_YELLOW;
-  // long delayoff = inductionCooker.delayAfteroff;
   bool is_enabled = inductionCooker.isEnabled;
   String topic = inductionCooker.mqtttopic;
   int pl = inductionCooker.powerLevelOnError;
@@ -616,77 +597,6 @@ void handleSetIndu()
       else
         pl = 100;
     }
-    if (server.argName(i) == "autotune")
-    {
-      ids2AutoTune = checkBool(server.arg(i));
-    }
-    if (server.argName(i) == "setpoint")
-    {
-      if (isValidDigit(server.arg(i)))
-      {
-        ids2Setpoint = server.arg(i).toInt();
-      }
-    }
-    if (server.argName(i) == "kp")
-    {
-      inductionCooker.ids2Kp = formatDOT(server.arg(i));
-    }
-    if (server.argName(i) == "ki")
-    {
-      inductionCooker.ids2Ki = formatDOT(server.arg(i));
-    }
-    if (server.argName(i) == "kd")
-    {
-      inductionCooker.ids2Kd = formatDOT(server.arg(i));
-    }
-    if (server.argName(i) == "ku")
-    {
-      inductionCooker.ids2Ku = formatDOT(server.arg(i));
-    }
-    if (server.argName(i) == "pu")
-    {
-      inductionCooker.ids2Pu = formatDOT(server.arg(i));
-    }
-    if (server.argName(i) == "rule")
-    {
-      int val = StringToRule(server.arg(i));
-      if (val == -1 || val > numberOfRules)
-        inductionCooker.ids2Rule = INDIVIDUAL_PID;
-      else
-        inductionCooker.ids2Rule = val;
-    }
-    if (server.argName(i) == "piddelta")
-    {
-      inductionCooker.pidDelta = formatDOT(server.arg(i));
-    }
-    if (server.argName(i) == "newo")
-    {
-      if (isValidInt(server.arg(i)))
-        inductionCooker.ids2NewOut = server.arg(i).toInt();
-    }
-    if (server.argName(i) == "tres")
-    {
-      if (isValidInt(server.arg(i)))
-        inductionCooker.ids2Treshold = server.arg(i).toInt();
-    }
-    if (server.argName(i) == "noise")
-    {
-      inductionCooker.ids2Noise = formatDOT(server.arg(i));
-    }
-    if (server.argName(i) == "sample")
-    {
-      if (isValidDigit(server.arg(i)))
-        inductionCooker.ids2Sample = server.arg(i).toInt();
-    }
-    if (server.argName(i) == "lookback")
-    {
-      if (isValidInt(server.arg(i)))
-        inductionCooker.ids2Lookback = server.arg(i).toInt();
-    }
-    if (server.argName(i) == "debug")
-    {
-      inductionCooker.ids2Debug = checkBool(server.arg(i));
-    }
     yield();
   }
 
@@ -694,40 +604,3 @@ void handleSetIndu()
   saveConfig();
   server.send(200, "text/plain", "ok");
 }
-
-void handleRequestRules()
-{
-  int id = server.arg(0).toInt();
-  String message;
-  message += F("<option>");
-  message += rules_names[inductionCooker.ids2Rule];
-  message += F("</option><option disabled>──────────</option>");
-
-  for (int i = 0; i < numberOfRules; i++)
-  {
-    if (i != inductionCooker.ids2Rule)
-    {
-      message += F("<option>");
-      message += rules_names[i];
-      message += F("</option>");
-    }
-  }
-  server.send(200, "text/plain", message);
-}
-
-// void indERR()
-// {
-//   if (inductionCooker.isInduon && inductionCooker.powerLevelOnError < 100 && inductionCooker.induction_state) // powerlevelonerror == 100 -> kein event handling
-//   {
-//     inductionCooker.powerLevelBeforeError = inductionCooker.power;
-//     DEBUG_MSG("IND ERR: Induktion powerlevel: %d reduce power to: %d\n", inductionCooker.power, inductionCooker.powerLevelOnError);
-//     if (inductionCooker.powerLevelOnError == 0)
-//       inductionCooker.isInduon = false;
-//     else
-//       inductionCooker.newPower = inductionCooker.powerLevelOnError;
-
-//     inductionCooker.newPower = inductionCooker.powerLevelOnError;
-//     inductionCooker.induction_state = false;
-//     inductionCooker.Update();
-//   }
-// }

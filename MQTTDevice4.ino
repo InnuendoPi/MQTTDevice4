@@ -17,7 +17,8 @@
 #include <ESP8266HTTPUpdateServer.h>
 #include <WiFiManager.h> // WiFiManager zur Einrichtung
 #include <DNSServer.h>   // Benötigt für WiFiManager
-#include "LittleFS.h"    // Dateisystem
+#include <LittleFS.h>    // Dateisystem
+#include <FS.h>          // Files
 #include <ArduinoJson.h> // Lesen und schreiben von JSON Dateien
 #include <ESP8266mDNS.h> // mDNS
 #include <WiFiUdp.h>     // WiFi
@@ -26,18 +27,14 @@
 #include <WiFiClientSecure.h>
 #include <WiFiClientSecureBearSSL.h>
 #include <NTPClient.h>        // Uhrzeit
-#include "InnuTicker.h"       // Bibliothek für Hintergrund Aufgaben (Tasks)
 #include <PubSubClient.h>     // MQTT Kommunikation
 #include <CertStoreBearSSL.h> // WebUpdate
 #include <SoftwareSerial.h>   // Serieller Port für Display
-#include "MQTTDevice.h"
+#include <PCF8574.h>          // I2C IO Modul PCF8574
+#include "InnuTicker.h"       // Bibliothek für Hintergrund Aufgaben (Tasks)
 #include "NextionX2.h"        // Display Nextion
 #include "index_htm.h"
 #include "edit_htm.h"
-#include "mash_htm.h"
-#include <FS.h>       // Files
-#include "InnuAPID.h"
-#include <PCF8574.h> // I2C IO Modul PCF8574
 
 extern "C"
 {
@@ -53,13 +50,13 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.38"
+#define Version "4.40"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
 #define PAUSE2SEC 2000
 #define PAUSEDS18 750
-#define RESOLUTION 11  // 11 bits : 1/8 = 0.125 °C steps
+#define RESOLUTION 11 // 11 bits : 1/8 = 0.125 °C steps
 #define TEMP_OFFSET1 40
 #define TEMP_OFFSET2 78
 
@@ -82,26 +79,7 @@ PubSubClient pubsubClient(espClient);
 ESP8266HTTPUpdateServer httpUpdate;
 MDNSResponder mdns;
 
-// Induktion Signallaufzeiten
-const int SIGNAL_HIGH = 5120;
-const int SIGNAL_HIGH_TOL = 1500;
-const int SIGNAL_LOW = 1280;
-const int SIGNAL_LOW_TOL = 500;
-const int SIGNAL_START = 25;
-const int SIGNAL_START_TOL = 10;
-const int SIGNAL_WAIT = 10;
-const int SIGNAL_WAIT_TOL = 5;
 #define DEF_DELAY_IND 120000 // Standard Nachlaufzeit nach dem Ausschalten Induktionskochfeld
-
-/*  Binäre Signale für Induktionsplatte */
-int CMD[6][33] = {
-    {1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0},  // Aus
-    {1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0},  // P1
-    {1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0},  // P2
-    {1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0},  // P3
-    {1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0},  // P4
-    {1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0}}; // P5
-unsigned char PWR_STEPS[6] = {0, 20, 40, 60, 80, 100};                                                    // Prozentuale Abstufung zwischen den Stufen
 
 bool useI2C = false;
 #define P0 17
@@ -127,7 +105,7 @@ unsigned char addressesFound[numberOfSensorsMax][8];
 unsigned char numberOfSensorsFound = 0;
 unsigned char numberOfActors = 0; // Gesamtzahl der Aktoren
 #define numberOfActorsMax 10      // Maximale Anzahl an Aktoren
-#define maxHostSign 15
+#define maxHostSign 17
 #define maxUserSign 10
 #define maxPassSign 10
 char mqtthost[maxHostSign]; // MQTT Server
@@ -136,14 +114,6 @@ char mqttpass[maxPassSign];
 int mqttport;
 char mqtt_clientid[maxHostSign]; // AP-Mode und Gerätename
 bool alertState = false;         // WebUpdate Status
-// Toast messages
-#define TOAST_INFO 0
-#define TOAST_SUCCESS 1
-#define TOAST_WARNING 2
-#define TOAST_ERROR 3
-String toastMessage = "";
-byte toastHide = TOAST_INFO; 
-unsigned long toastLast = 0;
 // Zeitserver Einstellungen
 #define NTP_OFFSET 60 * 60                // Offset Winterzeit in Sekunden
 #define NTP_INTERVAL 60 * 60 * 1000       // Aktualisierung NTP in ms
@@ -164,7 +134,6 @@ unsigned long mqttconnectlasttry; // Zeitstempel bei Fehler MQTT
 unsigned long wlanconnectlasttry; // Zeitstempel bei Fehler WLAN
 bool mqtt_state = true;           // Status MQTT
 bool devBranch = false;           // Check out development branch
-bool mqttoff = false;             // Disable MQTT
 
 // Event handling Zeitintervall für Reconnects WLAN und MQTT
 #define tickerWLAN 30000 // für Ticker Objekt WLAN in ms
@@ -180,23 +149,17 @@ unsigned long wait_on_Sensor_error_induction = 120000; // How long should induct
 InnuTicker TickerSen;
 InnuTicker TickerAct;
 InnuTicker TickerInd;
-InnuTicker TickerHlt;
 InnuTicker TickerMQTT;
 InnuTicker TickerPUBSUB;
 InnuTicker TickerWLAN;
 InnuTicker TickerNTP;
 InnuTicker TickerDisp;
-InnuTicker TickerMash;
-InnuTicker TickerPID;
 
 // Update Intervalle für Ticker Objekte
 #define SEN_UPDATE 2500  //  sensors update
-#define ACT_UPDATE 2000  //  actors update
+#define ACT_UPDATE 2500  //  actors update
 #define IND_UPDATE 2500  //  induction update
-#define HLT_UPDATE 2500  //  hlt update
 #define DISP_UPDATE 1000 //  display update
-#define MASH_UPDATE 5000 //  mash update
-#define PID_UPDATE 2500  //  calc PID update
 
 // Systemstart
 bool startMDNS = true; // Standard mDNS Name ist ESP8266- mit mqtt_chip_key
@@ -209,11 +172,9 @@ unsigned long lastSenInd = 0; // Timestamp induction on sensor error
 int sensorsStatus = 0;
 int actorsStatus = 0;
 int inductionStatus = 0;
-int hltStatus = 0;
 
 // FSBrowser
 File fsUploadFile; // a File object to temporarily store the received file
-// bool m_fsOK = true;
 enum
 {
     MSG_OK,
@@ -238,49 +199,49 @@ SoftwareSerial softSerial; // Objekt SoftSerial ohne GPIO
 NextionComPort nextion;    // Objekt Display Kommunikation
 
 // Steuerung Buttons
-  NextionComponent p0ForButton(nextion, 0, 19);
-  NextionComponent p0BackButton(nextion, 0, 21);
-  NextionComponent p1ForButton(nextion, 1, 9);
-  NextionComponent p1BackButton(nextion, 1, 7);
-  NextionComponent p2ForButton(nextion, 2, 10);
-  NextionComponent p2BackButton(nextion, 2, 2);
+NextionComponent p0ForButton(nextion, 0, 19);
+NextionComponent p0BackButton(nextion, 0, 21);
+NextionComponent p1ForButton(nextion, 1, 9);
+NextionComponent p1BackButton(nextion, 1, 7);
+NextionComponent p2ForButton(nextion, 2, 10);
+NextionComponent p2BackButton(nextion, 2, 2);
 
-  // BrewPage
-  NextionComponent uhrzeit_text(nextion, 0, 10);
-  NextionComponent currentStepName_text(nextion, 0, 6);
-  NextionComponent currentStepRemain_text(nextion, 0, 5);
-  NextionComponent nextStepName_text(nextion, 0, 7);
-  NextionComponent nextStepRemain_text(nextion, 0, 8);
-  NextionComponent kettleName1_text(nextion, 0, 1);
-  NextionComponent kettleIst1_text(nextion, 0, 11);
-  NextionComponent kettleSoll1_text(nextion, 0, 15);
-  NextionComponent kettleName2_text(nextion, 0, 2);
-  NextionComponent kettleIst2_text(nextion, 0, 12);
-  NextionComponent kettleSoll2_text(nextion, 0, 16);
-  NextionComponent kettleName3_text(nextion, 0, 3);
-  NextionComponent kettleIst3_text(nextion, 0, 13);
-  NextionComponent kettleSoll3_text(nextion, 0, 17);
-  NextionComponent kettleName4_text(nextion, 0, 4);
-  NextionComponent kettleIst4_text(nextion, 0, 14);
-  NextionComponent kettleSoll4_text(nextion, 0, 18);
-  NextionComponent progress(nextion, 0, 9);
-  NextionComponent mqttDevice(nextion, 0, 20);
-  NextionComponent notification(nextion, 0, 22);
-  // KettlePage
-  NextionComponent p1uhrzeit_text(nextion, 1, 3);
-  NextionComponent p1current_text(nextion, 1, 4);
-  NextionComponent p1remain_text(nextion, 1, 5);
-  NextionComponent p1temp_text(nextion, 1, 1);
-  NextionComponent p1target_text(nextion, 1, 2);
-  NextionComponent p1progress(nextion, 1, 6);
-  NextionComponent p1mqttDevice(nextion, 1, 8);
-  NextionComponent p1notification(nextion, 1, 10);
-  // InductionPage
-  NextionComponent powerButton(nextion, 2, 3);
-  NextionComponent p2uhrzeit_text(nextion, 2, 7);
-  NextionComponent p2slider(nextion, 2, 1);
-  NextionComponent p2temp_text(nextion, 2, 5);
-  NextionComponent p2gauge(nextion, 2, 4);
+// BrewPage
+NextionComponent uhrzeit_text(nextion, 0, 10);
+NextionComponent currentStepName_text(nextion, 0, 6);
+NextionComponent currentStepRemain_text(nextion, 0, 5);
+NextionComponent nextStepName_text(nextion, 0, 7);
+NextionComponent nextStepRemain_text(nextion, 0, 8);
+NextionComponent kettleName1_text(nextion, 0, 1);
+NextionComponent kettleIst1_text(nextion, 0, 11);
+NextionComponent kettleSoll1_text(nextion, 0, 15);
+NextionComponent kettleName2_text(nextion, 0, 2);
+NextionComponent kettleIst2_text(nextion, 0, 12);
+NextionComponent kettleSoll2_text(nextion, 0, 16);
+NextionComponent kettleName3_text(nextion, 0, 3);
+NextionComponent kettleIst3_text(nextion, 0, 13);
+NextionComponent kettleSoll3_text(nextion, 0, 17);
+NextionComponent kettleName4_text(nextion, 0, 4);
+NextionComponent kettleIst4_text(nextion, 0, 14);
+NextionComponent kettleSoll4_text(nextion, 0, 18);
+NextionComponent progress(nextion, 0, 9);
+NextionComponent mqttDevice(nextion, 0, 20);
+NextionComponent notification(nextion, 0, 22);
+// KettlePage
+NextionComponent p1uhrzeit_text(nextion, 1, 3);
+NextionComponent p1current_text(nextion, 1, 4);
+NextionComponent p1remain_text(nextion, 1, 5);
+NextionComponent p1temp_text(nextion, 1, 1);
+NextionComponent p1target_text(nextion, 1, 2);
+NextionComponent p1progress(nextion, 1, 6);
+NextionComponent p1mqttDevice(nextion, 1, 8);
+NextionComponent p1notification(nextion, 1, 10);
+// InductionPage
+NextionComponent powerButton(nextion, 2, 3);
+NextionComponent p2uhrzeit_text(nextion, 2, 7);
+NextionComponent p2slider(nextion, 2, 1);
+NextionComponent p2temp_text(nextion, 2, 5);
+NextionComponent p2gauge(nextion, 2, 4);
 
 // CraftbeerPi4 definitions
 
@@ -331,24 +292,6 @@ char notify[maxNotifySign]; //= "Waiting for data - start brewing";
 int sliderval = 0;
 char uhrzeit[6] = "00:00";
 
-// PID modes
-bool pidMode = false;
-bool ids2AutoTune = false;
-bool hltAutoTune = false;
-// mash button states
-bool statePower = false;
-bool statePause = false;
-bool statePlay = false;
-
-const String rules_names[numberOfRules] = { "INDIVIDUAL_PID", "BREWING_20L", "BREWING_50L", "HLT_PID", "ZIEGLER_NICHOLS_PID", "ZIEGLER_NICHOLS_PI", "INTEGRAL_PID", "SOME_OVERSHOOT_PID", "NO_OVERSHOOT_PID", "TYREUS_LUYBEN_PID", "TYREUS_LUYBEN_PI", "CIANCONE_MARLIN_PID", "CIANCONE_MARLIN_PI" };
-// const String rules_names[numberOfRules] = { "INDIVIDUAL_PID", "BREWING_20L", "BREWING_50L", "HLT_PID" };    
-// APID controller
-double ids2Input, ids2Output, ids2Setpoint;
-double hltInput, hltOutput, hltSetpoint;
-
-INNU_APID ids2PID(&ids2Input, &ids2Output, &ids2Setpoint, 0, 0, 0);
-INNU_APID hltPID(&hltInput, &hltOutput, &hltSetpoint, 0, 0, 0);
-
 // Alarm codes
 #define ALARM_ON 1
 #define ALARM_OFF 2
@@ -360,8 +303,6 @@ INNU_APID hltPID(&hltInput, &hltOutput, &hltSetpoint, 0, 0, 0);
 const int PIN_BUZZER = D8; // Buzzer
 bool startBuzzer = false;  // Aktiviere Buzzer
 bool mqttBuzzer = false;   // MQTTBuzzer für CBPi4
-bool chartVis = true;
-bool toastVis = true;
 
 void configModeCallback(WiFiManager *myWiFiManager)
 {

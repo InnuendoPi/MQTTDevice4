@@ -98,37 +98,19 @@ void checkChars(char *input)
   return;
 }
 
-unsigned char StringToRule(String _rulestring)
-{
-  for (int i = 0; i < numberOfRules; i++)
-  {
-    // if (rules_names[i] == _rulestring)
-    // Serial.printf("SYS: rule_name %s rulestring %s\n", rules_names[i].c_str(), _rulestring.c_str());
-    if (rules_names[i].equals(_rulestring))
-    {
-      return i;
-    }
-  }
-  return -1;
-}
-
 void setTicker()
 {
   // Ticker Objekte
   TickerSen.config(tickerSenCallback, SEN_UPDATE, 0);
   TickerAct.config(tickerActCallback, ACT_UPDATE, 0);
   TickerInd.config(tickerIndCallback, IND_UPDATE, 0);
-  TickerHlt.config(tickerHltCallback, HLT_UPDATE, 0);
   TickerMQTT.config(tickerMQTTCallback, tickerMQTT, 0);
   TickerPUBSUB.config(tickerPUBSUBCallback, tickerPUSUB, 0);
   TickerWLAN.config(tickerWLANCallback, tickerWLAN, 0);
   TickerNTP.config(tickerNTPCallback, NTP_INTERVAL, 0);
   TickerDisp.config(tickerDispCallback, DISP_UPDATE, 0);
-  TickerMash.config(tickerMashCallback, MASH_UPDATE, 1);
-  TickerPID.config(tickerPIDCallback, PID_UPDATE, 0);
   TickerMQTT.stop();
   TickerWLAN.stop();
-  TickerMash.stop();
 }
 
 void checkSummerTime()

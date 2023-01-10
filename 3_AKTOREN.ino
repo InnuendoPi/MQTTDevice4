@@ -10,7 +10,6 @@ public:
   String argument_actor;
   String name_actor;
   unsigned char power_actor;
-  unsigned char pwm = 100;
   bool isOn;
   bool isInverted = false;
   bool switchable;              // actors switchable on error events?
@@ -198,17 +197,6 @@ public:
       return;
     }
   }
-  void handlePWM(int newPower)
-  {
-    if (newPower > 100)
-      newPower = 100; // Nicht > 100
-    if (newPower < 0)
-      newPower = 0; // Nicht < 0
-    pwm = newPower;
-    if (isOn)
-      power_actor = pwm;
-    return;
-  }
 };
 
 // Initialisierung des Arrays max 10
@@ -254,7 +242,6 @@ void handleRequestActors()
       actorsObj["pin"] = PinToString(actors[i].pin_actor);
       actorsObj["sw"] = actors[i].switchable;
       actorsObj["state"] = actors[i].actor_state;
-      actorsObj["pwm"] = actors[i].pwm;
       yield();
     }
   }
@@ -315,24 +302,6 @@ void handleSetActor()
   }
   actors[id].change(ac_pin, ac_argument, ac_name, ac_isinverted, ac_switchable);
   saveConfig();
-  server.send(200, "text/plain", "ok");
-}
-
-void handleSetPWM()
-{
-  int id = server.arg(0).toInt();
-
-  if (id == -1)
-    return;
-
-  if (server.argName(1) == "pwm")
-  {
-    if (isValidDigit(server.arg(1)))
-    {
-      actors[id].handlePWM(server.arg(1).toInt());
-    }
-  }
-  DEBUG_MSG("ACT: id: %d pwm: %d\n", id, actors[id].pwm);
   server.send(200, "text/plain", "ok");
 }
 

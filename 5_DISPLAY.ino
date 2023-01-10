@@ -35,7 +35,7 @@ void initDisplay()
   }
   nextion.command("doevents"); // Force immediate screen refresh and receive serial bytes to buffer
   // start display tikcer
-  activePage = nextion.currentPageID;
+  activePage = nextion.getCurrentPageID();
   TickerDisp.start();
 }
 
@@ -46,7 +46,7 @@ void dispPublishmqtt()
     DynamicJsonDocument doc(128);
     char jsonMessage[48];
     serializeJson(doc, jsonMessage);
-    DEBUG_MSG("%s\n", "Disp: Request CBPi4 configuration");
+    // DEBUG_MSG("%s\n", "Disp: Request CBPi4 configuration");
     pubsubClient.publish("cbpi/updatekettle", jsonMessage);
     pubsubClient.publish("cbpi/updateactor", jsonMessage);
     pubsubClient.publish("cbpi/updatesensor", jsonMessage);
@@ -131,21 +131,12 @@ void InductionPage()
   // p2temp_text
   // 316 = 0°C - 360 = 44°C - 223 = 100°C -- 53,4 je 20°C
 
-  if (pidMode || ids2AutoTune)
-  {
-    p2slider.value(ids2Output);
-    p2temp_text.attribute("txt", sensors[0].getTotalValueString());
-  }
-  else
-  {
-    int32_t aktSlider = p2slider.value();
-    if (aktSlider >= 0 && aktSlider <= 100)
-      inductionCooker.inductionNewPower(aktSlider); // inductionCooker.handleInductionPage(aktSlider);
+  int32_t aktSlider = p2slider.value();
+  if (aktSlider >= 0 && aktSlider <= 100)
+    inductionCooker.inductionNewPower(aktSlider); // inductionCooker.handleInductionPage(aktSlider);
 
-    // String aktTemp = strcat(structKettles[0].current_temp, "°C");
-    p2temp_text.attribute("txt", String(structKettles[0].current_temp).c_str());
-  }
-  // if ((sensors[0].getValue() + sensors[0].getOffset1()) < 16.0)
+  // String aktTemp = strcat(structKettles[0].current_temp, "°C");
+  p2temp_text.attribute("txt", String(structKettles[0].current_temp).c_str());
   if (sensors[0].calcOffset() < 16.0)
   {
     // p2gauge.attribute("val", (int)((sensors[0].getValue() + sensors[0].getOffset1()) * 2.7 + 316));
@@ -153,7 +144,6 @@ void InductionPage()
   }
   else
   {
-    // p2gauge.attribute("val", (int)((sensors[0].getValue() + sensors[0].getOffset1()) * 2.7 - 44));
     p2gauge.attribute("val", (int)(sensors[0].calcOffset() * 2.7 - 44));
   }
 
