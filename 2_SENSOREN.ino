@@ -1,23 +1,19 @@
+// 2827c59d0d0000b1
 class TemperatureSensor
 {
   int sens_err = 0;
-  bool sens_sw = false;          // Events aktivieren
-  bool sens_state = true;        // Fehlerstatus ensor
-  bool sens_isConnected;         // ist der Sensor verbunden
-  float sens_offset1 = 0.0;      // Offset - Temp kalibrieren
-  float sens_offset2 = 0.0;      // Offset - Temp kalibrieren
-  float sens_value = -127.0;     // Aktueller Wert
-  String sens_name;              // Name für Anzeige auf Website
-  unsigned char sens_address[8]; // 1-Wire Adresse
-  char sens_mqtttopic[50];       // Für MQTT Kommunikation
+  bool sens_sw = false;           // Events aktivieren
+  bool sens_state = true;         // Fehlerstatus ensor
+  bool sens_isConnected;          // ist der Sensor verbunden
+  float sens_offset1 = 0.0;       // Offset - Temp kalibrieren
+  float sens_offset2 = 0.0;       // Offset - Temp kalibrieren
+  float sens_value = -127.0;      // Aktueller Wert
+  String sens_name;               // Name für Anzeige auf Website
+  char sens_mqtttopic[50];        // Für MQTT Kommunikation
+  unsigned char sens_address[8];  // 1-Wire Adresse
   String sens_id;
 
 public:
-  String getSens_adress_string()
-  {
-    return SensorAddressToString(sens_address);
-  }
-
   TemperatureSensor(String new_address, String new_mqtttopic, String new_name, String new_id, float new_offset1, float new_offset2, bool new_sw)
   {
     change(new_address, new_mqtttopic, new_name, new_id, new_offset1, new_offset2, new_sw);
@@ -72,16 +68,12 @@ public:
     sens_offset1 = new_offset1;
     sens_offset2 = new_offset2;
     sens_sw = new_sw;
-
     if (new_address.length() == 16)
     {
-      char address_char[16];
-
-      new_address.toCharArray(address_char, 17);
-
+      char address_char[20];
+      new_address.toCharArray(address_char, new_address.length() + 1);
       char hexbyte[2];
       int octets[8];
-
       for (int d = 0; d < 16; d += 2)
       {
         // Assemble a digit pair into the hexbyte string
@@ -95,6 +87,7 @@ public:
       for (int i = 0; i < 8; i++)
       {
         sens_address[i] = octets[i];
+        // Serial.printf("%x", sens_address[i]);
       }
     }
     DS18B20.setResolution(sens_address, RESOLUTION);
@@ -160,32 +153,35 @@ public:
   {
     return sens_id;
   }
-
-  char buf[8];
+  char buf[10];
   char *getValueString()
   {
+    // char buf[5];
     dtostrf(sens_value, 2, 1, buf);
     return buf;
   }
+
   float getTotalValueFloat()
   {
     return round((calcOffset() - 0.05) * 10) / 10.0;
   }
-  double getTotalValueDouble()
-  {
-    // return (double) round((calcOffset()) * 1000) / 1000.0;
-    return (double)calcOffset();
-  }
+
   char *getTotalValueString()
   {
-    sprintf(buf, "%s", "0.0");
-    dtostrf((round((calcOffset() - 0.05) * 10) / 10.0), 2, 1, buf);
+    if (sens_value == -127.00)
+      sprintf(buf, "%s", "-127.0");
+    else
+    {
+      sprintf(buf, "%s", "0.0");
+      dtostrf((round((calcOffset() - 0.05) * 10) / 10.0), 2, 1, buf);
+    }
     return buf;
   }
+
   float calcOffset()
   {
     if (sens_value == -127.00)
-      return 0.05;
+      return sens_value;
     if (sens_offset1 == 0.0 && sens_offset2 == 0.0) // keine Kalibrierung
     {
       return sens_value;
@@ -204,16 +200,17 @@ public:
     }
     return sens_value;
   }
-  double upSen2()
+
+  String getSens_adress_string()
   {
-    DS18B20.requestTemperatures(); // new conversion to get recent temperatures
-    sens_value = DS18B20.getTempC(sens_address);
-    return (double)sens_value;
+    return SensorAddressToString(sens_address);
   }
 };
 
 // Initialisierung des Arrays -> max 6 Sensoren
 TemperatureSensor sensors[numberOfSensorsMax] = {
+    TemperatureSensor("", "", "", "", 0.0, 0.0, false),
+    TemperatureSensor("", "", "", "", 0.0, 0.0, false),
     TemperatureSensor("", "", "", "", 0.0, 0.0, false),
     TemperatureSensor("", "", "", "", 0.0, 0.0, false),
     TemperatureSensor("", "", "", "", 0.0, 0.0, false),
@@ -319,10 +316,9 @@ void handleSetSensor()
     }
     yield();
   }
-
   sensors[id].change(new_address, new_mqtttopic, new_name, new_id, new_offset1, new_offset2, new_sw);
   saveConfig();
-  server.send(200, "text/plain", "ok");
+  server.send(201, "text/plain", "created");
 }
 
 void handleDelSensor()
@@ -341,7 +337,7 @@ void handleDelSensor()
   }
   numberOfSensors--;
   saveConfig();
-  server.send(200, "text/plain", "ok");
+  server.send(200, "text/plain", "deleted");
 }
 
 void handleRequestSensorAddresses()
@@ -381,7 +377,6 @@ void handleRequestSensors()
       String str = sensors[i].getName();
       str.replace(" ", "%20"); // Erstze Leerzeichen für URL Charts
       sensorsObj["namehtml"] = str;
-      // sensorsObj["offset"] = (int(sensors[i].getOffset() * 100)) / 100.0;
       sensorsObj["offset1"] = sensors[i].getOffset1();
       sensorsObj["offset2"] = sensors[i].getOffset2();
       sensorsObj["sw"] = sensors[i].getSw();
@@ -412,6 +407,7 @@ void handleRequestSensors()
     doc["sw"] = sensors[id].getSw();
     doc["script"] = sensors[id].getTopic();
     doc["cbpiid"] = sensors[id].getId();
+    // doc["value"] = sensors[id].getTotalValueString();
   }
 
   String response;

@@ -1,7 +1,8 @@
 # Changelog
 
-Version 4.40
+Version 4.40a
 
+- Fixed:    hex sensor address (set resolution)
 - Fixed:    MQTT reconnect
 - Fixed:    MQTT connection state
 - Fixed:    IP address length

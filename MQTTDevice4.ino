@@ -50,7 +50,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.40"
+#define Version "4.40a"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -100,7 +100,7 @@ const String pin_names[ALLPINS] = {"D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7
 
 // Variablen
 unsigned char numberOfSensors = 0; // Gesamtzahl der Sensoren
-#define numberOfSensorsMax 4       // Maximale Anzahl an Sensoren
+#define numberOfSensorsMax 6       // Maximale Anzahl an Sensoren
 unsigned char addressesFound[numberOfSensorsMax][8];
 unsigned char numberOfSensorsFound = 0;
 unsigned char numberOfActors = 0; // Gesamtzahl der Aktoren
