@@ -593,7 +593,7 @@ void handleSetIndu()
     if (server.argName(i) == "pl")
     {
       if (isValidInt(server.arg(i)))
-        pl = server.arg(i).toInt();
+        pl = constrain(server.arg(i).toInt(), 0, 100);
       else
         pl = 100;
     }

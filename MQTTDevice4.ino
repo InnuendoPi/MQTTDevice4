@@ -50,7 +50,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.40a"
+#define Version "4.40b"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -156,9 +156,9 @@ InnuTicker TickerNTP;
 InnuTicker TickerDisp;
 
 // Update Intervalle für Ticker Objekte
-#define SEN_UPDATE 2500  //  sensors update
-#define ACT_UPDATE 2500  //  actors update
-#define IND_UPDATE 2500  //  induction update
+#define SEN_UPDATE 2000  //  sensors update
+#define ACT_UPDATE 2000  //  actors update
+#define IND_UPDATE 2000  //  induction update
 #define DISP_UPDATE 1000 //  display update
 
 // Systemstart

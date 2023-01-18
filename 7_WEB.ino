@@ -337,20 +337,22 @@ void handleSetMisc()
     if (server.argName(i) == "delay_mqtt")
       if (isValidInt(server.arg(i)))
       {
-        wait_on_error_mqtt = server.arg(i).toInt() * 1000;
+        wait_on_error_mqtt = constrain(server.arg(i).toInt(), 1, 600) * 1000;
+
       }
     if (server.argName(i) == "del_sen_act")
     {
       if (isValidInt(server.arg(i)))
       {
-        wait_on_Sensor_error_actor = server.arg(i).toInt() * 1000;
+        // wait_on_Sensor_error_actor = server.arg(i).toInt() * 1000;
+        wait_on_Sensor_error_actor = constrain(server.arg(i).toInt(), 1, 600) * 1000;
       }
     }
     if (server.argName(i) == "del_sen_ind")
     {
       if (isValidInt(server.arg(i)))
       {
-        wait_on_Sensor_error_induction = server.arg(i).toInt() * 1000;
+        wait_on_Sensor_error_induction = constrain(server.arg(i).toInt(), 1, 600) * 1000;
       }
     }
     yield();

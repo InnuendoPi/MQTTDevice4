@@ -1,5 +1,11 @@
 # Changelog
 
+Version 4.40b
+
+- Update:   ESP8266 Arduino 3.1.1
+- Changed:  Check value range
+- Changed:  Ticker sensors, actors and induction changed from 2500ms to 2000ms
+
 Version 4.40a
 
 - Fixed:    hex sensor address (set resolution)
