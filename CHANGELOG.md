@@ -1,6 +1,10 @@
 # Changelog
 
-Version 4.40b
+Version 4.40c
+
+- Update:     ESP8266 cores
+- Update:     Arduino for Visual Code 0.4.13
+- Korrektur:  Ticker lib
 
 - Update:   ESP8266 Arduino 3.1.1
 - Changed:  Check value range
