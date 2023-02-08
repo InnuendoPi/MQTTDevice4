@@ -104,7 +104,7 @@ public:
       {
         // sensorsObj["Value"] = round((sens_value + sens_offset + 0.05) * 10) / 10.0;
         // sensorsObj["Value"] = round((calcOffset() + 0.05) * 10) / 10.0;
-        sensorsObj["Value"] = getTotalValueFloat();
+        sensorsObj["Value"] = getTotalValueFloat() * 10 / 10.0;
       }
       else
       {

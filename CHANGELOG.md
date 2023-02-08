@@ -1,10 +1,15 @@
 # Changelog
 
+Version 4.40d
+
+- Fixed:    temperature digits in CBPi4
+- Fixed:    Typo save config IDS2
+
 Version 4.40c
 
-- Update:     ESP8266 cores
-- Update:     Arduino for Visual Code 0.4.13
-- Korrektur:  Ticker lib
+- Update:   ESP8266 cores
+- Update:   Arduino for Visual Code 0.4.13
+- Fixed:    Ticker lib
 
 - Update:   ESP8266 Arduino 3.1.1
 - Changed:  Check value range
