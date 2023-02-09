@@ -74,16 +74,15 @@ bool loadFromLittlefs(String path)
 
 void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
 {
-  /*
-  DEBUG_MSG("Web: Received MQTT Topic with char payload: %s\n", topic);
-  Serial.print("Web: Payload: ");
-  for (int i = 0; i < length; i++)
-  {
-    Serial.print((char)payload[i]);
-  }
-  Serial.println(" ");
-  */
-
+  // Uncomment for debug output received MQTT payloads
+  // DEBUG_MSG("Web: Received MQTT Topic with char payload: %s\n", topic);
+  // Serial.print("Web: Payload: ");
+  // for (int i = 0; i < length; i++)
+  // {
+  //   Serial.print((char)payload[i]);
+  // }
+  // Serial.println(" ");
+  
   char payload_msg[length];
   for (int i = 0; i < length; i++)
   {
@@ -163,24 +162,22 @@ void handleRequestMisc2()
 {
   // StaticJsonDocument<512> doc;
   DynamicJsonDocument doc(256);
-  doc["mqtthost"] = mqtthost;
-  doc["mqttport"] = mqttport;
-  doc["enable_mqtt"] = StopOnMQTTError;
-  doc["mqtt_state"] = mqtt_state; // Anzeige MQTT Status -> mqtt_state verzögerter Status!
-  doc["buzzer"] = startBuzzer;
-  doc["mqbuz"] = mqttBuzzer;
+  doc["host"] = mqtthost;
+  doc["port"] = mqttport;
+  doc["s_mqtt"] = mqtt_state;
   doc["display"] = useDisplay;
   doc["i2c"] = useI2C;
   if (startMDNS)
     doc["mdns"] = nameMDNS;
   else
     doc["mdns"] = 0;
-  doc["alertstate"] = alertState;
+  doc["alert"] = alertState;
   if (alertState)
     alertState = false;
   String response;
+  
   serializeJson(doc, response);
-  server.send(200, "application/json", response);
+  server.send(200, "application/json", response.c_str());
   // size_t len = measureJson(doc);
   // int memoryUsed = doc.memoryUsage();
   // DEBUG_MSG("WEB Misc2 JSON config length: %d\n", len);
@@ -190,24 +187,24 @@ void handleRequestMisc2()
 void handleRequestMisc()
 {
   // StaticJsonDocument<768> doc;
-  DynamicJsonDocument doc(768);
-  doc["mqtthost"] = mqtthost;
-  doc["mqttport"] = mqttport;
-  doc["mqttuser"] = mqttuser;
-  doc["mqttpass"] = mqttpass;
+  DynamicJsonDocument doc(1024);
+  doc["host"] = mqtthost;
+  doc["port"] = mqttport;
+  doc["user"] = mqttuser;
+  doc["pass"] = mqttpass;
   doc["mdns_name"] = nameMDNS;
   doc["mdns"] = startMDNS;
   doc["i2c"] = useI2C;
   doc["buzzer"] = startBuzzer;
   doc["mqbuz"] = mqttBuzzer;
   doc["display"] = useDisplay;
-  doc["page"] = startPage;
-  doc["devbranch"] = devBranch;
-  doc["enable_mqtt"] = StopOnMQTTError;
-  doc["delay_mqtt"] = wait_on_error_mqtt / 1000;
-  doc["del_sen_act"] = wait_on_Sensor_error_actor / 1000;
-  doc["del_sen_ind"] = wait_on_Sensor_error_induction / 1000;
-  doc["mqtt_state"] = mqtt_state; // Anzeige MQTT Status -> mqtt_state verzögerter Status!
+  // doc["page"] = startPage;
+  doc["dev"] = devBranch;
+  doc["e_mqtt"] = StopOnMQTTError;
+  doc["d_mqtt"] = wait_on_error_mqtt / 1000;
+  doc["dsa"] = wait_on_Sensor_error_actor / 1000;
+  doc["dsi"] = wait_on_Sensor_error_induction / 1000;
+  doc["s_mqtt"] = mqtt_state; // Anzeige MQTT Status -> mqtt_state verzögerter Status!
   String response;
   serializeJson(doc, response);
   server.send(200, "application/json", response);

@@ -1,5 +1,11 @@
 # Changelog
 
+Version 4.402
+
+- Update:   ArduinoJSON lib 6.20.1
+- Remove:   debug code
+- Fixed:    JSON response misc
+
 Version 4.40d
 
 - Fixed:    temperature digits in CBPi4
