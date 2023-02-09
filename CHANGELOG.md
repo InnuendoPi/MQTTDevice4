@@ -1,6 +1,6 @@
 # Changelog
 
-Version 4.402
+Version 4.40e
 
 - Update:   ArduinoJSON lib 6.20.1
 - Remove:   debug code
