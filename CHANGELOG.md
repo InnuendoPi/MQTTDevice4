@@ -1,5 +1,13 @@
 # Changelog
 
+Version 4.41
+
+- Update:   Prepare for new release 4.41
+- Changed:  File handling (removed filenames)
+- Removed:  Debug code
+- Update:   Arduino for VSCode 0.5
+- Optimize: Bootstrap CSS
+
 Version 4.40e
 
 - Update:   ArduinoJSON lib 6.20.1

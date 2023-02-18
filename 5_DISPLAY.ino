@@ -67,7 +67,7 @@ void BrewPage()
     kettleName1_text.attribute("txt", structKettles[0].name);
     kettleSoll1_text.attribute("txt", structKettles[0].target_temp);
     kettleIst1_text.attribute("txt", structKettles[0].current_temp);
-    DEBUG_MSG("BP Kettle1: %s Target: %s Temp: %s \n", structKettles[0].name, structKettles[0].target_temp, structKettles[0].current_temp);
+    // DEBUG_MSG("BP Kettle1: %s Target: %s Temp: %s \n", structKettles[0].name, structKettles[0].target_temp, structKettles[0].current_temp);
   }
   else
     dispPublishmqtt();
@@ -77,7 +77,7 @@ void BrewPage()
     kettleName2_text.attribute("txt", structKettles[1].name);
     kettleSoll2_text.attribute("txt", structKettles[1].target_temp);
     kettleIst2_text.attribute("txt", structKettles[1].current_temp);
-    DEBUG_MSG("BP Kettle2: %s Target: %s Temp: %s \n", structKettles[1].name, structKettles[1].target_temp, structKettles[1].current_temp);
+    // DEBUG_MSG("BP Kettle2: %s Target: %s Temp: %s \n", structKettles[1].name, structKettles[1].target_temp, structKettles[1].current_temp);
   }
   if (strlen(structKettles[2].id) > 0)
   {

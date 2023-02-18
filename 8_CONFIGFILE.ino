@@ -1,7 +1,7 @@
 bool loadConfig()
 {
   DEBUG_MSG("%s\n", "------ loadConfig started ------");
-  File configFile = LittleFS.open("/config.txt", "r");
+  File configFile = LittleFS.open(CONFIG, "r");
   if (!configFile)
   {
     DEBUG_MSG("%s\n", "Failed to open config file\n");
@@ -285,7 +285,7 @@ bool saveConfig()
     return false;
   }
 
-  File configFile = LittleFS.open("/config.txt", "w");
+  File configFile = LittleFS.open(CONFIG, "w");
   if (!configFile)
   {
     DEBUG_MSG("%s\n", "Failed to open config file for writing");

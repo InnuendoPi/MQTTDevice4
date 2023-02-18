@@ -2,10 +2,10 @@
 #define INNUTICKER
 
 //   Author:	Innuendo
-//   Version: 0.1
+//   Version: 0.0.2
 
 #include "Arduino.h"
-#define TICKER_LIBRARY_VERSION 0.0.2
+// #define TICKER_LIBRARY_VERSION 0.0.2
  
 // Ticker status
 //

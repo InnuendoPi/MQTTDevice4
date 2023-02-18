@@ -277,20 +277,20 @@ void sendAlarm(const uint8_t &setAlarm)
 
 void EM_LOG()
 {
-  if (LittleFS.exists("/updateSys.log")) // WebUpdate Firmware
+  if (LittleFS.exists(LOGUPDATESYS)) // WebUpdate Firmware
   {
-    fsUploadFile = LittleFS.open("/updateSys.log", "r");
+    fsUploadFile = LittleFS.open(LOGUPDATESYS, "r");
     int anzahlSys = 0;
     if (fsUploadFile)
     {
       anzahlSys = char(fsUploadFile.read()) - '0';
     }
     fsUploadFile.close();
-    bool check = LittleFS.remove("/updateSys.log");
-    if (LittleFS.exists("/dev.txt")) // WebUpdate Firmware
+    bool check = LittleFS.remove(LOGUPDATESYS);
+    if (LittleFS.exists(DEVBRANCH)) // WebUpdate Firmware
     {
       Serial.printf("*** SYSINFO: Update development firmware retries count %d\n", anzahlSys);
-      check = LittleFS.remove("/dev.txt");
+      check = LittleFS.remove(DEVBRANCH);
     }
     else
     {
@@ -299,9 +299,9 @@ void EM_LOG()
     alertState = true;
   }
 
-  if (LittleFS.exists("/updateTools.log")) // WebUpdate Firmware
+  if (LittleFS.exists(LOGUPDATETOOLS)) // WebUpdate Firmware
   {
-    fsUploadFile = LittleFS.open("/updateTools.log", "r");
+    fsUploadFile = LittleFS.open(LOGUPDATETOOLS, "r");
     int anzahlTools = 0;
     if (fsUploadFile)
     {
@@ -309,11 +309,11 @@ void EM_LOG()
     }
     fsUploadFile.close();
 
-    bool check = LittleFS.remove("/updateTools.log");
-    if (LittleFS.exists("/dev.txt")) // WebUpdate Firmware
+    bool check = LittleFS.remove(LOGUPDATETOOLS);
+    if (LittleFS.exists(DEVBRANCH)) // WebUpdate Firmware
     {
       Serial.printf("*** SYSINFO: Update development tools retries count %d\n", anzahlTools);
-      check = LittleFS.remove("/dev.txt");
+      check = LittleFS.remove(DEVBRANCH);
     }
     else
     {

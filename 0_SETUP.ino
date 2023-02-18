@@ -41,7 +41,7 @@ void setup()
     checkSummerTime();
     TickerNTP.start();
 
-    if (LittleFS.exists("/config.txt")) // Lade Konfiguration
+    if (LittleFS.exists(CONFIG)) // Lade Konfiguration
       loadConfig();
     else
       Serial.println("*** SYSINFO: config file config.txt missing. Load defaults ...");

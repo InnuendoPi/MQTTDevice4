@@ -50,7 +50,16 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.40e"
+#define Version "4.41"
+
+// System Dateien
+#define UPDATESYS "/updateSys.txt"
+#define LOGUPDATESYS "/updateSys.log"
+#define UPDATETOOLS "/updateTools.txt"
+#define LOGUPDATETOOLS "/updateTools.log"
+#define DEVBRANCH "/dev.txt"
+#define CERT "/ce.rts"
+#define CONFIG "/config.txt"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000

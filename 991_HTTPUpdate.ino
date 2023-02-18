@@ -68,7 +68,7 @@ bool upTools(String url, String fname)
 void upFirm()
 {
     BearSSL::CertStore certStore;
-    int numCerts = certStore.initCertStore(LittleFS, PSTR("/certs.idx"), PSTR("/ce.rts"));
+    int numCerts = certStore.initCertStore(LittleFS, PSTR("/certs.idx"), PSTR(CERT));
     // Serial.print(F("Number of CA certs read: "));
     // Serial.println(numCerts);
     if (numCerts == 0)
@@ -86,7 +86,7 @@ void upFirm()
     ESPhttpUpdate.onError(update_error);
 
     t_httpUpdate_return ret;
-    if (LittleFS.exists("/dev.txt"))
+    if (LittleFS.exists(DEVBRANCH))
         ret = ESPhttpUpdate.update(clientFirm, "https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/build/MQTTDevice4.ino.bin");
     else
         ret = ESPhttpUpdate.update(clientFirm, "https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/build/MQTTDevice4.ino.bin");
@@ -115,9 +115,9 @@ void upFirm()
 
 void updateTools()
 {
-    if (LittleFS.exists("/updateTools.txt"))
+    if (LittleFS.exists(UPDATETOOLS))
     {
-        fsUploadFile = LittleFS.open("/updateTools.log", "r");
+        fsUploadFile = LittleFS.open(LOGUPDATETOOLS, "r");
         int anzahlVersuche = 0;
         if (fsUploadFile)
         {
@@ -127,18 +127,18 @@ void updateTools()
         fsUploadFile.close();
         if (anzahlVersuche > 3)
         {
-            LittleFS.remove("/updateTools.txt");
+            LittleFS.remove(UPDATETOOLS);
             Serial.printf("*** SYSINFO: ERROR update tools - %d\n", anzahlVersuche);
             return;
         }
         anzahlVersuche++;
-        fsUploadFile = LittleFS.open("/updateTools.log", "w");
+        fsUploadFile = LittleFS.open(LOGUPDATETOOLS, "w");
         int bytesWritten = fsUploadFile.print((anzahlVersuche));
         fsUploadFile.close();
         Serial.printf("*** SYSINFO: Update tools #%d started - free heap: ", anzahlVersuche);
         Serial.println(ESP.getFreeHeap());
         bool test;
-        if (LittleFS.exists("/dev.txt"))
+        if (LittleFS.exists(DEVBRANCH))
         {
             test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "mqttfont.ttf");
             test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "mqttdevice.min.css");
@@ -165,7 +165,7 @@ void updateTools()
             // test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "toast.min.js");
         }
 
-        LittleFS.remove("/updateTools.txt");
+        LittleFS.remove(UPDATETOOLS);
         LittleFS.end();
         Serial.print("*** SYSINFO: Update tools finished\n");
         ESP.restart();
@@ -173,9 +173,9 @@ void updateTools()
 }
 void updateSys()
 {
-    if (LittleFS.exists("/updateSys.txt"))
+    if (LittleFS.exists(UPDATESYS))
     {
-        fsUploadFile = LittleFS.open("/updateSys.log", "r");
+        fsUploadFile = LittleFS.open(LOGUPDATESYS , "r");
 
         int anzahlVersuche = 0;
         if (fsUploadFile)
@@ -186,17 +186,17 @@ void updateSys()
         fsUploadFile.close();
         if (anzahlVersuche > 3)
         {
-            LittleFS.remove("/updateSys.txt");
+            LittleFS.remove(UPDATESYS);
             Serial.println("*** SYSINFO: ERROR update firmware");
             return;
         }
-        fsUploadFile = LittleFS.open("/updateSys.log", "w");
+        fsUploadFile = LittleFS.open(LOGUPDATESYS , "w");
         anzahlVersuche++;
         int bytesWritten = fsUploadFile.print(anzahlVersuche);
         fsUploadFile.close();
         Serial.printf("*** SYSINFO: Update firmware #%d started - free heap: ", anzahlVersuche);
         Serial.println(ESP.getFreeHeap());
-        if (LittleFS.exists("/ce.rts"))
+        if (LittleFS.exists(CERT))
             upFirm();
     }
 }
@@ -205,7 +205,7 @@ void startToolsUpdate()
 {
     server.send(200, "text/plain", "ok");
     millis2wait(1000);
-    fsUploadFile = LittleFS.open("/updateTools.txt", "w");
+    fsUploadFile = LittleFS.open(UPDATETOOLS, "w");
     if (!fsUploadFile)
     {
         Serial.println("*** Error WebUpdate tools create file (LittleFS)");
@@ -220,7 +220,7 @@ void startToolsUpdate()
 
     if (devBranch)
     {
-        fsUploadFile = LittleFS.open("/dev.txt", "w");
+        fsUploadFile = LittleFS.open(DEVBRANCH, "w");
         if (!fsUploadFile)
         {
             Serial.println("*** Error WebUpdate tools dev create file (LittleFS)");
@@ -235,7 +235,7 @@ void startToolsUpdate()
     }
     else
     {
-        bool check = LittleFS.remove("/dev.txt");
+        bool check = LittleFS.remove(DEVBRANCH);
         // url = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/";
     }
     Serial.println("*** WebUpdate tools reboot");
@@ -248,7 +248,7 @@ void startHTTPUpdate()
 {
     server.send(200, "text/plain", "ok");
     millis2wait(1000);
-    fsUploadFile = LittleFS.open("/updateSys.txt", "w");
+    fsUploadFile = LittleFS.open(UPDATESYS, "w");
     if (!fsUploadFile)
     {
         Serial.println("*** Error WebUpdate firmware create file (LittleFS)");
@@ -262,7 +262,7 @@ void startHTTPUpdate()
     }
     if (devBranch)
     {
-        fsUploadFile = LittleFS.open("/dev.txt", "w");
+        fsUploadFile = LittleFS.open(DEVBRANCH, "w");
         if (!fsUploadFile)
         {
             Serial.println("*** Error WebUpdate firmware dev create file (LittleFS)");
@@ -277,8 +277,8 @@ void startHTTPUpdate()
     }
     else
     {
-        if (LittleFS.exists("/dev.txt"))
-            bool check = LittleFS.remove("/dev.txt");
+        if (LittleFS.exists(DEVBRANCH))
+            bool check = LittleFS.remove(DEVBRANCH);
     }
     Serial.println("*** WebUpdate firmware reboot");
     LittleFS.end();
@@ -289,13 +289,13 @@ void startHTTPUpdate()
 void update_finished()
 {
     Serial.println("*** SYSINFO:  Firmware update finished");
-    fsUploadFile = LittleFS.open("/updateTools.txt", "w");
+    fsUploadFile = LittleFS.open(UPDATETOOLS, "w");
     if (fsUploadFile)
     {
         uint8_t bytesWritten = fsUploadFile.print(0);
         fsUploadFile.close();
     }
-    LittleFS.remove("/updateSys.txt");
+    LittleFS.remove(UPDATESYS);
     LittleFS.end();
 }
 
