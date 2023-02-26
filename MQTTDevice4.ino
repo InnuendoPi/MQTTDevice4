@@ -50,7 +50,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.41"
+#define Version "4.42"
 
 // System Dateien
 #define UPDATESYS "/updateSys.txt"
@@ -65,7 +65,7 @@ extern "C"
 #define PAUSE1SEC 1000
 #define PAUSE2SEC 2000
 #define PAUSEDS18 750
-#define RESOLUTION 11 // 11 bits : 1/8 = 0.125 °C steps
+#define RESOLUTION 12 // steps 9bit: 0.5°C 10bit: 0.25°C 11bit: 0.125°C 12bit: 0.0625°C
 #define TEMP_OFFSET1 40
 #define TEMP_OFFSET2 78
 

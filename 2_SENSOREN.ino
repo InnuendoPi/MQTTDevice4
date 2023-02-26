@@ -87,7 +87,6 @@ public:
       for (int i = 0; i < 8; i++)
       {
         sens_address[i] = octets[i];
-        // Serial.printf("%x", sens_address[i]);
       }
     }
     DS18B20.setResolution(sens_address, RESOLUTION);
@@ -102,9 +101,7 @@ public:
       sensorsObj["Name"] = sens_name;
       if (sensorsStatus == 0)
       {
-        // sensorsObj["Value"] = round((sens_value + sens_offset + 0.05) * 10) / 10.0;
-        // sensorsObj["Value"] = round((calcOffset() + 0.05) * 10) / 10.0;
-        sensorsObj["Value"] = getTotalValueFloat() * 10 / 10.0;
+        sensorsObj["Value"] = calcOffset();
       }
       else
       {
@@ -114,7 +111,6 @@ public:
       char jsonMessage[100];
       serializeJson(doc, jsonMessage);
       pubsubClient.publish(sens_mqtttopic, jsonMessage);
-      // DEBUG_MSG("SEN publish %f\n", getTotalValueFloat());
     }
   }
   int getErr()
@@ -156,7 +152,6 @@ public:
   char buf[10];
   char *getValueString()
   {
-    // char buf[5];
     dtostrf(sens_value, 2, 1, buf);
     return buf;
   }
@@ -190,8 +185,6 @@ public:
     {
       float m = (TEMP_OFFSET2 - TEMP_OFFSET1) / ((TEMP_OFFSET2 + sens_offset2) - (TEMP_OFFSET1 + sens_offset1));
       float b = ((TEMP_OFFSET2 + sens_offset2) * TEMP_OFFSET1 - ((TEMP_OFFSET1 + sens_offset1) * TEMP_OFFSET2)) / ((TEMP_OFFSET2 + sens_offset2) - (TEMP_OFFSET1 + sens_offset1));
-      // float calc_value = m * sens_value + b;
-      // DEBUG_MSG("sens_value: %.2f calc_value: %.2f sensoffset1: %.2f sensoffset2: %.2f m: %.5f b: %.5f\n", sens_value, calc_value, sens_offset1, sens_offset2, m, b);
       return m * sens_value + b;
     }
     else if (sens_offset1 != 0.0 && sens_offset2 == 0.0) // 1-Punkt-Kalibrierung
@@ -407,7 +400,6 @@ void handleRequestSensors()
     doc["sw"] = sensors[id].getSw();
     doc["script"] = sensors[id].getTopic();
     doc["cbpiid"] = sensors[id].getId();
-    // doc["value"] = sensors[id].getTotalValueString();
   }
 
   String response;
