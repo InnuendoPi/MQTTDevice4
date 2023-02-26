@@ -65,7 +65,8 @@ extern "C"
 #define PAUSE1SEC 1000
 #define PAUSE2SEC 2000
 #define PAUSEDS18 750
-#define RESOLUTION 12 // steps 9bit: 0.5°C 10bit: 0.25°C 11bit: 0.125°C 12bit: 0.0625°C
+#define RESOLUTION_HIGH 12 // steps 9bit: 0.5°C 10bit: 0.25°C 11bit: 0.125°C 12bit: 0.0625°C
+#define RESOLUTION 11
 #define TEMP_OFFSET1 40
 #define TEMP_OFFSET2 78
 
@@ -73,6 +74,7 @@ extern "C"
 #define ONE_WIRE_BUS D3
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature DS18B20(&oneWire);
+bool senRes = false;
 
 // I2C Port expander
 PCF8574 pcf020(0x20);

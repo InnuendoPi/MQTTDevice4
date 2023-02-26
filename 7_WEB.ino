@@ -197,6 +197,7 @@ void handleRequestMisc()
   doc["i2c"] = useI2C;
   doc["buzzer"] = startBuzzer;
   doc["mqbuz"] = mqttBuzzer;
+  doc["res"] = senRes;
   doc["display"] = useDisplay;
   // doc["page"] = startPage;
   doc["dev"] = devBranch;
@@ -286,6 +287,10 @@ void handleSetMisc()
     if (server.argName(i) == "mqbuz")
     {
       mqttBuzzer = checkBool(server.arg(i));
+    }
+    if (server.argName(i) == "res")
+    {
+      senRes = checkBool(server.arg(i));
     }
     if (server.argName(i) == "display")
     {

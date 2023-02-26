@@ -89,7 +89,10 @@ public:
         sens_address[i] = octets[i];
       }
     }
-    DS18B20.setResolution(sens_address, RESOLUTION);
+    if (senRes)
+      DS18B20.setResolution(sens_address, RESOLUTION_HIGH);
+    else
+      DS18B20.setResolution(sens_address, RESOLUTION);
   }
 
   void publishmqtt()

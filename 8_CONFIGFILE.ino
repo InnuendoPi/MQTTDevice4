@@ -46,7 +46,8 @@ bool loadConfig()
   else
     mqttBuzzer = false;
   DEBUG_MSG("Buzzer: %d mqttBuzzer: %d\n", startBuzzer, mqttBuzzer);
-
+  
+  senRes = miscObj["res"] | 0;
   useDisplay = miscObj["display"] | 0;
   startPage = miscObj["page"] | 0;
   devBranch = miscObj["devbranch"] | 0;
@@ -253,6 +254,7 @@ bool saveConfig()
   else
     miscObj["mqbuz"] = 0;
 
+  miscObj["res"] = (int)senRes;
   miscObj["display"] = (int)useDisplay;
   miscObj["page"] = startPage;
   miscObj["devbranch"] = (int)devBranch;
