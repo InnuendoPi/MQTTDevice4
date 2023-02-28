@@ -654,7 +654,7 @@ void NextionComPort::dbgLoop()
 	}
 	else if ((length == 2) && (inputString[0] == 0x66)) // 0x66 preinit page event
 	{
-		debugSerial->write(" currentPageID ");
+		debugSerial->write("CurrentPageID ");
 		debugSerial->println(inputString[1], DEC);
 	}
 }
