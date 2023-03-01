@@ -79,7 +79,7 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
   // Serial.print("Web: Payload: ");
   // for (int i = 0; i < length; i++)
   // {
-  //   Serial.print((char)payload[i]);
+    // Serial.print((char)payload[i]);
   // }
   // Serial.println(" ");
   
@@ -102,6 +102,7 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
       if (actors[i].argument_actor == topic)
       {
         actors[i].handlemqtt(payload_msg);
+        // Serial.printf("Actor payload received %s\n", actors[i].argument_actor.c_str());
         return;
       }
     }
@@ -118,28 +119,28 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
     p = strstr(topic, kettleupdate);
     if (p)
     {
-      // DEBUG_MSG("%s\n", "Web: kettleupdate");
+      DEBUG_MSG("%s\n", "Web: kettleupdate");
       cbpi4kettle_handlemqtt(payload_msg);
       return;
     }
     p = strstr(topic, stepupdate);
     if (p)
     {
-      // DEBUG_MSG("%s\n", "Web: stepsupdate");
+      DEBUG_MSG("%s\n", "Web: stepsupdate");
       cbpi4steps_handlemqtt(payload_msg);
       return;
     }
     p = strstr(topic, notificationupdate);
     if (p)
     {
-      // DEBUG_MSG("%s\n", "Web: notificationupdate");
+      DEBUG_MSG("%s\n", "Web: notificationupdate");
       cbpi4notification_handlemqtt(payload_msg);
       return;
     }
     p = strstr(topic, sensorupdate);
     if (p)
     {
-      // DEBUG_MSG("%s\n", "Web: sensorupdate");
+      DEBUG_MSG("%s\n", "Web: sensorupdate");
       cbpi4sensor_handlemqtt(payload_msg);
       return;
     }

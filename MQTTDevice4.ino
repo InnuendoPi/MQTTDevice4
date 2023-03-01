@@ -56,7 +56,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.42"
+#define Version "4.43"
 
 // System Dateien
 #define UPDATESYS "/updateSys.txt"
@@ -155,7 +155,7 @@ bool devBranch = false;           // Check out development branch
 // Event handling Zeitintervall für Reconnects WLAN und MQTT
 #define tickerWLAN 30000 // für Ticker Objekt WLAN in ms
 #define tickerMQTT 30000 // für Ticker Objekt MQTT in ms
-#define tickerPUSUB 1000 // Ticker PubSubClient
+#define tickerPUSUB 10   // Ticker PubSubClient
 
 // Event handling Standard Verzögerungen
 unsigned long wait_on_error_mqtt = 120000;             // How long should device wait between tries to reconnect WLAN      - approx in ms
