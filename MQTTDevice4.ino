@@ -1,7 +1,6 @@
 //    Author:	Innuendo
 //    Sketch für ESP8266
 //    Kommunikation via MQTT mit CraftBeerPi v4
-//    Brauen ohne CBPi4
 //
 //    Unterstützung für DS18B20 Sensoren
 //    Unterstützung für GPIO Aktoren
