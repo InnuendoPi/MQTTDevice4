@@ -1,5 +1,10 @@
 # Changelog
 
+Version 4.45
+
+- Changed:    Sensor handling (isConnected)
+- Update:     SoftSerial 8.0.2 (Nextion)
+
 Version 4.44  maintenance update
 
 - Update:     ESP8266 Arduino 3.1.2

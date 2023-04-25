@@ -21,9 +21,7 @@ public:
 
   void Update()
   {
-    DS18B20.requestTemperatures();                        // new conversion to get recent temperatures
-    sens_isConnected = DS18B20.isConnected(sens_address); // attempt to determine if the device at the given address is connected to the bus
-    sens_isConnected ? sens_value = DS18B20.getTempC(sens_address) : sens_value = -127.0;
+    sens_value = DS18B20.getTempC(sens_address);
     sensorsStatus = 0;
     sens_state = true;
 
@@ -32,15 +30,15 @@ public:
       sensorsStatus = EM_CRCER;
       sens_state = false;
     }
-    else if (sens_value == -127.00 || sens_value == 85.00)
+    else if (sens_value <= -127.0)
     {
-      if (sens_isConnected && sens_address[0] != 0xFF)
-      { // Sensor connected AND sensor address exists (not default FF)
+      if (sens_isConnected && sens_address[0] != 0xFF) // Sensor connected AND sensor address exists (not default FF)
+      {
         sensorsStatus = EM_DEVER;
         sens_state = false;
       }
-      else if (!sens_isConnected && sens_address[0] != 0xFF)
-      { // Sensor with valid address not connected
+      else if (!sens_isConnected && sens_address[0] != 0xFF) // Sensor with valid address not connected
+      {
         sensorsStatus = EM_UNPL;
         sens_state = false;
       }
@@ -49,7 +47,7 @@ public:
         sensorsStatus = EM_SENER;
         sens_state = false;
       }
-    } // sens_value -127 || +85
+    } // sens_value -127
     else
     {
       sensorsStatus = EM_OK;
@@ -215,6 +213,9 @@ TemperatureSensor sensors[numberOfSensorsMax] = {
 // Funktion für Loop im Timer Objekt
 void handleSensors()
 {
+  // request to all devices on the bus
+  DS18B20.requestTemperatures();
+
   int max_status = 0;
   for (int i = 0; i < numberOfSensors; i++)
   {
@@ -377,19 +378,20 @@ void handleRequestSensors()
       sensorsObj["offset2"] = sensors[i].getOffset2();
       sensorsObj["sw"] = sensors[i].getSw();
       sensorsObj["state"] = sensors[i].getState();
-      if (sensors[i].getValue() != -127.0)
+
+      if (sensors[i].getErr() == EM_OK)
         sensorsObj["value"] = sensors[i].getTotalValueString();
+      else if (sensors[i].getErr() == EM_CRCER)
+        sensorsObj["value"] = "CRC";
+      else if (sensors[i].getErr() == EM_DEVER)
+        sensorsObj["value"] = "DER";
+      else if (sensors[i].getErr() == EM_UNPL)
+        sensorsObj["value"] = "UNP";
+      // else if (sensors[i].getErr() == EM_SENER)
+      //   sensorsObj["value"] = "ERR";
       else
-      {
-        if (sensors[i].getErr() == 1)
-          sensorsObj["value"] = "CRC";
-        if (sensors[i].getErr() == 2)
-          sensorsObj["value"] = "DER";
-        if (sensors[i].getErr() == 3)
-          sensorsObj["value"] = "UNP";
-        else
-          sensorsObj["value"] = "ERR";
-      }
+        sensorsObj["value"] = "ERR";
+        
       sensorsObj["mqtt"] = sensors[i].getTopic();
       sensorsObj["cbpiid"] = sensors[i].getId();
       yield();

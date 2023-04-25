@@ -13,11 +13,11 @@ A detailed documentation CraftbeerPi4 is available on github pages:: <https://op
 
 ## Sketch Information
 
-Libraries: Version 4.44, 03.2023
+Libraries: Version 4.45, 04.2023
 
 - ESP8266 3.1.2 (LittleFS)
 - Arduino IDE 1.8.19
-- Visual Code + modified ESP8266FS Plugin (VSCode 1.76 + Arduino for Visual Code 0.6)
+- Visual Code + modified ESP8266FS Plugin (VSCode 1.77 + Arduino for Visual Code 0.6)
 - PubSubClient 2.8.0 (PubSubClient.h: #define MQTT_MAX_PACKET_SIZE 512)
 - ArduinoJSON 6.21
 - WiFiManager 2.0
