@@ -55,7 +55,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.45"
+#define Version "4.46"
 
 // System Dateien
 #define UPDATESYS "/updateSys.txt"
@@ -207,6 +207,7 @@ enum
 bool useDisplay = false;
 int startPage = 0;  // Startseite: BrewPage = 0 Kettlepage = 1 InductionPage = 2
 int activePage = 0; // die aktuell angezeigte Seite
+int tempPage = -1; // die aktuell angezeigte Seite
 
 const unsigned char numberOfPages = 3;
 const String page_names[numberOfPages] = {"BrewPage", "KettlePage", "InductionPage"};

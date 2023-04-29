@@ -1,5 +1,9 @@
 # Changelog
 
+Version 4.46
+
+- Changed:    faster Nextion display
+
 Version 4.45
 
 - Changed:    Sensor handling (isConnected)

@@ -1,11 +1,36 @@
-void pageCallback()
+// void pageCallback()
+// {
+//   if (startBuzzer)
+//     sendAlarm(ALARM_INFO);
+
+//   // currentPageID bei Event Touch nicht aktuell
+//   // activePage = nextion.currentPageID;
+
+//   TickerDisp.updatenow();
+// }
+
+void pageCallback0()
 {
   if (startBuzzer)
     sendAlarm(ALARM_INFO);
 
-  // currentPageID bei Event Touch nicht aktuell
-  // activePage = nextion.currentPageID;
+  tempPage = 0;
+  TickerDisp.updatenow();
+}
+void pageCallback1()
+{
+  if (startBuzzer)
+    sendAlarm(ALARM_INFO);
 
+  tempPage = 1;
+  TickerDisp.updatenow();
+}
+void pageCallback2()
+{
+  if (startBuzzer)
+    sendAlarm(ALARM_INFO);
+
+  tempPage = 2;
   TickerDisp.updatenow();
 }
 
@@ -16,7 +41,13 @@ void powerButtonCallback()
 
 void tickerDispCallback()
 {
-  nextion.update();
+  if (tempPage < 0)
+    activePage = nextion.getCurrentPageID();
+  else
+  {
+    activePage = tempPage;
+    tempPage = -1;
+  }
 
   char ipMQTT[50];
   sprintf_P(uhrzeit, (PGM_P)F("%02d:%02d"), timeClient.getHours(), timeClient.getMinutes());
@@ -55,7 +86,6 @@ void tickerDispCallback()
     InductionPage();
     break;
   }
-  nextion.update();
 }
 
 void tickerSenCallback() // Timer Objekt Sensoren
@@ -179,26 +209,26 @@ void tickerIndCallback() // Timer Objekt Sensoren
 
 void tickerPUBSUBCallback() // Timer Objekt Sensoren
 {
-    if (pubsubClient.connected())
+  if (pubsubClient.connected())
+  {
+    mqtt_state = true;
+    pubsubClient.loop();
+    if (TickerMQTT.state() == RUNNING)
+      TickerMQTT.stop();
+    return;
+  }
+  else
+  {
+    if (TickerMQTT.state() != RUNNING)
     {
-      mqtt_state = true;
-      pubsubClient.loop();
-      if (TickerMQTT.state() == RUNNING)
-        TickerMQTT.stop();
-      return;
+      DEBUG_MSG("%s\n", "Ticker PubSub Error: TickerMQTT started");
+      DEBUG_MSG("Ticker PubSub error rc=%d \n", pubsubClient.state());
+      mqtt_state = false;
+      TickerMQTT.start();
+      mqttconnectlasttry = millis();
     }
-    else
-    {
-      if (TickerMQTT.state() != RUNNING)
-      {
-        DEBUG_MSG("%s\n", "Ticker PubSub Error: TickerMQTT started");
-        DEBUG_MSG("Ticker PubSub error rc=%d \n", pubsubClient.state());
-        mqtt_state = false;
-        TickerMQTT.start();
-        mqttconnectlasttry = millis();
-      }
-      TickerMQTT.update();
-    }
+    TickerMQTT.update();
+  }
 }
 
 void tickerNTPCallback() // Ticker helper function calling Event WLAN Error
