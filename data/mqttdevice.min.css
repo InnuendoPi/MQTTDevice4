@@ -1,8 +1,6 @@
 @font-face {
   font-family: 'mqttfont';
-  src:  url('./mqttfont.eot?v7u1py');
-    src:  url('./mqttfont.eot?v7u1py#iefix') format('embedded-opentype'),
-    url('./mqttfont.ttf?v7u1py') format('truetype');
+  src:  url('/mqttfont.ttf') format('truetype');
       
   font-weight: normal;
   font-style: normal;

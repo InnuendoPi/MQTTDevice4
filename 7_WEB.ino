@@ -2,6 +2,10 @@ void handleRoot()
 {
   // server.sendHeader("Location", "/index.html", true); // Redirect to our html web page
   // server.send(302, "text/plain", "");
+  // server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  server.sendHeader("Cache-Control", "no-cache");
+  server.sendHeader("Pragma", "no-cache");
+  server.sendHeader("Expires", "-1");
   server.sendHeader(PSTR("Content-Encoding"), "gzip");
   server.send(200, "text/html", index_htm_gz, sizeof(index_htm_gz));
 }
@@ -63,6 +67,11 @@ bool loadFromLittlefs(String path)
     return false;
   }
   File dataFile = LittleFS.open(path.c_str(), "r");
+  
+  int fsize = dataFile.size();
+  server.sendHeader("Content-Length", (String)(fsize) );
+  server.sendHeader("Cache-Control", "no-cache");
+
   if (server.hasArg("download"))
     dataType = "application/octet-stream";
   if (server.streamFile(dataFile, dataType) != dataFile.size())
