@@ -172,9 +172,9 @@ InnuTicker TickerNTP;
 InnuTicker TickerDisp;
 
 // Update Intervalle für Ticker Objekte
-#define SEN_UPDATE 2000  //  sensors update
-#define ACT_UPDATE 2000  //  actors update
-#define IND_UPDATE 2000  //  induction update
+#define SEN_UPDATE 3000  //  sensors update
+#define ACT_UPDATE 3000  //  actors update
+#define IND_UPDATE 3000  //  induction update
 #define DISP_UPDATE 1000 //  display update
 
 // Systemstart

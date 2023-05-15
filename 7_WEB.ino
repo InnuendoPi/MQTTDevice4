@@ -70,8 +70,8 @@ bool loadFromLittlefs(String path)
   
   int fsize = dataFile.size();
   server.sendHeader("Content-Length", (String)(fsize) );
-  server.sendHeader("Cache-Control", "no-cache");
-
+  server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  
   if (server.hasArg("download"))
     dataType = "application/octet-stream";
   if (server.streamFile(dataFile, dataType) != dataFile.size())
