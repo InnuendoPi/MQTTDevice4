@@ -1,5 +1,12 @@
 # Changelog
 
+Version 4.47
+
+- Optimize:   CSS/JS load, WebIf performance
+- Fixed:      cores ESP8266WebServer
+- Fixed:      cores ESPSoftserial
+- Changed:    refresh time WebIf
+
 Version 4.46
 
 - Changed:    faster Nextion display
