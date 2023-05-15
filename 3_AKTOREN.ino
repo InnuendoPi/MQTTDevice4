@@ -11,6 +11,7 @@ public:
   String name_actor;
   unsigned char power_actor;
   bool isOn;
+  bool old_isOn;
   bool isInverted = false;
   bool switchable;              // actors switchable on error events?
   bool isOnBeforeError = false; // isOn status before error event
@@ -135,6 +136,7 @@ public:
     }
 
     isOn = false;
+    old_isOn = false;
     name_actor = aname;
     if (argument_actor != argument)
     {
@@ -213,12 +215,40 @@ Actor actors[numberOfActorsMax] = {
     Actor("", "", "", false, false)};
 
 // Funktionen für Loop im Timer Objekt
-void handleActors()
+void handleActors(bool checkAct)
 {
+  // checkAct true: init
+  // checkAct false: only updates
+  
+  DynamicJsonDocument ssedoc(768);
+  JsonArray sseArray = ssedoc.to<JsonArray>();
+  // bool checkAct = false;
   for (int i = 0; i < numberOfActors; i++)
   {
     actors[i].Update();
+    if(actors[i].old_isOn != actors[i].isOn)
+    {
+      actors[i].old_isOn = actors[i].isOn;
+      checkAct = true;
+    }
+
+    JsonObject sseObj = ssedoc.createNestedObject();
+    sseObj["name"] = actors[i].name_actor;
+    sseObj["ison"] = actors[i].isOn;
+    sseObj["power"] = actors[i].power_actor;
+    sseObj["mqtt"] = actors[i].argument_actor;
+    // sseObj["sw"] = actors[i].switchable;
+    sseObj["state"] = actors[i].actor_state;
+    sseObj["pin"] = PinToString(actors[i].pin_actor);
     yield();
+  }
+  
+  if (checkAct)
+  {
+    String jsonValue = "";
+    serializeJson(ssedoc, jsonValue);
+    if (measureJson(ssedoc) > 5 )
+      SSEBroadcastJson(jsonValue.c_str(), 1);
   }
 }
 

@@ -1,5 +1,19 @@
 # Changelog
 
+Version 4.50 SSE
+
+- New:        Server Sent Events SSE
+- Added:      SSE sensors, actors, IDS and misc
+- Optimize:   JS http polling (SSE)
+
+Version 4.49 - dev & test version
+
+- see 4.50 - not published
+
+Version 4.48  - development version
+
+- see 4.50 - not published
+
 Version 4.47
 
 - Optimize:   CSS/JS load, WebIf performance

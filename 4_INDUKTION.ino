@@ -38,9 +38,12 @@ public:
   unsigned char PIN_INTERRUPT = 14; // D5 Back channel blue EINGABE VON PLATTE
   int power = 0;
   int newPower = 0;
+  int oldPower = 0;
   unsigned char CMD_CUR = 0; // Aktueller Befehl
   boolean isRelayon = false; // Systemstatus: ist das Relais in der Platte an?
+  boolean oldisRelayon = false; // Systemstatus: ist das Relais in der Platte an?
   boolean isInduon = false;  // Systemstatus: ist Power > 0?
+  boolean oldisInduon = false;
   boolean isPower = false;
   String mqtttopic = "";
   boolean isEnabled = false;
@@ -491,7 +494,6 @@ void handleRequestInduction()
   {
     doc["relayOn"] = inductionCooker.isRelayon;
     doc["power"] = inductionCooker.power;
-    doc["relayOn"] = inductionCooker.isRelayon;
     doc["state"] = inductionCooker.induction_state;
     if (inductionCooker.isPower)
     {

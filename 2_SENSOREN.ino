@@ -2,15 +2,16 @@
 class TemperatureSensor
 {
   int sens_err = 0;
-  bool sens_sw = false;           // Events aktivieren
-  bool sens_state = true;         // Fehlerstatus ensor
-  bool sens_isConnected;          // ist der Sensor verbunden
-  float sens_offset1 = 0.0;       // Offset - Temp kalibrieren
-  float sens_offset2 = 0.0;       // Offset - Temp kalibrieren
-  float sens_value = -127.0;      // Aktueller Wert
-  String sens_name;               // Name für Anzeige auf Website
-  char sens_mqtttopic[50];        // Für MQTT Kommunikation
-  unsigned char sens_address[8];  // 1-Wire Adresse
+  bool sens_sw = false;          // Events aktivieren
+  bool sens_state = true;        // Fehlerstatus ensor
+  bool sens_isConnected;         // ist der Sensor verbunden
+  float sens_offset1 = 0.0;      // Offset - Temp kalibrieren
+  float sens_offset2 = 0.0;      // Offset - Temp kalibrieren
+  float sens_value = -127.0;     // Aktueller Wert
+  float old_value = 0.0;         // Aktueller Wert
+  String sens_name;              // Name für Anzeige auf Website
+  char sens_mqtttopic[50];       // Für MQTT Kommunikation
+  unsigned char sens_address[8]; // 1-Wire Adresse
   String sens_id;
 
 public:
@@ -138,6 +139,14 @@ public:
   {
     return sens_value;
   }
+  float oldValue()
+  {
+    return old_value;
+  }
+  void setOldValue()
+  {
+    old_value = sens_value;
+  }
   String getName()
   {
     return sens_name;
@@ -211,10 +220,16 @@ TemperatureSensor sensors[numberOfSensorsMax] = {
     TemperatureSensor("", "", "", "", 0.0, 0.0, false)};
 
 // Funktion für Loop im Timer Objekt
-void handleSensors()
+void handleSensors(bool checkSen)
 {
+  // checkSen true: init
+  // checkSen false: only updates
+  
   // request to all devices on the bus
-  DS18B20.requestTemperatures();
+  // DS18B20.requestTemperatures();
+  DynamicJsonDocument ssedoc(512);
+  JsonArray sseArray = ssedoc.to<JsonArray>();
+  // bool checkSen = false;
 
   int max_status = 0;
   for (int i = 0; i < numberOfSensors; i++)
@@ -225,9 +240,32 @@ void handleSensors()
     if (sensors[i].getSw() && max_status < sensors[i].getErr())
       max_status = sensors[i].getErr();
 
+    if (sensors[i].getValue() != sensors[i].oldValue())
+    {
+      sensors[i].setOldValue();
+      checkSen = true;
+    }
+    JsonObject sseObj = ssedoc.createNestedObject();
+    sseObj["name"] = sensors[i].getName();
+    if (sensors[i].getErr() == EM_OK)
+      sseObj["value"] = sensors[i].getTotalValueString();
+    else if (sensors[i].getErr() == EM_CRCER)
+      sseObj["value"] = "CRC";
+    else if (sensors[i].getErr() == EM_DEVER)
+      sseObj["value"] = "DER";
+    else if (sensors[i].getErr() == EM_UNPL)
+      sseObj["value"] = "UNP";
     yield();
   }
   sensorsStatus = max_status;
+
+  if (checkSen)
+  {
+    String jsonValue = "";
+    serializeJson(ssedoc, jsonValue);
+    if (measureJson(ssedoc) > 5)
+      SSEBroadcastJson(jsonValue.c_str(), 0);
+  }
 }
 
 unsigned char searchSensors()
@@ -391,7 +429,7 @@ void handleRequestSensors()
       //   sensorsObj["value"] = "ERR";
       else
         sensorsObj["value"] = "ERR";
-        
+
       sensorsObj["mqtt"] = sensors[i].getTopic();
       sensorsObj["cbpiid"] = sensors[i].getId();
       yield();

@@ -140,7 +140,8 @@ void setupServer()
   server.on("/setMisc", handleSetMisc);             // Misc ändern
   server.on("/startHTTPUpdate", startHTTPUpdate);   // Firmware WebUpdate
   server.on("/startToolsUpdate", startToolsUpdate); // Firmware WebUpdate
-
+  server.on("/channel", handleChannel);   //Server Sent Events will be handled from this URI
+  server.on("/startSSE", startSSE);   //Server Sent Events will be handled from this URI
   // FSBrowser initialisieren
   server.on("/edit", HTTP_GET, handleGetEdit);
   server.on("/status", HTTP_GET, handleStatus);
@@ -155,7 +156,8 @@ void setupServer()
       "/restore", HTTP_POST, []()
       { server.send(200, "text/plain", ""); },
       handleRestore);
-  server.onNotFound(handleWebRequests);
+  server.onNotFound(handleAll);
+  // server.onNotFound(handleWebRequests);
   httpUpdate.setup(&server);
   server.begin();
 }

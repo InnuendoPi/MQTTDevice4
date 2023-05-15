@@ -90,6 +90,7 @@ void tickerDispCallback()
 
 void tickerSenCallback() // Timer Objekt Sensoren
 {
+  DS18B20.requestTemperatures();
   switch (sensorsStatus)
   {
   case EM_OK:
@@ -194,17 +195,18 @@ void tickerSenCallback() // Timer Objekt Sensoren
   default:
     break;
   }
-  handleSensors();
+  handleSensors(false);
 }
 
 void tickerActCallback() // Timer Objekt Sensoren
 {
-  handleActors();
+  handleActors(false);
 }
 
 void tickerIndCallback() // Timer Objekt Sensoren
 {
   handleInduction();
+  inductionSSE(false);
 }
 
 void tickerPUBSUBCallback() // Timer Objekt Sensoren
@@ -215,6 +217,7 @@ void tickerPUBSUBCallback() // Timer Objekt Sensoren
     pubsubClient.loop();
     if (TickerMQTT.state() == RUNNING)
       TickerMQTT.stop();
+
     return;
   }
   else
@@ -226,6 +229,7 @@ void tickerPUBSUBCallback() // Timer Objekt Sensoren
       mqtt_state = false;
       TickerMQTT.start();
       mqttconnectlasttry = millis();
+      miscSSE();
     }
     TickerMQTT.update();
   }

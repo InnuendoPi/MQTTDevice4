@@ -26,6 +26,7 @@
 #include <WiFiClientSecure.h>
 #include <WiFiClientSecureBearSSL.h>
 #include <NTPClient.h>        // Uhrzeit
+#include <Ticker.h>
 #include <PubSubClient.h>     // MQTT Kommunikation
 #include <CertStoreBearSSL.h> // WebUpdate
 #include <SoftwareSerial.h>   // Serieller Port für Display
@@ -55,7 +56,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.47"
+#define Version "4.50"
 
 // System Dateien
 #define UPDATESYS "/updateSys.txt"
@@ -94,6 +95,16 @@ WiFiClient espClient;
 PubSubClient pubsubClient(espClient);
 ESP8266HTTPUpdateServer httpUpdate;
 MDNSResponder mdns;
+
+#define SSE_MAX_CHANNELS 8  // 8 SSE clients subscription erlaubt
+struct SSESubscription {
+  IPAddress clientIP;
+  WiFiClient client;
+  Ticker keepAliveTimer;
+  bool check = false;
+} subscription[SSE_MAX_CHANNELS];
+uint8_t subscriptionCount = 0;
+const unsigned int port = 80;
 
 #define DEF_DELAY_IND 120000 // Standard Nachlaufzeit nach dem Ausschalten Induktionskochfeld
 
@@ -152,8 +163,8 @@ bool mqtt_state = true;           // Status MQTT
 bool devBranch = false;           // Check out development branch
 
 // Event handling Zeitintervall für Reconnects WLAN und MQTT
-#define tickerWLAN 30000 // für Ticker Objekt WLAN in ms
-#define tickerMQTT 30000 // für Ticker Objekt MQTT in ms
+#define tickerWLAN 10000 // für Ticker Objekt WLAN in ms
+#define tickerMQTT 10000 // für Ticker Objekt MQTT in ms
 #define tickerPUSUB 10   // Ticker PubSubClient
 
 // Event handling Standard Verzögerungen
@@ -173,8 +184,8 @@ InnuTicker TickerDisp;
 
 // Update Intervalle für Ticker Objekte
 #define SEN_UPDATE 3000  //  sensors update
-#define ACT_UPDATE 3000  //  actors update
-#define IND_UPDATE 3000  //  induction update
+#define ACT_UPDATE 2000  //  actors update
+#define IND_UPDATE 2000  //  induction update
 #define DISP_UPDATE 1000 //  display update
 
 // Systemstart

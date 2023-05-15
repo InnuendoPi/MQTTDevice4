@@ -455,6 +455,7 @@ void EM_MQTTER() // MQTT Error -> handling
     DEBUG_MSG("%s", "MQTT auto reconnect successful. Subscribing..\n");
     EM_MQTTSUB();
     EM_MQTTRES();
+    miscSSE();
     return;
   }
   if (millis() - mqttconnectlasttry >= wait_on_error_mqtt)
