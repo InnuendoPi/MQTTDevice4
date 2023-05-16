@@ -333,6 +333,7 @@ void handleSetActor()
   actors[id].change(ac_pin, ac_argument, ac_name, ac_isinverted, ac_switchable);
   saveConfig();
   server.send(200, "text/plain", "ok");
+  handleActors(true);
 }
 
 void handleDelActor()
@@ -354,6 +355,7 @@ void handleDelActor()
   numberOfActors -= 1;
   saveConfig();
   server.send(200, "text/plain", "ok");
+  handleActors(true);
 }
 
 void handlereqPins()

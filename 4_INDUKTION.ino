@@ -605,4 +605,5 @@ void handleSetIndu()
   inductionCooker.change(pin_white, pin_yellow, pin_blue, topic, is_enabled, pl);
   saveConfig();
   server.send(200, "text/plain", "ok");
+  inductionSSE(true);
 }

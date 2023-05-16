@@ -354,6 +354,7 @@ void handleSetSensor()
   sensors[id].change(new_address, new_mqtttopic, new_name, new_id, new_offset1, new_offset2, new_sw);
   saveConfig();
   server.send(201, "text/plain", "created");
+  handleSensors(true);
 }
 
 void handleDelSensor()
@@ -373,6 +374,7 @@ void handleDelSensor()
   numberOfSensors--;
   saveConfig();
   server.send(200, "text/plain", "deleted");
+  handleSensors(true);
 }
 
 void handleRequestSensorAddresses()

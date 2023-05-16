@@ -5,6 +5,8 @@ Version 4.50 SSE
 - New:        Server Sent Events SSE
 - Added:      SSE sensors, actors, IDS and misc
 - Optimize:   JS http polling (SSE)
+- Added:      Column SSE badge
+- Changed:    PCF display mDNS badges in disabled state
 
 Version 4.49 - dev & test version
 

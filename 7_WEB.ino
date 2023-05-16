@@ -371,6 +371,7 @@ void handleSetMisc()
   }
   saveConfig();
   server.send(200, "text/plain", "ok");
+  miscSSE();
 }
 
 // Some helper functions WebIf
