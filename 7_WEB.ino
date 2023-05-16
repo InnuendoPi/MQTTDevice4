@@ -194,6 +194,18 @@ void handleRequestMisc2()
   // DEBUG_MSG("WEB Misc2 JSON memory usage: %d\n", memoryUsed);
 }
 
+void handleRequestMisc3()
+{
+  // StaticJsonDocument<512> doc;
+  DynamicJsonDocument doc(32);
+  doc["alert"] = alertState;
+  if (alertState)
+    alertState = false;
+  String response;
+  serializeJson(doc, response);
+  server.send(200, "application/json", response.c_str());
+}
+
 void handleRequestMisc()
 {
   // StaticJsonDocument<768> doc;

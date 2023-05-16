@@ -8,13 +8,8 @@ Version 4.50 SSE
 - Added:      Column SSE badge
 - Changed:    PCF display mDNS badges in disabled state
 
-Version 4.49 - dev & test version
-
-- see 4.50 - not published
-
+Version 4.49 - dev & test version\
 Version 4.48  - development version
-
-- see 4.50 - not published
 
 Version 4.47
 

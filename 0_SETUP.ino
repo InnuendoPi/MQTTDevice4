@@ -134,8 +134,9 @@ void setupServer()
   server.on("/delSensor", handleDelSensor);   // Sensor löschen
   server.on("/delActor", handleDelActor);     // Aktor löschen
   server.on("/reboot", rebootDevice);         // reboots the whole Device
-  server.on("/reqMisc2", handleRequestMisc2); // Misc Infos für WebConfig
   server.on("/reqMisc", handleRequestMisc);         // Misc Infos für WebConfig
+  server.on("/reqMisc2", handleRequestMisc2); // Misc Infos für WebConfig
+  server.on("/reqMisc3", handleRequestMisc3); // Misc Infos für WebConfig
   server.on("/reqFirm", handleRequestFirm);         // Firmware version
   server.on("/setMisc", handleSetMisc);             // Misc ändern
   server.on("/startHTTPUpdate", startHTTPUpdate);   // Firmware WebUpdate
