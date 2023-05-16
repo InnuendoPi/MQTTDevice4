@@ -181,9 +181,9 @@ void handleRequestMisc2()
     doc["mdns"] = nameMDNS;
   else
     doc["mdns"] = 0;
-  doc["alert"] = alertState;
-  if (alertState)
-    alertState = false;
+  // doc["alert"] = alertState;
+  // if (alertState)
+  //   alertState = false;
   String response;
   
   serializeJson(doc, response);
