@@ -143,7 +143,7 @@ void setupServer()
   server.on("/startToolsUpdate", startToolsUpdate); // Firmware WebUpdate
   server.on("/channel", handleChannel);   //Server Sent Events will be handled from this URI
   server.on("/startSSE", startSSE);   //Server Sent Events will be handled from this URI
-  server.on("/checkAliveSSE", checkAliveSSE);   // Server Sent Events check IP on channel
+  // server.on("/checkAliveSSE", checkAliveSSE);   // Server Sent Events check IP on channel
   // FSBrowser initialisieren
   server.on("/edit", HTTP_GET, handleGetEdit);
   server.on("/status", HTTP_GET, handleStatus);
