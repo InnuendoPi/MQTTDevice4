@@ -1,5 +1,18 @@
 # Changelog
 
+Version 4.52
+
+- Fixed:      Arduino ESP8266 core: Fix for occasional timeout issues #8944 (net error timeout - WebIf Fehler)
+- Fixed:      Arduino ESP8266 core: Fix for dangerous relocation: j: cannot encode #8925
+- Changed:    Arduino ESP8266 core: Add support WiFiClientSecure TCP KeepAlive #8940
+- Added:      SSE keepalive
+- Changed:    Cache control WebIf (no-cache, expires 0)
+
+Version 4.51
+
+- Fix:        Arduino ESP8266 Fix for occasional timeout issues #8944 (net error timeout - WebIf)
+- Changed:    InnuFramework mimeTypes und mimeTables
+
 Version 4.50 SSE
 
 - New:        Server Sent Events SSE
@@ -7,6 +20,7 @@ Version 4.50 SSE
 - Optimize:   JS http polling (SSE)
 - Added:      Column SSE badge
 - Changed:    PCF display mDNS badges in disabled state
+- Update:     JQuery 3.7.0
 
 Version 4.49 - dev & test version\
 Version 4.48  - development version

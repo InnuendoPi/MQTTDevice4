@@ -1,13 +1,12 @@
 void handleRoot()
 {
-  // server.sendHeader("Location", "/index.html", true); // Redirect to our html web page
-  // server.send(302, "text/plain", "");
-  // server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  server.sendHeader("Cache-Control", "no-cache");
-  server.sendHeader("Pragma", "no-cache");
-  server.sendHeader("Expires", "-1");
+  server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1
+  server.sendHeader("Pragma", "no-cache"); // HTTP 1.0
+  server.sendHeader("Expires", "0"); // Proxies
+  server.sendHeader("description", "MQTTDevice for CraftbeerPi");
+  server.sendHeader("author", "Innuendo");
   server.sendHeader(PSTR("Content-Encoding"), "gzip");
-  server.send(200, "text/html", index_htm_gz, sizeof(index_htm_gz));
+  server.send_P(200, "text/html", index_htm_gz, index_htm_gz_len);
 }
 
 void handleWebRequests()
@@ -33,52 +32,40 @@ void handleWebRequests()
 
 bool loadFromLittlefs(String path)
 {
-  String dataType = "text/plain";
   if (path.endsWith("/"))
-    path += "index.html";
-
-  if (path.endsWith(".src"))
-    path = path.substring(0, path.lastIndexOf("."));
-  else if (path.endsWith(".html"))
-    dataType = "text/html";
-  else if (path.endsWith(".htm"))
-    dataType = "text/html";
-  else if (path.endsWith(".css"))
-    dataType = "text/css";
-  else if (path.endsWith(".js"))
-    dataType = "application/javascript";
-  else if (path.endsWith(".png"))
-    dataType = "image/png";
-  else if (path.endsWith(".gif"))
-    dataType = "image/gif";
-  else if (path.endsWith(".jpg"))
-    dataType = "image/jpeg";
-  else if (path.endsWith(".ico"))
-    dataType = "image/x-icon";
-  else if (path.endsWith(".xml"))
-    dataType = "text/xml";
-  else if (path.endsWith(".pdf"))
-    dataType = "application/pdf";
-  else if (path.endsWith(".zip"))
-    dataType = "application/zip";
-
-  if (!LittleFS.exists(path.c_str()))
   {
-    return false;
+    path += "index.htm";
   }
-  File dataFile = LittleFS.open(path.c_str(), "r");
-  
-  int fsize = dataFile.size();
-  server.sendHeader("Content-Length", (String)(fsize) );
-  server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  
+
+  String contentType;
   if (server.hasArg("download"))
-    dataType = "application/octet-stream";
-  if (server.streamFile(dataFile, dataType) != dataFile.size())
   {
+    contentType = F("application/octet-stream");
   }
-  dataFile.close();
-  return true;
+  else
+  {
+    contentType = mime::getContentType(path); // ESPWebServer mimeType Tabelle
+  }
+  if (LittleFS.exists(path.c_str()))
+  {
+    File dataFile = LittleFS.open(path.c_str(), "r");
+    if (dataFile)
+    {
+      int fsize = dataFile.size();
+      // unsigned long timeStart = millis();
+      server.sendHeader("Content-Length", (String)fsize);
+      size_t sent = server.streamFile(dataFile, contentType);
+      // Serial.printf("file: %s path: %s content: %s size: %d sent: %d duration: %03.02fs\n", dataFile.name(), path.c_str(), contentType.c_str(), fsize, sent, ((float)(millis() - timeStart)) / 1000.0);
+      dataFile.close();
+      return true;
+    }
+    else
+    {
+      // Serial.printf("failed to read %s\n", dataFile.name());
+      return false;
+    }
+  }
+  return false;
 }
 
 void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
@@ -88,10 +75,10 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
   // Serial.print("Web: Payload: ");
   // for (int i = 0; i < length; i++)
   // {
-    // Serial.print((char)payload[i]);
+  // Serial.print((char)payload[i]);
   // }
   // Serial.println(" ");
-  
+
   char payload_msg[length];
   for (int i = 0; i < length; i++)
   {
@@ -185,7 +172,7 @@ void handleRequestMisc2()
   // if (alertState)
   //   alertState = false;
   String response;
-  
+
   serializeJson(doc, response);
   server.send(200, "application/json", response.c_str());
   // size_t len = measureJson(doc);
@@ -362,7 +349,6 @@ void handleSetMisc()
       if (isValidInt(server.arg(i)))
       {
         wait_on_error_mqtt = constrain(server.arg(i).toInt(), 1, 600) * 1000;
-
       }
     if (server.argName(i) == "del_sen_act")
     {
