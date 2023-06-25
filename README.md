@@ -13,17 +13,18 @@ A detailed documentation CraftbeerPi4 is available on github pages:: <https://op
 
 ## Sketch Information
 
-Libraries: Version 4.50, 05.2023
+Libraries: Version 4.52, 06.2023
 
 - ESP8266 3.1.2 (LittleFS)
 - Arduino IDE 1.8.19
-- Visual Code + modified ESP8266FS Plugin (VSCode 1.78 + Arduino for Visual Code 0.6)
+- Visual Code + modified ESP8266FS Plugin (VSCode 1.79 + Arduino for Visual Code 0.6)
 - PubSubClient 2.8.0 (PubSubClient.h: #define MQTT_MAX_PACKET_SIZE 512)
 - ArduinoJSON 6.21
 - WiFiManager 2.0
 - NextionX2 1.1.2 (NextionX2.h: #define ATTRIBUTE_TEXT_LENGTH 90, added currentPageID, page 0x66)
 - PCF8574 0.3.8
 - InnuTicker
+- InnuFramework
 
 Board configuration:
 Flash size 4MB (FS:2MB OTA:~1019kB)

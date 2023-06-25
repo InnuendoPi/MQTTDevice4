@@ -1,10 +1,10 @@
 void handleRoot()
 {
-  server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1
-  server.sendHeader("Pragma", "no-cache"); // HTTP 1.0
-  server.sendHeader("Expires", "0"); // Proxies
-  server.sendHeader("description", "MQTTDevice for CraftbeerPi");
-  server.sendHeader("author", "Innuendo");
+  // server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1
+  // server.sendHeader("Pragma", "no-cache"); // HTTP 1.0
+  // server.sendHeader("Expires", "0"); // Proxies
+  // server.sendHeader("description", "MQTTDevice for CraftbeerPi");
+  // server.sendHeader("author", "Innuendo");
   server.sendHeader(PSTR("Content-Encoding"), "gzip");
   server.send_P(200, "text/html", index_htm_gz, index_htm_gz_len);
 }
