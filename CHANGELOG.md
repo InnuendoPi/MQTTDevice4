@@ -1,12 +1,18 @@
 # Changelog
 
+Version 4.53 Release
+
+- Changed:    InnuFramework
+- Fix:        Reboot reload Webif
+- Merge:      dev to main
+
 Version 4.52
 
 - Fixed:      Arduino ESP8266 core: Fix for occasional timeout issues #8944 (net error timeout - WebIf Fehler)
 - Fixed:      Arduino ESP8266 core: Fix for dangerous relocation: j: cannot encode #8925
 - Changed:    Arduino ESP8266 core: Add support WiFiClientSecure TCP KeepAlive #8940
 - Added:      SSE keepalive
-- Changed:    Cache control WebIf (no-cache, expires 0)
+- Changed:    Cache control WebIf
 
 Version 4.51
 

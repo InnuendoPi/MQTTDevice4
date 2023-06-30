@@ -356,7 +356,7 @@ void EM_REBOOT() // Reboot ESP
     inductionCooker.isInduon = false;
     inductionCooker.Update();
   }
-  server.send(200, "text/plain", "reboot");
+  server.send_P(205, "text/plain", "reboot");
   LittleFS.end(); // unmount LittleFS
   ESP.restart();
 }

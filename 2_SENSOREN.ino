@@ -396,7 +396,7 @@ void handleRequestSensorAddresses()
     message += F("</option>");
     yield();
   }
-  server.send(200, "text/html", message);
+  server.send_P(200, "text/html", message.c_str() );
 }
 
 void handleRequestSensors()
@@ -449,5 +449,5 @@ void handleRequestSensors()
 
   String response;
   serializeJson(doc, response);
-  server.send(200, "application/json", response);
+  server.send_P(200, "application/json", response.c_str() );
 }

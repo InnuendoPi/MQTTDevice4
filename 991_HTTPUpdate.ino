@@ -191,7 +191,7 @@ void updateSys()
 
 void startToolsUpdate()
 {
-    server.send(200, "text/plain", "ok");
+    server.send_P(200, "text/plain", "ok");
     millis2wait(1000);
     fsUploadFile = LittleFS.open(UPDATETOOLS, "w");
     if (!fsUploadFile)
@@ -234,7 +234,7 @@ void startToolsUpdate()
 
 void startHTTPUpdate()
 {
-    server.send(200, "text/plain", "ok");
+    server.send_P(200, "text/plain", "ok");
     millis2wait(1000);
     fsUploadFile = LittleFS.open(UPDATESYS, "w");
     if (!fsUploadFile)

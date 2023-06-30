@@ -174,7 +174,7 @@ void handleRequestMisc2()
   String response;
 
   serializeJson(doc, response);
-  server.send(200, "application/json", response.c_str());
+  server.send_P(200, "application/json", response.c_str());
   // size_t len = measureJson(doc);
   // int memoryUsed = doc.memoryUsage();
   // DEBUG_MSG("WEB Misc2 JSON config length: %d\n", len);
@@ -190,7 +190,7 @@ void handleRequestMisc3()
     alertState = false;
   String response;
   serializeJson(doc, response);
-  server.send(200, "application/json", response.c_str());
+  server.send_P(200, "application/json", response.c_str());
 }
 
 void handleRequestMisc()
@@ -217,7 +217,7 @@ void handleRequestMisc()
   doc["s_mqtt"] = mqtt_state; // Anzeige MQTT Status -> mqtt_state verzögerter Status!
   String response;
   serializeJson(doc, response);
-  server.send(200, "application/json", response);
+  server.send_P(200, "application/json", response.c_str());
   // size_t len = measureJson(doc);
   // int memoryUsed = doc.memoryUsage();
   // DEBUG_MSG("WEB Misc JSON config length: %d\n", len);
@@ -244,7 +244,7 @@ void handleRequestFirm()
   }
 
 SendMessage:
-  server.send(200, "text/plain", message);
+  server.send_P(200, "text/plain", message.c_str());
 }
 
 void handleSetMisc()
@@ -368,13 +368,15 @@ void handleSetMisc()
     yield();
   }
   saveConfig();
-  server.send(200, "text/plain", "ok");
+  // server.sendHeader("Location", "/", true);
+  server.send_P(200, "text/plain", "ok");
   miscSSE();
 }
 
 // Some helper functions WebIf
 void rebootDevice()
 {
+  server.sendHeader("Location", "/", true);
   server.send(205, "text/plain", "reboot");
   EM_REBOOT();
 }
@@ -396,7 +398,7 @@ void handleRequestPages()
       message += F("</option>");
     }
   }
-  server.send(200, "text/plain", message);
+  server.send_P(200, "text/plain", message.c_str() );
 }
 
 void handleRestore()

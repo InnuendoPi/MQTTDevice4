@@ -509,7 +509,7 @@ void handleRequestInduction()
   doc["pl"] = inductionCooker.powerLevelOnError;
   String response;
   serializeJson(doc, response);
-  server.send(200, "application/json", response);
+  server.send_P(200, "application/json", response.c_str() );
   // size_t len = measureJson(doc);
   // int memoryUsed = doc.memoryUsage();
   // DEBUG_MSG("Ind JSON config length: %d\n", len);
@@ -558,7 +558,7 @@ void handleRequestIndu()
   }
 
   // SendMessage:
-  server.send(200, "text/plain", message);
+  server.send_P(200, "text/plain", message.c_str() );
 }
 
 void handleSetIndu()
@@ -604,6 +604,6 @@ void handleSetIndu()
 
   inductionCooker.change(pin_white, pin_yellow, pin_blue, topic, is_enabled, pl);
   saveConfig();
-  server.send(200, "text/plain", "ok");
+  server.send_P(200, "text/plain", "ok");
   inductionSSE(true);
 }

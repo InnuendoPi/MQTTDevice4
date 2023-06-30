@@ -56,7 +56,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.52a"
+#define Version "4.53"
 
 // System Dateien
 #define UPDATESYS "/updateSys.txt"

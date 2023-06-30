@@ -285,7 +285,7 @@ void handleRequestActors()
 
   String response;
   serializeJson(doc, response);
-  server.send(200, "application/json", response);
+  server.send_P(200, "application/json", response.c_str() );
 }
 
 void handleSetActor()
@@ -332,7 +332,7 @@ void handleSetActor()
   }
   actors[id].change(ac_pin, ac_argument, ac_name, ac_isinverted, ac_switchable);
   saveConfig();
-  server.send(200, "text/plain", "ok");
+  server.send_P(200, "text/plain", "ok");
   handleActors(true);
 }
 
@@ -354,7 +354,7 @@ void handleDelActor()
 
   numberOfActors -= 1;
   saveConfig();
-  server.send(200, "text/plain", "ok");
+  server.send_P(200, "text/plain", "ok");
   handleActors(true);
 }
 
@@ -379,7 +379,7 @@ void handlereqPins()
     }
     yield();
   }
-  server.send(200, "text/plain", message);
+  server.send_P(200, "text/plain", message.c_str() );
 }
 
 unsigned char StringToPin(String pinstring)
