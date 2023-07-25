@@ -1,5 +1,13 @@
 # Changelog
 
+Version 4.54
+
+- Added:      SSE auto reconnect
+- Added:      SSE checkAlive für Mobile Browser (nur auf iOS getestet)
+- Fix:        Status icon SSE change background color red/green on disconnect/reconnect
+- Change:     InnuFramework
+- Fix:        Arduino ESP8266 core: No poison after block with current git version (Issue #8952)
+
 Version 4.53 Release
 
 - Changed:    InnuFramework
