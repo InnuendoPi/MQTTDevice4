@@ -1,9 +1,15 @@
 # Changelog
 
+Version 4.55
+
+- Fix:        github changed MFLN - WebUpdate received 0 byte data
+- Fix:        WebUpdate
+- renew:      certificates SSL
+
 Version 4.54
 
 - Added:      SSE auto reconnect
-- Added:      SSE checkAlive für Mobile Browser (nur auf iOS getestet)
+- Added:      SSE checkAlive mobiles (tested on iOS only)
 - Fix:        Status icon SSE change background color red/green on disconnect/reconnect
 - Change:     InnuFramework
 - Fix:        Arduino ESP8266 core: No poison after block with current git version (Issue #8952)

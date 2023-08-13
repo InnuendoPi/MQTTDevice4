@@ -27,6 +27,11 @@ void setup()
   if (LittleFS.begin())
   {
     Serial.printf("*** SYSINFO: setup LittleFS free heap: %d\n", ESP.getFreeHeap());
+    
+    // Starte NTP
+    timeClient.begin();
+    timeClient.forceUpdate();
+    checkSummerTime();
 
     // Prüfe WebUpdate
     updateSys();
@@ -34,10 +39,6 @@ void setup()
 
     // Erstelle Ticker Objekte
     setTicker();
-    // Starte NTP
-    timeClient.begin();
-    timeClient.forceUpdate();
-    checkSummerTime();
     TickerNTP.start();
 
     if (LittleFS.exists(CONFIG)) // Lade Konfiguration
@@ -160,6 +161,6 @@ void setupServer()
       handleRestore);
   server.onNotFound(handleAll);
   // server.onNotFound(handleWebRequests);
-  httpUpdate.setup(&server);
+  // httpUpdate.setup(&server);
   server.begin();
 }

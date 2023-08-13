@@ -13,7 +13,7 @@
 #include <DallasTemperature.h> // Vereinfachte Benutzung der DS18B20 Sensoren
 #include <ESP8266WiFi.h>       // Generelle WiFi Funktionalität
 #include <ESP8266WebServer.h>  // Unterstützung Webserver
-#include <ESP8266HTTPUpdateServer.h>
+// #include <ESP8266HTTPUpdateServer.h>
 #include <WiFiManager.h> // WiFiManager zur Einrichtung
 #include <DNSServer.h>   // Benötigt für WiFiManager
 #include <LittleFS.h>    // Dateisystem
@@ -24,11 +24,11 @@
 #include <ESP8266HTTPClient.h>
 #include <ESP8266httpUpdate.h>
 #include <WiFiClientSecure.h>
-#include <WiFiClientSecureBearSSL.h>
+// #include <WiFiClientSecureBearSSL.h>
 #include <NTPClient.h>        // Uhrzeit
 #include <Ticker.h>
 #include <PubSubClient.h>     // MQTT Kommunikation
-#include <CertStoreBearSSL.h> // WebUpdate
+// #include <CertStoreBearSSL.h> // WebUpdate
 #include <SoftwareSerial.h>   // Serieller Port für Display
 #include <PCF8574.h>          // I2C IO Modul PCF8574
 #include "InnuTicker.h"       // Bibliothek für Hintergrund Aufgaben (Tasks)
@@ -56,7 +56,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.54"
+#define Version "4.55"
 
 // System Dateien
 #define UPDATESYS "/updateSys.txt"
@@ -93,8 +93,10 @@ ESP8266WebServer server(80);
 WiFiManager wifiManager;
 WiFiClient espClient;
 PubSubClient pubsubClient(espClient);
-ESP8266HTTPUpdateServer httpUpdate;
+// ESP8266HTTPUpdateServer httpUpdate;
 MDNSResponder mdns;
+BearSSL::WiFiClientSecure clientup;
+HTTPClient https;
 
 #define SSE_MAX_CHANNELS 8  // 8 SSE clients subscription erlaubt
 struct SSESubscription {
