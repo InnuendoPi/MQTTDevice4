@@ -1,58 +1,29 @@
-bool upTools(String url, String fname)
+bool upTools(String url, String fname, BearSSL::WiFiClientSecure &clientup)
 {
+    HTTPClient https;
+    char line[120];
     millis2wait(100);
-    // Serial.printf("*** SYSINFO: uptools %s\n", fname.c_str());
     if (https.begin(clientup, url + fname))
     {
         int httpCode = https.GET();
-        // Serial.printf("*** SYSINFO: [HTTPS] httpCode: %d\n", httpCode);
         if (httpCode > 0)
         {
-            // Serial.printf("*** SYSINFO: [HTTPS] httpCode: %d\n", httpCode);
-            // if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_FOUND)
-            // if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_FOUND || httpCode == HTTP_CODE_MOVED_PERMANENTLY)
             if (httpCode == HTTP_CODE_OK)
             {
-                // int len = https.getSize();
                 uint8_t buff[128] = {0};
                 // get tcp stream
                 WiFiClient *stream = https.getStreamPtr();
-
-                // bool check = LittleFS.remove("/" + fname);
                 fsUploadFile = LittleFS.open("/" + fname + ".new", "w");
-                // if (!check)
-                //     Serial.printf("*** SYSINFO: error remove %s\n", fname.c_str());
-
-                // if (https.connected())
-                // {
-                //     Serial.printf("*** SYSINFO: https connected %s: %s\n", fname.c_str(), https.errorToString(httpCode).c_str());
-                //     fsUploadFile = LittleFS.open("/" + fname + ".new", "w");
-                // }
-                // else
-                // {
-                //     Serial.printf("*** SYSINFO: error update %s: %s\n", fname.c_str(), https.errorToString(httpCode).c_str());
-                //     https.end();
-                //     return false;
-                // }
-                // if (!fsUploadFile)
-                // {
-                //     Serial.printf("*** SYSINFO: error write %s\n", fname.c_str());
-                //     https.end();
-                //     return false;
-                // }
                 int len = https.getSize();
                 int startlen = len;
-                // Serial.printf("len: %d\n", len);
                 while (https.connected() && (len > 0 || len == -1))
                 {
                     // get available data size
                     size_t size = stream->available();
-                    // Serial.printf("size: %d\n", size);
                     if (size > 0)
                     {
                         // read up to 128 byte
                         int c = stream->readBytes(buff, ((size > sizeof(buff)) ? sizeof(buff) : size));
-
                         // write to file
                         fsUploadFile.write(buff, c);
 
@@ -63,16 +34,18 @@ bool upTools(String url, String fname)
                     }
                     delay(1);
                 }
-
                 if (fsUploadFile.size() == startlen)
                 {
-                    // Serial.printf("*** SYSINFO: %s update finished size: %d\n", fname.c_str(), fsUploadFile.size() );
+                    sprintf(line, "Framwork/Tools update %s getSize: %d fileSize: %d", fname.c_str(), startlen, fsUploadFile.size());
+                    debugLog(UPDATELOG, line);
                     fsUploadFile.close();
                     bool check = LittleFS.remove("/" + fname);
                     check = LittleFS.rename("/" + fname + ".new", "/" + fname);
                 }
                 else
                 {
+                    sprintf(line, "Framwork/Tools update error %s getSize: %d fileSize: %d", fname.c_str(), startlen, fsUploadFile.size());
+                    debugLog(UPDATELOG, line);
                     Serial.printf("*** SYSINFO: %s update finished with error startLen: %d file size: %d\n", fname.c_str(), startlen, fsUploadFile.size());
                     fsUploadFile.close();
                 }
@@ -85,14 +58,17 @@ bool upTools(String url, String fname)
         }
         else
         {
-            // Serial.printf("*** SYSINFO: error update %s: %s\n", fname, https.errorToString(httpCode).c_str());
-            Serial.printf("*** SYSINFO: error update %s\n", fname.c_str());
+            sprintf(line, "Framwork/Tools update error %s %d", fname.c_str(), https.errorToString(httpCode).c_str());
+            debugLog(UPDATELOG, line);
+            Serial.printf("*** SYSINFO: error update %s: %s\n", fname, https.errorToString(httpCode).c_str());
             https.end();
             return false;
         }
     }
     else
     {
+        sprintf(line, "Framwork/Tools update error https.begin %s", fname.c_str());
+        debugLog(UPDATELOG, line);
         Serial.printf("*** SYSINFO: error https.begin %s\n", fname.c_str());
         return false;
     }
@@ -100,25 +76,38 @@ bool upTools(String url, String fname)
 
 void upFirm()
 {
-    // BearSSL::CertStore certStore;
-    // int numCerts = certStore.initCertStore(LittleFS, PSTR("/certs.idx"), PSTR(CERT));
-    // Serial.print(F("Number of CA certs read: "));
-    // Serial.println(numCerts);
-    // if (numCerts == 0)
-    // {
-    //     // Serial.println(F("*** SYSINFO: No certs found. Did you run certs-from-mozill.py and upload the LittleFS directory before running?"));
-    //     return; // Can't connect to anything w/o certs!
-    // }
-    clientup.setInsecure();
-    bool mfln = clientup.probeMaxFragmentLength("github.com", 443, 512);
-    // Serial.printf("\nConnecting to https://github.com\n");
-    // Serial.printf("MFLN supported: %s\n", mfln ? "yes" : "no");
-    clientup.setBufferSizes(512, 512);
-    if (clientup.connect("github.com", 443))
-        Serial.printf("MFLN status: %s ", clientup.getMFLNStatus() ? "true" : "false");
+    char line[120];
+    BearSSL::WiFiClientSecure clientup;
+    BearSSL::CertStore certStore;
+    int numCerts = certStore.initCertStore(LittleFS, PSTR("/certs.idx"), PSTR(CERT));
+    if (numCerts == 0)
+    {
+        sprintf(line, "CA certificates not found: %d - SSL insecure!", numCerts);
+        debugLog(UPDATELOG, line);
+        sprintf(line, "BearSSL setInsecure - do not use this mode!", numCerts);
+        debugLog(UPDATELOG, line);
+        clientup.setInsecure();
+    }
     else
     {
-        Serial.printf("Unable to connect\n");
+        sprintf(line, "Number of CA certificates: %d - SSL connection secure", numCerts);
+        debugLog(UPDATELOG, line);
+        clientup.setCertStore(&certStore);
+    }
+    bool mfln = clientup.probeMaxFragmentLength("github.com", 443, 512);
+    clientup.setBufferSizes(512, 512);
+    if (clientup.connect("github.com", 443))
+    {
+        // Serial.printf("MFLN status: %s ", clientup.getMFLNStatus() ? "true" : "false");
+        sprintf(line, "MFLN Status: %s - connected (Buffers 512k)", clientup.getMFLNStatus() ? "true" : "false");
+        debugLog(UPDATELOG, line);
+    }
+    else
+    {
+        // Serial.printf("Unable to connect\n");
+        sprintf(line, "MFLN Status: %s - unable to connect", clientup.getMFLNStatus() ? "true" : "false");
+        debugLog(UPDATELOG, line);
+        return;
     }
 
     ESPhttpUpdate.followRedirects(true);
@@ -139,6 +128,10 @@ void upFirm()
 
 void updateTools()
 {
+    char line[120];
+    BearSSL::WiFiClientSecure clientup;
+    BearSSL::CertStore certStore;
+    int numCerts = certStore.initCertStore(LittleFS, PSTR("/certs.idx"), PSTR(CERT));
     if (LittleFS.exists(UPDATETOOLS))
     {
         fsUploadFile = LittleFS.open(LOGUPDATETOOLS, "r");
@@ -160,29 +153,47 @@ void updateTools()
         int bytesWritten = fsUploadFile.print((anzahlVersuche));
         fsUploadFile.close();
         Serial.printf("*** SYSINFO: ESP8266 IP Adresse: %s Zeit: %s WLAN Signal: %d\n", WiFi.localIP().toString().c_str(), timeClient.getFormattedTime().c_str(), WiFi.RSSI());
-        Serial.printf("*** SYSINFO: Update tools #%d started - free heap: ", anzahlVersuche);
-        Serial.println(ESP.getFreeHeap());
-
-        clientup.setInsecure();
-        bool mfln = clientup.probeMaxFragmentLength("github.com", 443, 512);
-        // Serial.printf("\nConnecting to https://github.com\n");
-        // Serial.printf("MFLN supported: %s\n", mfln ? "yes" : "no");
-        clientup.setBufferSizes(512, 512);
-        if (clientup.connect("github.com", 443))
+        Serial.printf("*** SYSINFO: Update tools #%d started - free heap: %d\n", anzahlVersuche, ESP.getFreeHeap());
+        sprintf(line, "Update Framework/Tools #%d started - free heap: %d", anzahlVersuche, ESP.getFreeHeap());
+        debugLog(UPDATELOG, line);
+        if (numCerts == 0)
         {
-            Serial.printf("MFLN status: %s\n", clientup.getMFLNStatus() ? "true" : "false");
+            sprintf(line, "CA certificates not found: %d - SSL insecure!", numCerts);
+            debugLog(UPDATELOG, line);
+            sprintf(line, "BearSSL setInsecure - do not use this mode!", numCerts);
+            debugLog(UPDATELOG, line);
+            clientup.setInsecure();
         }
         else
         {
-            Serial.printf("Unable to connect\n");
+            sprintf(line, "Number of CA certificates: %d - SSL connection secure", numCerts);
+            debugLog(UPDATELOG, line);
+            clientup.setCertStore(&certStore);
+        }
+
+        bool mfln = clientup.probeMaxFragmentLength("github.com", 443, 512);
+        clientup.setBufferSizes(512, 512);
+        if (clientup.connect("github.com", 443))
+        {
+            // Serial.printf("MFLN status: %s ", clientup.getMFLNStatus() ? "true" : "false");
+            sprintf(line, "MFLN Status: %s - connected (Buffers 512k)", clientup.getMFLNStatus() ? "true" : "false");
+            debugLog(UPDATELOG, line);
+        }
+        else
+        {
+            // Serial.printf("Unable to connect\n");
+            sprintf(line, "MFLN Status: %s - unable to connect", clientup.getMFLNStatus() ? "true" : "false");
+            debugLog(UPDATELOG, line);
+            return;
         }
         bool test;
         if (LittleFS.exists(DEVBRANCH))
         {
-            test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "mqttfont.ttf");
-            test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "mqttdevice.min.css");
-            test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "mqttdevice.min.js");
-            test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "favicon.ico");
+            test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "mqttfont.ttf", clientup);
+            test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "mqttdevice.min.css", clientup);
+            test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "mqttdevice.min.js", clientup);
+            test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "favicon.ico", clientup);
+            test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "ce.rts", clientup);
 
             // test = upTools("https://github.com/InnuendoPi/MQTTDevice4/blob/development/data/", "mqttfont.ttf?raw=true");
             // test = upTools("https://github.com/InnuendoPi/MQTTDevice4/blob/development/data/", "mqttdevice.min.css?raw=true");
@@ -196,10 +207,11 @@ void updateTools()
         }
         else
         {
-            test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "mqttfont.ttf");
-            test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "mqttdevice.min.css");
-            test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "mqttdevice.min.js");
-            test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "favicon.ico");
+            test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "mqttfont.ttf", clientup);
+            test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "mqttdevice.min.css", clientup);
+            test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "mqttdevice.min.js", clientup);
+            test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "favicon.ico", clientup);
+            test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "ce.rts", clientup);
         }
 
         LittleFS.remove(UPDATETOOLS);
@@ -210,6 +222,7 @@ void updateTools()
 }
 void updateSys()
 {
+    char line[120];
     if (LittleFS.exists(UPDATESYS))
     {
         fsUploadFile = LittleFS.open(LOGUPDATESYS, "r");
@@ -231,15 +244,22 @@ void updateSys()
         anzahlVersuche++;
         int bytesWritten = fsUploadFile.print(anzahlVersuche);
         fsUploadFile.close();
-        Serial.printf("*** SYSINFO: Update firmware #%d started - free heap: ", anzahlVersuche);
-        Serial.println(ESP.getFreeHeap());
+        Serial.printf("*** SYSINFO: WebUpdate firmware #%d started - free heap: %d\n", anzahlVersuche, ESP.getFreeHeap());
+        if (anzahlVersuche == 1)
+            bool check = LittleFS.remove(UPDATELOG);
+        sprintf(line, "WebUpdate firmware #%d started - free heap: %d", anzahlVersuche, ESP.getFreeHeap());
+        debugLog(UPDATELOG, line);
+        sprintf(line, "Firmware Version: %s", Version);
+        debugLog(UPDATELOG, line);
         // if (LittleFS.exists(CERT))
         upFirm();
     }
 }
 
+/*
 void startToolsUpdate()
 {
+    char line[120];
     server.send_P(200, "text/plain", "ok");
     millis2wait(1000);
     fsUploadFile = LittleFS.open(UPDATETOOLS, "w");
@@ -280,11 +300,11 @@ void startToolsUpdate()
     millis2wait(1000);
     ESP.restart();
 }
-
+*/
 void startHTTPUpdate()
 {
+    char line[120];
     server.send_P(200, "text/plain", "ok");
-    millis2wait(1000);
     fsUploadFile = LittleFS.open(UPDATESYS, "w");
     if (!fsUploadFile)
     {
@@ -297,6 +317,10 @@ void startHTTPUpdate()
         int bytesWritten = fsUploadFile.print("0");
         fsUploadFile.close();
     }
+    bool check = LittleFS.remove(UPDATELOG);
+    debugLog(UPDATELOG, "WebUpdate started");
+    sprintf(line, "Current version: %s", Version);
+    debugLog(UPDATELOG, line);
     if (devBranch)
     {
         fsUploadFile = LittleFS.open(DEVBRANCH, "w");
@@ -308,6 +332,7 @@ void startHTTPUpdate()
         else
         {
             Serial.println("*** WebUpdate firmware dev create file (LittleFS)");
+            debugLog(UPDATELOG, "WebUpdate development branch");
             int bytesWritten = fsUploadFile.print("0");
             fsUploadFile.close();
         }
@@ -317,6 +342,7 @@ void startHTTPUpdate()
         if (LittleFS.exists(DEVBRANCH))
             bool check = LittleFS.remove(DEVBRANCH);
     }
+    debugLog(UPDATELOG, "*** WebUpdate firmware reboot");
     Serial.println("*** WebUpdate firmware reboot");
     LittleFS.end();
     millis2wait(1000);
@@ -325,6 +351,7 @@ void startHTTPUpdate()
 
 void update_finished()
 {
+    debugLog(UPDATELOG, "Firmware Update successful finished");
     Serial.println("*** SYSINFO:  Firmware update finished");
     fsUploadFile = LittleFS.open(UPDATETOOLS, "w");
     if (fsUploadFile)
@@ -338,6 +365,9 @@ void update_finished()
 
 void update_error(int err)
 {
+    char line[120];
+    sprintf(line, "Firmware Update error code %d: %s", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
+    debugLog(UPDATELOG, line);
     Serial.printf("*** SYSINFO:  Firmware update error code %d\n", err);
     LittleFS.end(); // unmount LittleFS
     ESP.restart();

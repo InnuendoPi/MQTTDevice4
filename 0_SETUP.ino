@@ -141,7 +141,7 @@ void setupServer()
   server.on("/reqFirm", handleRequestFirm);         // Firmware version
   server.on("/setMisc", handleSetMisc);             // Misc ändern
   server.on("/startHTTPUpdate", startHTTPUpdate);   // Firmware WebUpdate
-  server.on("/startToolsUpdate", startToolsUpdate); // Firmware WebUpdate
+  // server.on("/startToolsUpdate", startToolsUpdate); // Firmware WebUpdate
   server.on("/channel", handleChannel);   //Server Sent Events will be handled from this URI
   server.on("/startSSE", startSSE);   //Server Sent Events will be handled from this URI
   server.on("/checkAliveSSE", checkAliveSSE); // Server Sent Events check IP on channel

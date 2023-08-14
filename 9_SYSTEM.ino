@@ -471,3 +471,16 @@ void EM_MQTTER() // MQTT Error -> handling
     }
   }
 }
+
+void debugLog(String valFile, String valText)
+{
+    File debLog = LittleFS.open(valFile, "a");
+    if (debLog)
+    {
+        debLog.print(timeClient.getFormattedTime().c_str());
+        debLog.print("\t");
+        debLog.print(valText);
+        debLog.print("\n");
+        debLog.close();
+    }
+}
