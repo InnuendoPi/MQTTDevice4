@@ -60,7 +60,7 @@ bool upTools(String url, String fname, BearSSL::WiFiClientSecure &clientup)
         {
             sprintf(line, "Framwork/Tools update error %s %d", fname.c_str(), https.errorToString(httpCode).c_str());
             debugLog(UPDATELOG, line);
-            Serial.printf("*** SYSINFO: error update %s: %s\n", fname, https.errorToString(httpCode).c_str());
+            // Serial.printf("*** SYSINFO: error update %s: %s\n", fname, https.errorToString(httpCode).c_str());
             https.end();
             return false;
         }
@@ -69,7 +69,7 @@ bool upTools(String url, String fname, BearSSL::WiFiClientSecure &clientup)
     {
         sprintf(line, "Framwork/Tools update error https.begin %s", fname.c_str());
         debugLog(UPDATELOG, line);
-        Serial.printf("*** SYSINFO: error https.begin %s\n", fname.c_str());
+        // Serial.printf("*** SYSINFO: error https.begin %s\n", fname.c_str());
         return false;
     }
 }
@@ -170,7 +170,11 @@ void updateTools()
             debugLog(UPDATELOG, line);
             clientup.setCertStore(&certStore);
         }
-
+        if (anzahlVersuche == 1)
+        {
+            sprintf(line, "Firmware Version: %s", Version);
+            debugLog(UPDATELOG, line);
+        }
         bool mfln = clientup.probeMaxFragmentLength("github.com", 443, 512);
         clientup.setBufferSizes(512, 512);
         if (clientup.connect("github.com", 443))
@@ -313,7 +317,7 @@ void startHTTPUpdate()
     }
     else
     {
-        Serial.println("*** WebUpdate firmware create file (LittleFS)");
+        // Serial.println("*** WebUpdate firmware create file (LittleFS)");
         int bytesWritten = fsUploadFile.print("0");
         fsUploadFile.close();
     }
@@ -331,7 +335,7 @@ void startHTTPUpdate()
         }
         else
         {
-            Serial.println("*** WebUpdate firmware dev create file (LittleFS)");
+            // Serial.println("*** WebUpdate firmware dev create file (LittleFS)");
             debugLog(UPDATELOG, "WebUpdate development branch");
             int bytesWritten = fsUploadFile.print("0");
             fsUploadFile.close();
@@ -343,7 +347,7 @@ void startHTTPUpdate()
             bool check = LittleFS.remove(DEVBRANCH);
     }
     debugLog(UPDATELOG, "*** WebUpdate firmware reboot");
-    Serial.println("*** WebUpdate firmware reboot");
+    // Serial.println("*** WebUpdate firmware reboot");
     LittleFS.end();
     millis2wait(1000);
     ESP.restart();

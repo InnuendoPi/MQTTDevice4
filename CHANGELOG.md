@@ -4,7 +4,7 @@ Version 4.55a
 
 - Changed:    WebUpdate default SSL
 - Changed:    WebUpdate Log file (webUpdateLog.txt)
-- Changed:    WebUpdate check received file size before overwriting previous file
+- Changed:    WebUpdate check received file size before overwriting files in flash
 - Fix:        github changed MFLN - WebUpdate received 0 byte data
 - Fix:        WebUpdate
 - renew:      certificates SSL
