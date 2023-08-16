@@ -34,8 +34,10 @@ void setup()
     checkSummerTime();
 
     // Prüfe WebUpdate
-    updateSys();
-    updateTools();
+    if (LittleFS.exists(UPDATESYS))
+      updateSys();
+    if (LittleFS.exists(UPDATETOOLS))
+      updateTools();
 
     // Erstelle Ticker Objekte
     setTicker();
