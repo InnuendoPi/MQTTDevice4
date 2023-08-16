@@ -161,6 +161,6 @@ void setupServer()
       handleRestore);
   server.onNotFound(handleAll);
   // server.onNotFound(handleWebRequests);
-  // httpUpdate.setup(&server);
+  httpUpdate.setup(&server);
   server.begin();
 }

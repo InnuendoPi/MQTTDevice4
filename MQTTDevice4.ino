@@ -13,6 +13,7 @@
 #include <DallasTemperature.h> // Vereinfachte Benutzung der DS18B20 Sensoren
 #include <ESP8266WiFi.h>       // Generelle WiFi Funktionalität
 #include <ESP8266WebServer.h>  // Unterstützung Webserver
+#include <ESP8266HTTPUpdateServer.h> // DateiUpdate
 #include <WiFiManager.h> // WiFiManager zur Einrichtung
 #include <DNSServer.h>   // Benötigt für WiFiManager
 #include <LittleFS.h>    // Dateisystem
@@ -53,7 +54,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.55a"
+#define Version "4.55b"
 
 // System Dateien
 #define UPDATESYS "/updateSys.txt"
@@ -92,6 +93,7 @@ WiFiManager wifiManager;
 WiFiClient espClient;
 PubSubClient pubsubClient(espClient);
 MDNSResponder mdns;
+ESP8266HTTPUpdateServer httpUpdate; // DateiUpdate
 
 #define SSE_MAX_CHANNELS 8  // 8 SSE clients subscription erlaubt
 struct SSESubscription {
