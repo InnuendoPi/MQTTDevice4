@@ -8,6 +8,7 @@ bool upTools(String url, String fname, BearSSL::WiFiClientSecure &clientup)
         int httpCode = https.GET();
         if (httpCode > 0)
         {
+            // if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_FOUND || httpCode == HTTP_CODE_MOVED_PERMANENTLY)
             if (httpCode == HTTP_CODE_OK)
             {
                 uint8_t buff[128] = {0};
@@ -26,7 +27,6 @@ bool upTools(String url, String fname, BearSSL::WiFiClientSecure &clientup)
                         int c = stream->readBytes(buff, ((size > sizeof(buff)) ? sizeof(buff) : size));
                         // write to file
                         fsUploadFile.write(buff, c);
-
                         if (len > 0)
                         {
                             len -= c;
@@ -34,6 +34,7 @@ bool upTools(String url, String fname, BearSSL::WiFiClientSecure &clientup)
                     }
                     delay(1);
                 }
+
                 if (fsUploadFile.size() == startlen)
                 {
                     sprintf(line, "Framwork/Tools update %s getSize: %d fileSize: %d", fname.c_str(), startlen, fsUploadFile.size());
@@ -44,7 +45,7 @@ bool upTools(String url, String fname, BearSSL::WiFiClientSecure &clientup)
                 }
                 else
                 {
-                    sprintf(line, "Framwork/Tools update error %s getSize: %d fileSize: %d", fname.c_str(), startlen, fsUploadFile.size());
+                    sprintf(line, "Framwork/Tools update Fehler %s getSize: %d fileSize: %d", fname.c_str(), startlen, fsUploadFile.size());
                     debugLog(UPDATELOG, line);
                     Serial.printf("*** SYSINFO: %s update finished with error startLen: %d file size: %d\n", fname.c_str(), startlen, fsUploadFile.size());
                     fsUploadFile.close();
@@ -58,18 +59,18 @@ bool upTools(String url, String fname, BearSSL::WiFiClientSecure &clientup)
         }
         else
         {
-            sprintf(line, "Framwork/Tools update error %s %d", fname.c_str(), https.errorToString(httpCode).c_str());
+            sprintf(line, "Framwork/Tools update Fehler %s %d", fname.c_str(), https.errorToString(httpCode).c_str());
             debugLog(UPDATELOG, line);
-            // Serial.printf("*** SYSINFO: error update %s: %s\n", fname, https.errorToString(httpCode).c_str());
+            Serial.printf("*** SYSINFO: error update %s\n", fname.c_str());
             https.end();
             return false;
         }
     }
     else
     {
-        sprintf(line, "Framwork/Tools update error https.begin %s", fname.c_str());
+        sprintf(line, "Framwork/Tools update Fehler https start %s", fname.c_str());
         debugLog(UPDATELOG, line);
-        // Serial.printf("*** SYSINFO: error https.begin %s\n", fname.c_str());
+        Serial.printf("*** SYSINFO: error https.begin %s\n", fname.c_str());
         return false;
     }
 }
@@ -78,6 +79,7 @@ void upFirm()
 {
     char line[120];
     BearSSL::WiFiClientSecure clientup;
+    clientup.setInsecure();
     BearSSL::CertStore certStore;
     int numCerts = certStore.initCertStore(LittleFS, PSTR("/certs.idx"), PSTR(CERT));
     if (numCerts == 0)
@@ -94,12 +96,18 @@ void upFirm()
         debugLog(UPDATELOG, line);
         clientup.setCertStore(&certStore);
     }
-    bool mfln = clientup.probeMaxFragmentLength("github.com", 443, 512);
-    clientup.setBufferSizes(512, 512);
-    if (clientup.connect("github.com", 443))
+    bool mfln = clientup.probeMaxFragmentLength("raw.githubusercontent.com", 443, 1024);
+    if (mfln)
+    {
+        clientup.setBufferSizes(1024, 1024);
+    }
+    clientup.setCertStore(&certStore);
+    // if (clientup.connect("github.com", 443))
+    // clientup.setBufferSizes(1024, 1024);
+    if (clientup.connect("raw.githubusercontent.com", 443))
     {
         // Serial.printf("MFLN status: %s ", clientup.getMFLNStatus() ? "true" : "false");
-        sprintf(line, "MFLN Status: %s - connected (Buffers 512k)", clientup.getMFLNStatus() ? "true" : "false");
+        sprintf(line, "MFLN Status: %s - connected (Buffers 1024b)", clientup.getMFLNStatus() ? "true" : "false");
         debugLog(UPDATELOG, line);
     }
     else
@@ -110,7 +118,7 @@ void upFirm()
         return;
     }
 
-    ESPhttpUpdate.followRedirects(true);
+    ESPhttpUpdate.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
     ESPhttpUpdate.onEnd(update_finished);
     ESPhttpUpdate.onError(update_error);
     t_httpUpdate_return ret;
@@ -128,9 +136,11 @@ void upFirm()
 
 void updateTools()
 {
+    timeClient.update();
     char line[120];
     BearSSL::WiFiClientSecure clientup;
     BearSSL::CertStore certStore;
+    clientup.setInsecure();
     int numCerts = certStore.initCertStore(LittleFS, PSTR("/certs.idx"), PSTR(CERT));
     if (LittleFS.exists(UPDATETOOLS))
     {
@@ -158,9 +168,7 @@ void updateTools()
         debugLog(UPDATELOG, line);
         if (numCerts == 0)
         {
-            sprintf(line, "CA certificates not found: %d - SSL insecure!", numCerts);
-            debugLog(UPDATELOG, line);
-            sprintf(line, "BearSSL setInsecure - do not use this mode!", numCerts);
+            sprintf(line, "CA certificates not found: %d - SSL setInsecure!", numCerts);
             debugLog(UPDATELOG, line);
             clientup.setInsecure();
         }
@@ -175,12 +183,17 @@ void updateTools()
             sprintf(line, "Firmware Version: %s", Version);
             debugLog(UPDATELOG, line);
         }
-        bool mfln = clientup.probeMaxFragmentLength("github.com", 443, 512);
-        clientup.setBufferSizes(512, 512);
-        if (clientup.connect("github.com", 443))
+        bool mfln = clientup.probeMaxFragmentLength("raw.githubusercontent.com", 443, 1024);
+        if (mfln)
+        {
+            clientup.setBufferSizes(1024, 1024);
+        }
+        clientup.setCertStore(&certStore);
+        // clientup.setBufferSizes(1024, 256);
+        if (clientup.connect("raw.githubusercontent.com", 443))
         {
             // Serial.printf("MFLN status: %s ", clientup.getMFLNStatus() ? "true" : "false");
-            sprintf(line, "MFLN Status: %s - connected (Buffers 512k)", clientup.getMFLNStatus() ? "true" : "false");
+            sprintf(line, "MFLN Status: %s - connected (Buffers 1024b)", clientup.getMFLNStatus() ? "true" : "false");
             debugLog(UPDATELOG, line);
         }
         else
@@ -226,6 +239,7 @@ void updateTools()
 }
 void updateSys()
 {
+    timeClient.update();
     char line[120];
     if (LittleFS.exists(UPDATESYS))
     {
@@ -308,7 +322,7 @@ void startToolsUpdate()
 void startHTTPUpdate()
 {
     char line[120];
-    server.send_P(200, "text/plain", "ok");
+    server.send(200, FPSTR("text/plain"), "ok");
     fsUploadFile = LittleFS.open(UPDATESYS, "w");
     if (!fsUploadFile)
     {
@@ -317,14 +331,11 @@ void startHTTPUpdate()
     }
     else
     {
-        // Serial.println("*** WebUpdate firmware create file (LittleFS)");
         int bytesWritten = fsUploadFile.print("0");
         fsUploadFile.close();
     }
     bool check = LittleFS.remove(UPDATELOG);
     debugLog(UPDATELOG, "WebUpdate started");
-    sprintf(line, "Current version: %s", Version);
-    debugLog(UPDATELOG, line);
     if (devBranch)
     {
         fsUploadFile = LittleFS.open(DEVBRANCH, "w");
@@ -335,7 +346,6 @@ void startHTTPUpdate()
         }
         else
         {
-            // Serial.println("*** WebUpdate firmware dev create file (LittleFS)");
             debugLog(UPDATELOG, "WebUpdate development branch");
             int bytesWritten = fsUploadFile.print("0");
             fsUploadFile.close();
@@ -347,7 +357,6 @@ void startHTTPUpdate()
             bool check = LittleFS.remove(DEVBRANCH);
     }
     debugLog(UPDATELOG, "*** WebUpdate firmware reboot");
-    // Serial.println("*** WebUpdate firmware reboot");
     LittleFS.end();
     millis2wait(1000);
     ESP.restart();

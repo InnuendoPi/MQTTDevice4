@@ -56,18 +56,18 @@ bool loadConfig()
 
   strlcpy(nameMDNS, miscObj["mdns_name"] | "", maxHostSign);
   startMDNS = miscObj["mdns"] | 0;
-  useI2C = miscObj["i2c"] | 0;
-  DEBUG_MSG("I2C: %d mDNS: %d name: %s\n", useI2C, startMDNS, nameMDNS);
+  // useI2C = miscObj["i2c"] | 0;
+  DEBUG_MSG("mDNS: %d name: %s\n", startMDNS, nameMDNS);
   strlcpy(mqtthost, miscObj["MQTTHOST"] | "", maxHostSign);
   strlcpy(mqttuser, miscObj["MQTTUSER"] | "", maxUserSign);
   strlcpy(mqttpass, miscObj["MQTTPASS"] | "", maxPassSign);
   mqttport = miscObj["MQTTPORT"] | 1883;
   DEBUG_MSG("MQTT server IP: %s Port: %d User: %s Pass: %s\n", mqtthost, mqttport, mqttuser, mqttpass);
 
-  if (useI2C)
-    numberOfPins = ALLPINS;
-  else
-    numberOfPins = GPIOPINS;
+  // if (useI2C)
+  //   numberOfPins = ALLPINS;
+  // else
+  //   numberOfPins = GPIOPINS;
   DEBUG_MSG("%s\n", "--------------------");
 
   // read actors
@@ -148,10 +148,10 @@ bool loadConfig()
   DEBUG_MSG("JSON memory usage: %d\n", memoryUsed);
   DEBUG_MSG("%s\n", "--------------------");
 
-  if (useI2C)
-    numberOfPins = ALLPINS;
-  else
-    numberOfPins = GPIOPINS;
+  // if (useI2C)
+  //   numberOfPins = ALLPINS;
+  // else
+  //   numberOfPins = GPIOPINS;
 
   if (startBuzzer)
   {
@@ -263,7 +263,7 @@ bool saveConfig()
 
   miscObj["mdns_name"] = nameMDNS;
   miscObj["mdns"] = (int)startMDNS;
-  miscObj["i2c"] = (int)useI2C;
+  // miscObj["i2c"] = (int)useI2C;
   miscObj["MQTTHOST"] = mqtthost;
   miscObj["MQTTPORT"] = mqttport;
   miscObj["MQTTUSER"] = mqttuser;
@@ -304,10 +304,10 @@ bool saveConfig()
   DEBUG_MSG("JSON memory usage: %d\n", doc.memoryUsage());
   DEBUG_MSG("%s\n", "------ saveConfig finished ------");
 
-  if (useI2C)
-    numberOfPins = ALLPINS;
-  else
-    numberOfPins = GPIOPINS;
+  // if (useI2C)
+  //   numberOfPins = ALLPINS;
+  // else
+  //   numberOfPins = GPIOPINS;
   DEBUG_MSG("Maximum number of pins: %d\n", numberOfPins);
   DEBUG_MSG("Free heap memory: %d\n", ESP.getFreeHeap());
 

@@ -1,5 +1,9 @@
 # Changelog
 
+Version 4.56
+
+- Removed:    PCF8574 support (I2C) - OOM
+
 Version 4.55a
 
 - Changed:    WebUpdate default SSL

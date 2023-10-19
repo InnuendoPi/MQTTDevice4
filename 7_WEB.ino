@@ -163,7 +163,7 @@ void handleRequestMisc2()
   doc["port"] = mqttport;
   doc["s_mqtt"] = mqtt_state;
   doc["display"] = useDisplay;
-  doc["i2c"] = useI2C;
+  // doc["i2c"] = useI2C;
   if (startMDNS)
     doc["mdns"] = nameMDNS;
   else
@@ -203,7 +203,7 @@ void handleRequestMisc()
   doc["pass"] = mqttpass;
   doc["mdns_name"] = nameMDNS;
   doc["mdns"] = startMDNS;
-  doc["i2c"] = useI2C;
+  // doc["i2c"] = useI2C;
   doc["buzzer"] = startBuzzer;
   doc["mqbuz"] = mqttBuzzer;
   doc["res"] = senRes;
@@ -337,10 +337,10 @@ void handleSetMisc()
     {
       startMDNS = checkBool(server.arg(i));
     }
-    if (server.argName(i) == "i2c")
-    {
-      useI2C = checkBool(server.arg(i));
-    }
+    // if (server.argName(i) == "i2c")
+    // {
+    //   useI2C = checkBool(server.arg(i));
+    // }
     if (server.argName(i) == "enable_mqtt")
     {
       StopOnMQTTError = checkBool(server.arg(i));

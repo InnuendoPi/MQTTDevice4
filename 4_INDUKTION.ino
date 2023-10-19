@@ -60,33 +60,21 @@ public:
   {
     if (isEnabled)
     {
-      int type = pinType(PIN_WHITE);
-      int pcf_pin = type - GPIOPINS;
       // aktuelle PINS deaktivieren
       if (isPin(PIN_WHITE))
       {
-        if (type != -100 && type < GPIOPINS)
-          digitalWrite(PIN_WHITE, HIGH);
-        else
-          pcf020.write(pcf_pin, HIGH);
+        digitalWrite(PIN_WHITE, HIGH);
         pins_used[PIN_WHITE] = false;
       }
-
-      type = pinType(PIN_YELLOW);
-      pcf_pin = type - GPIOPINS;
-
       if (isPin(PIN_YELLOW))
       {
-        if (type != -100 && type < GPIOPINS)
-          digitalWrite(PIN_YELLOW, HIGH);
-        else
-          pcf020.write(pcf_pin, HIGH);
+        digitalWrite(PIN_YELLOW, HIGH);
         pins_used[PIN_YELLOW] = false;
       }
 
       if (isPin(PIN_INTERRUPT))
       {
-        detachInterrupt(PIN_INTERRUPT);
+        // detachInterrupt(PIN_INTERRUPT);
         pinMode(PIN_INTERRUPT, OUTPUT);
 
         // digitalWrite(PIN_INTERRUPT, HIGH);
@@ -107,43 +95,25 @@ public:
     isEnabled = is_enabled;
     if (isEnabled)
     {
-      int type = pinType(PIN_WHITE);
-      int pcf_pin = type - GPIOPINS;
       // neue PINS aktiveren
       if (isPin(PIN_WHITE))
       {
-        if (type != -100 && type < GPIOPINS)
-        {
-          pinMode(PIN_WHITE, OUTPUT);
-          digitalWrite(PIN_WHITE, HIGH);
-        }
-        else if (type >= GPIOPINS)
-        {
-          pcf020.write(pcf_pin, HIGH);
-        }
+        pinMode(PIN_WHITE, OUTPUT);
+        digitalWrite(PIN_WHITE, HIGH);
         pins_used[PIN_WHITE] = true;
       }
 
-      type = pinType(PIN_YELLOW);
-      pcf_pin = type - GPIOPINS;
-
       if (isPin(PIN_YELLOW))
       {
-        if (type != -100 && type < GPIOPINS)
-        {
-          pinMode(PIN_YELLOW, OUTPUT);
-          digitalWrite(PIN_YELLOW, HIGH);
-        }
-        else if (type >= GPIOPINS)
-        {
-          pcf020.write(pcf_pin, HIGH);
-        }
+        pinMode(PIN_YELLOW, OUTPUT);
+        digitalWrite(PIN_YELLOW, HIGH);
         pins_used[PIN_YELLOW] = true;
       }
 
       if (isPin(PIN_INTERRUPT)) // D7
       {
-        attachInterrupt(digitalPinToInterrupt(PIN_INTERRUPT), readInputWrap, CHANGE);
+        // attachInterrupt(digitalPinToInterrupt(PIN_INTERRUPT), readInputWrap, CHANGE);
+        pinMode(PIN_INTERRUPT, INPUT_PULLUP);
         pins_used[PIN_INTERRUPT] = true;
       }
       mqtt_subscribe();
@@ -220,21 +190,9 @@ public:
 
   bool updateRelay()
   {
-    int type = pinType(PIN_WHITE);
-    int pcf_pin = type - GPIOPINS;
     if (isInduon == true && isRelayon == false)
     { /* Relais einschalten */
-      if (type != -100 && type < GPIOPINS)
-      {
-        digitalWrite(PIN_WHITE, HIGH);
-        // DEBUG_MSG("IDS2 update relay GPIO PIN White %s isHigh: %d \n", PinToString(PIN_WHITE).c_str(), HIGH);
-      }
-      else if (type >= GPIOPINS)
-      {
-        pcf020.write(pcf_pin, HIGH);
-        // DEBUG_MSG("IDS2 update relay PCF PIN White %s : %d isHigh: %d \n", PinToString(PIN_WHITE).c_str(), pcf_pin, HIGH);
-      }
-      // digitalWrite(PIN_WHITE, HIGH);
+      digitalWrite(PIN_WHITE, HIGH);
       return true;
     }
 
@@ -242,17 +200,7 @@ public:
     { /* Relais ausschalten */
       if (millis() > timeTurnedoff + DEF_DELAY_IND)
       {
-        if (type != -100 && type < GPIOPINS)
-        {
-          digitalWrite(PIN_WHITE, LOW);
-          // DEBUG_MSG("IDS2 update relay GPIO PIN White %s isLow: %d \n", PinToString(PIN_WHITE).c_str(), LOW);
-        }
-        else if (type >= GPIOPINS)
-        {
-          pcf020.write(pcf_pin, LOW);
-          // DEBUG_MSG("IDS2 update relay PCF PIN White %s : %d isLow: %d \n", PinToString(PIN_WHITE).c_str(), pcf_pin, LOW);
-        }
-        // digitalWrite(PIN_WHITE, LOW);
+        digitalWrite(PIN_WHITE, LOW);
         return false;
       }
     }
@@ -343,66 +291,22 @@ public:
 
   void sendCommand(int command[33])
   {
-    int type = pinType(PIN_YELLOW);
-    int pcf_pin = type - GPIOPINS;
-
-    if (type != -100 && type < GPIOPINS)
-    {
-      digitalWrite(PIN_YELLOW, HIGH);
-      // DEBUG_MSG("IDS2 sendCommand GPIO PIN Yellow %s isHigh: %d \n",  PinToString(PIN_YELLOW).c_str(), HIGH);
-    }
-    else if (type >= GPIOPINS)
-    {
-      pcf020.write(pcf_pin, HIGH);
-      // DEBUG_MSG("IDS2 sendCommand PCF PIN Yellow %s : %d isHigh: %d \n",  PinToString(PIN_YELLOW).c_str(), pcf_pin, HIGH);
-    }
-    // digitalWrite(PIN_YELLOW, HIGH);
+    digitalWrite(PIN_YELLOW, HIGH);
     millis2wait(SIGNAL_START);
-
-    if (type != -100 && type < GPIOPINS)
-    {
-      digitalWrite(PIN_YELLOW, LOW);
-      // DEBUG_MSG("IDS2 GsendCommand PIO PIN Yellow %s isLow\n",  PinToString(PIN_YELLOW).c_str());
-    }
-    else if (type >= GPIOPINS)
-    {
-      pcf020.write(pcf_pin, LOW);
-      // DEBUG_MSG("IDS2 sendCommand PCF PIN Yellow %s : %d isLow\n",  PinToString(PIN_YELLOW).c_str(), pcf_pin);
-    }
-    // digitalWrite(PIN_YELLOW, LOW);
+    digitalWrite(PIN_YELLOW, LOW);
     millis2wait(SIGNAL_WAIT);
 
     // PIN_YELLOW := Ausgabe an IDS2
     for (int i = 0; i < 33; i++)
     {
-      if (type != -100 && type < GPIOPINS)
-      {
-        digitalWrite(PIN_YELLOW, HIGH);
-        // DEBUG_MSG("IDS2 sendCommand GPIO PIN Yellow %s isHigh\n",  PinToString(PIN_YELLOW).c_str());
-      }
-      else if (type >= 9)
-      {
-        pcf020.write(pcf_pin, HIGH);
-        // DEBUG_MSG("IDS2 sendCommand PCF PIN Yellow %s : %d isHigh\n",  PinToString(PIN_YELLOW).c_str(), pcf_pin);
-      }
-      // digitalWrite(PIN_YELLOW, HIGH);
+      digitalWrite(PIN_YELLOW, HIGH);
       micros2wait(command[i]);
-      if (type != -100 && type < GPIOPINS)
-      {
-        digitalWrite(PIN_YELLOW, LOW);
-        // DEBUG_MSG("IDS2 sendCommand GPIO PIN Yellow %s isLow\n",  PinToString(PIN_YELLOW).c_str());
-      }
-      else if (type >= 9)
-      {
-        pcf020.write(pcf_pin, LOW);
-        // DEBUG_MSG("IDS2 sendCommand PCF PIN Yellow %s : %d isLow\n",  PinToString(PIN_YELLOW).c_str(), pcf_pin);
-      }
-
-      // digitalWrite(PIN_YELLOW, LOW);
+      digitalWrite(PIN_YELLOW, LOW);
       micros2wait(SIGNAL_LOW);
     }
   }
 
+/*
   void readInput()
   {
     // Variablen sichern
@@ -454,7 +358,7 @@ public:
       }
     }
   }
-
+*/
   void indERR()
   {
     if (isInduon && powerLevelOnError < 100 && induction_state) // powerlevelonerror == 100 -> kein event handling
@@ -475,10 +379,10 @@ public:
 
 induction inductionCooker = induction();
 
-ICACHE_RAM_ATTR void readInputWrap()
-{
-  inductionCooker.readInput();
-}
+// ICACHE_RAM_ATTR void readInputWrap()
+// {
+//   inductionCooker.readInput();
+// }
 
 void handleInduction()
 {

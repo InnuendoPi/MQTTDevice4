@@ -24,14 +24,6 @@ public:
 
   void Update()
   {
-    int type = pinType(pin_actor);
-    int pcf_actor = type - GPIOPINS;
-
-    // GPIO 0-16 Wemos PINs
-    // GPIO 17-25 PCF PINs -> pin_actor to pcf_actor transform
-    // ACT ON Update isPin 1 pin_actor 17 pcf_actor 0 pinType 9 power 100  -> D9 => P0
-    // ACT ON Update isPin 1 pin_actor 18 pcf_actor 1 pinType 10 power 100 -> D10 => P1
-
     if (isPin(pin_actor))
     {
       if (isOn && power_actor > 0)
@@ -42,63 +34,25 @@ public:
         }
         if (millis() > powerLast + (dutycycle_actor * power_actor / 100L))
         {
-          if (type != -100 && type < GPIOPINS)
-          {
-            digitalWrite(pin_actor, OFF);
-            // Serial.printf("Actor GPIO PIN %s isOFF\n", PinToString(pin_actor).c_str());
-            // DEBUG_MSG("Actor GPIO PIN %s isOFF\n", PinToString(pin_actor).c_str());
-          }
-          else if (type >= GPIOPINS)
-          {
-            pcf020.write(pcf_actor, OFF);
-            // DEBUG_MSG("Actor PCF PIN %d isOFF\n", pcf_actor);
-          }
+          digitalWrite(pin_actor, OFF);
         }
         else
         {
-          if (type != -100 && type < GPIOPINS)
-          {
-            digitalWrite(pin_actor, ON);
-            // Serial.printf("Actor GPIO PIN %s isON\n", PinToString(pin_actor).c_str());
-            // DEBUG_MSG("Actor GPIO PIN %s isON\n", PinToString(pin_actor).c_str());
-          }
-          else if (type >= GPIOPINS)
-          {
-            pcf020.write(pcf_actor, ON);
-            // DEBUG_MSG("Actor PCF PIN %d isON\n", pcf_actor);
-          }
+          digitalWrite(pin_actor, ON);
         }
       }
       else
       {
-        if (type != -100 && type < GPIOPINS)
-        {
-          digitalWrite(pin_actor, OFF);
-          // DEBUG_MSG("Actor3 GPIO PIN %s isOFF\n", PinToString(pin_actor).c_str());
-        }
-        else if (type >= GPIOPINS)
-        {
-          pcf020.write(pcf_actor, OFF);
-          // DEBUG_MSG("Actor3 PCF PIN %d isOFF\n", pcf_actor);
-        }
+        digitalWrite(pin_actor, OFF);
       }
     }
   }
 
   void change(const String &pin, const String &argument, const String &aname, const bool &ainverted, const bool &aswitchable)
   {
-    // Set PIN
-    int type = pinType(pin_actor);
-    int pcf_actor = type - GPIOPINS;
-
     if (isPin(pin_actor))
     {
-      if (type != -100 && type < GPIOPINS)
-        digitalWrite(pin_actor, OFF);
-        // digitalWrite(pin_actor, HIGH);
-      else if (type >= GPIOPINS) // PCF PIN
-        pcf020.write(pcf_actor, OFF);
-
+      digitalWrite(pin_actor, OFF);
       pins_used[pin_actor] = false;
       millis2wait(10);
     }
@@ -117,21 +71,10 @@ public:
     }
     pin_actor = StringToPin(pin);
 
-    type = pinType(pin_actor);
-    pcf_actor = type - GPIOPINS;
-
     if (isPin(pin_actor))
     {
-      if (type != -100 && type < GPIOPINS)
-      {
-        pinMode(pin_actor, OUTPUT);
-        digitalWrite(pin_actor, OFF);
-        // digitalWrite(pin_actor, HIGH);
-      }
-      else if (type >= GPIOPINS)
-      {
-        pcf020.write(pcf_actor, OFF);
-      }
+      pinMode(pin_actor, OUTPUT);
+      digitalWrite(pin_actor, OFF);
       pins_used[pin_actor] = true;
     }
 
@@ -219,14 +162,14 @@ void handleActors(bool checkAct)
 {
   // checkAct true: init
   // checkAct false: only updates
-  
+
   DynamicJsonDocument ssedoc(768);
   JsonArray sseArray = ssedoc.to<JsonArray>();
   // bool checkAct = false;
   for (int i = 0; i < numberOfActors; i++)
   {
     actors[i].Update();
-    if(actors[i].old_isOn != actors[i].isOn)
+    if (actors[i].old_isOn != actors[i].isOn)
     {
       actors[i].old_isOn = actors[i].isOn;
       checkAct = true;
@@ -242,12 +185,12 @@ void handleActors(bool checkAct)
     sseObj["pin"] = PinToString(actors[i].pin_actor);
     yield();
   }
-  
+
   if (checkAct)
   {
     String jsonValue = "";
     serializeJson(ssedoc, jsonValue);
-    if (measureJson(ssedoc) > 5 )
+    if (measureJson(ssedoc) > 5)
       SSEBroadcastJson(jsonValue.c_str(), 1);
   }
 }
@@ -285,7 +228,7 @@ void handleRequestActors()
 
   String response;
   serializeJson(doc, response);
-  server.send_P(200, "application/json", response.c_str() );
+  server.send_P(200, "application/json", response.c_str());
 }
 
 void handleSetActor()
@@ -379,7 +322,7 @@ void handlereqPins()
     }
     yield();
   }
-  server.send_P(200, "text/plain", message.c_str() );
+  server.send_P(200, "text/plain", message.c_str());
 }
 
 unsigned char StringToPin(String pinstring)
@@ -391,7 +334,7 @@ unsigned char StringToPin(String pinstring)
       return pins[i];
     }
   }
-  return -100;
+  return 9;
 }
 
 String PinToString(unsigned char pinbyte)
@@ -418,19 +361,6 @@ bool isPin(unsigned char pinbyte)
     }
   }
   return returnValue;
-}
-
-int pinType(unsigned char pinbyte)
-{
-  for (int i = 0; i < numberOfPins; i++)
-  {
-    if (pins[i] == pinbyte)
-    {
-      return i;
-      break;
-    }
-  }
-  return -100;
 }
 
 void actERR()

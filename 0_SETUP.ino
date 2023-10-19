@@ -75,26 +75,26 @@ void setup()
       }
     }
   }
-  if (useI2C)
-  {
-    if (digitalRead(PIN_SCL) == HIGH && digitalRead(PIN_SDA) == LOW)
-      PCF_Reset();
-    if (pcf020.begin(D5, D6))
-    {
-      Serial.printf("*** SYSINFO: PCF8574 init successful lib version %s\n", PCF8574_LIB_VERSION);
-      pins_used[D5] = true;
-      pins_used[D6] = true;
-      // pcf8574.selectNone(); // set all PCF8574 pins to low
-      statePCF = true;
-    }
-    else
-    {
-      Serial.println("*** SYSINFO: PCF8574 init error");
-      statePCF = false;
-      if (startBuzzer)
-        sendAlarm(ALARM_ERROR);
-    }
-  }
+  // if (useI2C)
+  // {
+  //   if (digitalRead(PIN_SCL) == HIGH && digitalRead(PIN_SDA) == LOW)
+  //     PCF_Reset();
+  //   if (pcf020.begin(D5, D6))
+  //   {
+  //     Serial.printf("*** SYSINFO: PCF8574 init successful lib version %s\n", PCF8574_LIB_VERSION);
+  //     pins_used[D5] = true;
+  //     pins_used[D6] = true;
+  //     // pcf8574.selectNone(); // set all PCF8574 pins to low
+  //     statePCF = true;
+  //   }
+  //   else
+  //   {
+  //     Serial.println("*** SYSINFO: PCF8574 init error");
+  //     statePCF = false;
+  //     if (startBuzzer)
+  //       sendAlarm(ALARM_ERROR);
+  //   }
+  // }
 
   // Pinbelegung
   pins_used[ONE_WIRE_BUS] = true;

@@ -7,7 +7,6 @@
 //    Unterstützung für GGM IDS2 Induktionskochfeld
 //    Unterstützung für Web Update
 //    Unterstützung für Nextion Touchdisplay
-//    Unterstützung für PCF8574 I2C IO Modul
 
 #include <OneWire.h>           // OneWire Bus Kommunikation
 #include <DallasTemperature.h> // Vereinfachte Benutzung der DS18B20 Sensoren
@@ -28,7 +27,7 @@
 #include <Ticker.h>
 #include <PubSubClient.h>     // MQTT Kommunikation
 #include <SoftwareSerial.h>   // Serieller Port für Display
-#include <PCF8574.h>          // I2C IO Modul PCF8574
+// #include <PCF8574.h>          // I2C IO Modul PCF8574
 #include "InnuTicker.h"       // Bibliothek für Hintergrund Aufgaben (Tasks)
 #include "NextionX2.h"        // Display Nextion
 #include "index_htm.h"
@@ -54,7 +53,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.55b"
+#define Version "4.56"
 
 // System Dateien
 #define UPDATESYS "/updateSys.txt"
@@ -82,10 +81,10 @@ DallasTemperature DS18B20(&oneWire);
 bool senRes = false;
 
 // I2C Port expander
-PCF8574 pcf020(0x20);
-#define PIN_SDA D5
-#define PIN_SCL D6
-bool statePCF = false;
+// PCF8574 pcf020(0x20);
+// #define PIN_SDA D5
+// #define PIN_SCL D6
+// bool statePCF = false;
 
 // WiFi und MQTT
 ESP8266WebServer server(80);
@@ -107,22 +106,26 @@ const unsigned int port = 80;
 
 #define DEF_DELAY_IND 120000 // Standard Nachlaufzeit nach dem Ausschalten Induktionskochfeld
 
-bool useI2C = false;
-#define P0 17
-#define P1 18
-#define P2 19
-#define P3 20
-#define P4 21
-#define P5 22
-#define P6 23
-#define P7 24
-#define ALLPINS 17
+// bool useI2C = false;
+// #define P0 17
+// #define P1 18
+// #define P2 19
+// #define P3 20
+// #define P4 21
+// #define P5 22
+// #define P6 23
+// #define P7 24
+// #define ALLPINS 17
 #define GPIOPINS 9
-#define PCFPINS 8
-bool pins_used[25]; // GPIO
-unsigned char numberOfPins = ALLPINS;
-const unsigned char pins[ALLPINS] = {D0, D1, D2, D3, D4, D5, D6, D7, D8, P0, P1, P2, P3, P4, P5, P6, P7};
-const String pin_names[ALLPINS] = {"D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "P0", "P1", "P2", "P3", "P4", "P5", "P6", "P7"};
+// #define PCFPINS 8
+// bool pins_used[25]; // GPIO
+bool pins_used[17]; // GPIO
+// unsigned char numberOfPins = ALLPINS;
+unsigned char numberOfPins = GPIOPINS;
+// const unsigned char pins[ALLPINS] = {D0, D1, D2, D3, D4, D5, D6, D7, D8, P0, P1, P2, P3, P4, P5, P6, P7};
+// const String pin_names[ALLPINS] = {"D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "P0", "P1", "P2", "P3", "P4", "P5", "P6", "P7"};
+const unsigned char pins[GPIOPINS] = {D0, D1, D2, D3, D4, D5, D6, D7, D8};
+const String pin_names[GPIOPINS] = {"D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8"};
 
 // Variablen
 unsigned char numberOfSensors = 0; // Gesamtzahl der Sensoren
@@ -338,12 +341,13 @@ void configModeCallback(WiFiManager *myWiFiManager)
     Serial.print("*** SYSINFO: Start configuration portal ");
     Serial.println(myWiFiManager->getConfigPortalSSID());
 }
-void PCF_Reset()
-{
-    //   Serial.println("*** SYSINFO: PCF8574 I2C reset");
-    pinMode(D5, OUTPUT); // remove output low
-    digitalWrite(D5, LOW);
-    digitalWrite(D6, LOW);
-    delay(10);
-    pinMode(D5, INPUT); // and make SDA high i.e. send I2C STOP control.
-}
+
+// void PCF_Reset()
+// {
+//     //   Serial.println("*** SYSINFO: PCF8574 I2C reset");
+//     pinMode(D5, OUTPUT); // remove output low
+//     digitalWrite(D5, LOW);
+//     digitalWrite(D6, LOW);
+//     delay(10);
+//     pinMode(D5, INPUT); // and make SDA high i.e. send I2C STOP control.
+// }
