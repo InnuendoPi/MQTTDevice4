@@ -16,14 +16,12 @@ MQTTDevice4 is an Arduino sketch for the ESP8266 Wemos D1 mini modules. MQTTDevi
   * PIN selection (GPIO)
   * PINs in use are hidden
   * Inverted GPIO
-  * PCF8574 I2C PINs
   * Power Percentage: Values ​​between 0 and 100% are sent. The ESP8266 "pulses" with a cycle of 1000ms
 * Induction hob
   * the induction hob GGM IDS2 can be controlled directly
 * Nextion HMI Touchdisplay support (optional)
 * WebUpdate firmware
 * mDNS support
-* PCF8574 I2C port expander (optional)
 * Event handling
 * File explorer
 
@@ -425,20 +423,6 @@ Temperature sensors of type DS18B20 with 3 connection cables (data, VCC and GND)
 
 In addition to a GPIO, relay boards require a 5V power supply. 5V can be tapped at one of the three connections for the temperature sensors DS18B20 at VCC and GND.
 
-## Advanced topics: too much actors or too few free PINs
-
-This topic is optional!
-MQTTDevice supports a PCF8574 I2C port expander. A PCF8574 shield offers 8 additional PINs. But there are some limitations:
-
-1. PCF8574 must be connected to D5 and D6
-    SDA D5
-    SCL D6
-2. If you are using a PCF8574 shield and a GGM IDS2 PIN Backchannel Interrupt (the blue cable) cannot be connected to PCF8574. PIN D7 is highly recommended for IDS2 Backchannel Interrupt.
-3. PCF8574 address set to 0x20 (fixed, no config options)
-4. Starting with version 4.31 only one port expander shield is supported (no stack)
-5. Due to limited memory (free heap) maximum number of actors is set to 10
-6. Only output PINS (ON/OFF) are supported. PCF8574 shield interrupt mode is not implemented.
-
 ## Technical information
 
 Wemos D1 min GPIOs
@@ -467,33 +451,15 @@ Wemos D1 min GPIOs
 
   11  -
 
-  12  D6        SPI MISO      ok              ok        GGM IDS2 Commandchannel(yellow)     SDL PCF8574
+  12  D6        SPI MISO      ok              ok        GGM IDS2 Commandchannel(yellow)
 
-  13  D7        SPI MOSI      ok              ok        GGM IDS2 Relais(white)              digitalPinToInterrupt
+  13  D7        SPI MOSI      ok              ok        GGM IDS2 Relais(white)
   
-  14  D5        SPI SCLK      ok              ok        GGM IDS2 Backchannel(blue)          SDA PCF8574
+  14  D5        SPI SCLK      ok              ok        GGM IDS2 Backchannel(blue)
 
   15  D8        SPI CS        -               (ok)      Buzzer
 
   16  D0        HIGH at boot  No interrupt    No PWM    Pump
-  
-*** PCF Pins Shield PCF8574 I2C port expander
-
-  17  D9*
-
-  18  D10*
-
-  19  D11*
-
-  20  D12*
-
-  21  D13*
-
-  22  D14*
-
-  23  D15*
-
-  24  D16*
   
 ---
 

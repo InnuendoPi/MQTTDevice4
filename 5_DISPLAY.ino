@@ -93,7 +93,7 @@ void KettlePage()
 {
   if (strlen(structKettles[0].sensor) != 0)
   {
-    for (int i = 0; i < maxKettles; i++)
+    for (uint8_t i = 0; i < maxKettles; i++)
     {
       DEBUG_MSG("structKettleID %s - sensorID: %s\n", structKettles[i].sensor, sensors[0].getId().c_str());
       if (strcmp(structKettles[i].sensor, sensors[0].getId().c_str()) == 0)
@@ -207,11 +207,11 @@ void cbpi4kettle_handlemqtt(char *payload)
   DeserializationError error = deserializeJson(doc, (const char *)payload);
   if (error)
   {
-    int memoryUsed = doc.memoryUsage();
+    int32_t memoryUsed = doc.memoryUsage();
     DEBUG_MSG("Disp: handlemqtt notification deserialize Json error %s MemoryUsage %d\n", error.c_str(), memoryUsed);
     return;
   }
-  for (int i = 0; i < maxKettles; i++)
+  for (uint8_t i = 0; i < maxKettles; i++)
   {
     if (strlen(structKettles[i].id) == 0) // structKettle unbelegt
     {
@@ -281,12 +281,12 @@ void cbpi4sensor_handlemqtt(char *payload)
   DeserializationError error = deserializeJson(doc, (const char *)payload);
   if (error)
   {
-    int memoryUsed = doc.memoryUsage();
+    int32_t memoryUsed = doc.memoryUsage();
     DEBUG_MSG("Disp: handlemqtt notification deserialize Json error %s MemoryUsage %d\n", error.c_str(), memoryUsed);
 
     return;
   }
-  for (int i = 0; i < maxKettles; i++)
+  for (uint8_t i = 0; i < maxKettles; i++)
   {
     if (structKettles[i].sensor == doc["id"])
     {
@@ -326,7 +326,7 @@ void cbpi4steps_handlemqtt(char *payload)
   DeserializationError error = deserializeJson(doc, (const char *)payload);
   if (error)
   {
-    int memoryUsed = doc.memoryUsage();
+    int32_t memoryUsed = doc.memoryUsage();
     DEBUG_MSG("Disp: handlemqtt notification deserialize Json error %s MemoryUsage %d\n", error.c_str(), memoryUsed);
 
     return;
@@ -337,7 +337,7 @@ void cbpi4steps_handlemqtt(char *payload)
   JsonObject props = doc["props"];
   bool newStep = true;
 
-  for (int i = 0; i < stepsCounter; i++)
+  for (uint8_t i = 0; i < stepsCounter; i++)
   {
     if (structSteps[i].id == doc["id"])
     {
@@ -371,7 +371,7 @@ void cbpi4steps_handlemqtt(char *payload)
     {
       strlcpy(currentStepName, doc["name"] | "", maxStepSign);
       current_step = true;
-      for (int i = 0; i < stepsCounter; i++)
+      for (uint8_t i = 0; i < stepsCounter; i++)
       {
         if (structSteps[i].name == doc["name"])
         {
@@ -529,7 +529,7 @@ void cbpi4notification_handlemqtt(char *payload)
   DeserializationError error = deserializeJson(doc, (const char *)payload);
   if (error)
   {
-    int memoryUsed = doc.memoryUsage();
+    int32_t memoryUsed = doc.memoryUsage();
     DEBUG_MSG("Disp: handlemqtt notification deserialize Json error %s MemoryUsage %d\n", error.c_str(), memoryUsed);
     return;
   }

@@ -1,15 +1,15 @@
 class Actor
 {
   unsigned long powerLast; // Zeitmessung für High oder Low
-  int dutycycle_actor = 5000;
+  int16_t dutycycle_actor = 5000;
   unsigned char OFF;
   unsigned char ON;
 
 public:
-  unsigned char pin_actor = 9; // the number of the LED pin
+  int8_t pin_actor = 9; // the number of the LED pin
   String argument_actor;
   String name_actor;
-  unsigned char power_actor;
+  uint8_t power_actor;
   bool isOn;
   bool old_isOn;
   bool isInverted = false;
@@ -17,7 +17,7 @@ public:
   bool isOnBeforeError = false; // isOn status before error event
   bool actor_state = true;      // Error state actor
 
-  Actor(String pin, String argument, String aname, bool ainverted, bool aswitchable)
+  Actor(int8_t pin, String argument, String aname, bool ainverted, bool aswitchable)
   {
     change(pin, argument, aname, ainverted, aswitchable);
   }
@@ -48,7 +48,7 @@ public:
     }
   }
 
-  void change(const String &pin, const String &argument, const String &aname, const bool &ainverted, const bool &aswitchable)
+  void change(const int8_t &pin, const String &argument, const String &aname, const bool &ainverted, const bool &aswitchable)
   {
     if (isPin(pin_actor))
     {
@@ -69,7 +69,8 @@ public:
       ON = LOW;
       OFF = HIGH;
     }
-    pin_actor = StringToPin(pin);
+    // pin_actor = StringToPin(pin);
+    pin_actor = pin;
 
     if (isPin(pin_actor))
     {
@@ -133,12 +134,8 @@ public:
     if (doc["state"] == "on")
     {
       isOn = true;
-      int newPower = doc["power"];
-      if (newPower > 100)
-        newPower = 100; // Nicht > 100
-      if (newPower < 0)
-        newPower = 0; // Nicht < 0
-      power_actor = newPower;
+      int16_t newPower = doc["power"];
+      power_actor = constrain(newPower, 0, 100);
       return;
     }
   }
@@ -146,16 +143,16 @@ public:
 
 // Initialisierung des Arrays max 10
 Actor actors[numberOfActorsMax] = {
-    Actor("", "", "", false, false),
-    Actor("", "", "", false, false),
-    Actor("", "", "", false, false),
-    Actor("", "", "", false, false),
-    Actor("", "", "", false, false),
-    Actor("", "", "", false, false),
-    Actor("", "", "", false, false),
-    Actor("", "", "", false, false),
-    Actor("", "", "", false, false),
-    Actor("", "", "", false, false)};
+    Actor(9, "", "", false, false),
+    Actor(9, "", "", false, false),
+    Actor(9, "", "", false, false),
+    Actor(9, "", "", false, false),
+    Actor(9, "", "", false, false),
+    Actor(9, "", "", false, false),
+    Actor(9, "", "", false, false),
+    Actor(9, "", "", false, false),
+    Actor(9, "", "", false, false),
+    Actor(9, "", "", false, false)};
 
 // Funktionen für Loop im Timer Objekt
 void handleActors(bool checkAct)
@@ -166,7 +163,7 @@ void handleActors(bool checkAct)
   DynamicJsonDocument ssedoc(768);
   JsonArray sseArray = ssedoc.to<JsonArray>();
   // bool checkAct = false;
-  for (int i = 0; i < numberOfActors; i++)
+  for (uint8_t i = 0; i < numberOfActors; i++)
   {
     actors[i].Update();
     if (actors[i].old_isOn != actors[i].isOn)
@@ -198,13 +195,13 @@ void handleActors(bool checkAct)
 /* Funktionen für Web */
 void handleRequestActors()
 {
-  int id = server.arg(0).toInt();
+  int8_t id = server.arg(0).toInt();
   DynamicJsonDocument doc(1024);
   if (id == -1) // fetch all sensors
   {
     JsonArray actorsArray = doc.to<JsonArray>();
 
-    for (int i = 0; i < numberOfActors; i++)
+    for (uint8_t i = 0; i < numberOfActors; i++)
     {
       JsonObject actorsObj = doc.createNestedObject();
 
@@ -228,12 +225,12 @@ void handleRequestActors()
 
   String response;
   serializeJson(doc, response);
-  server.send_P(200, "application/json", response.c_str());
+  server.send(200, FPSTR("application/json"), response.c_str());
 }
 
 void handleSetActor()
 {
-  int id = server.arg(0).toInt();
+  int8_t id = server.arg(0).toInt();
 
   if (id == -1)
   {
@@ -243,13 +240,13 @@ void handleSetActor()
       return;
   }
 
-  String ac_pin = PinToString(actors[id].pin_actor);
+  int8_t ac_pin = actors[id].pin_actor;
   String ac_argument = actors[id].argument_actor;
   String ac_name = actors[id].name_actor;
   bool ac_isinverted = actors[id].isInverted;
   bool ac_switchable = actors[id].switchable;
 
-  for (int i = 0; i < server.args(); i++)
+  for (uint8_t i = 0; i < server.args(); i++)
   {
     if (server.argName(i) == "name")
     {
@@ -257,7 +254,7 @@ void handleSetActor()
     }
     if (server.argName(i) == "pin")
     {
-      ac_pin = server.arg(i);
+      ac_pin = StringToPin(server.arg(i));
     }
     if (server.argName(i) == "script")
     {
@@ -275,35 +272,47 @@ void handleSetActor()
   }
   actors[id].change(ac_pin, ac_argument, ac_name, ac_isinverted, ac_switchable);
   saveConfig();
-  server.send_P(200, "text/plain", "ok");
+  server.send(200, FPSTR("text/plain"), "ok");
   handleActors(true);
 }
 
 void handleDelActor()
 {
-  int id = server.arg(0).toInt();
-  for (int i = id; i < numberOfActors; i++)
+  int8_t id = server.arg(0).toInt();
+  if (id < 0 || id > numberOfActors)
+  {
+    server.send(200, FPSTR("text/plain"), "ok");
+    return;
+  }
+  actors[id].isOn = false;
+  pins_used[actors[id].pin_actor] = false;
+
+  for (uint8_t i = id; i < numberOfActors; i++)
   {
     if (i == (numberOfActorsMax - 1)) // 5 - Array von 0 bis (numberOfActorsMax-1)
     {
-      actors[i].change("", "", "", false, false);
+      actors[i].change(9, "", "", false, false);
     }
     else
     {
-      actors[i].change(PinToString(actors[i + 1].pin_actor), actors[i + 1].argument_actor, actors[i + 1].name_actor, actors[i + 1].isInverted, actors[i + 1].switchable);
+      actors[i].change(actors[i + 1].pin_actor, actors[i + 1].argument_actor, actors[i + 1].name_actor, actors[i + 1].isInverted, actors[i + 1].switchable);
     }
     yield();
   }
 
-  numberOfActors -= 1;
+  if (numberOfActors > 0)
+    numberOfActors--;
+  else
+    numberOfActors = 0;
   saveConfig();
-  server.send_P(200, "text/plain", "ok");
+  server.send(200, FPSTR("text/plain"), "ok");
   handleActors(true);
 }
 
 void handlereqPins()
 {
-  int id = server.arg(0).toInt();
+  const String pin_names[NUMBEROFPINS] = {"D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8"};
+  int8_t id = server.arg(0).toInt();
   String message;
 
   if (id != -1)
@@ -312,7 +321,7 @@ void handlereqPins()
     message += PinToString(actors[id].pin_actor);
     message += F("</option><option disabled>──────────</option>");
   }
-  for (int i = 0; i < numberOfPins; i++)
+  for (uint8_t i = 0; i < NUMBEROFPINS; i++)
   {
     if (pins_used[pins[i]] == false)
     {
@@ -322,12 +331,13 @@ void handlereqPins()
     }
     yield();
   }
-  server.send_P(200, "text/plain", message.c_str());
+  server.send(200, FPSTR("text/plain"), message.c_str());
 }
 
 unsigned char StringToPin(String pinstring)
 {
-  for (int i = 0; i < numberOfPins; i++)
+  const String pin_names[NUMBEROFPINS] = {"D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8"};
+  for (uint8_t i = 0; i < NUMBEROFPINS; i++)
   {
     if (pin_names[i] == pinstring)
     {
@@ -339,7 +349,8 @@ unsigned char StringToPin(String pinstring)
 
 String PinToString(unsigned char pinbyte)
 {
-  for (int i = 0; i < numberOfPins; i++)
+  const String pin_names[NUMBEROFPINS] = {"D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8"};
+  for (uint8_t i = 0; i < NUMBEROFPINS; i++)
   {
     if (pins[i] == pinbyte)
     {
@@ -352,7 +363,7 @@ String PinToString(unsigned char pinbyte)
 bool isPin(unsigned char pinbyte)
 {
   bool returnValue = false;
-  for (int i = 0; i < numberOfPins; i++)
+  for (uint8_t i = 0; i < NUMBEROFPINS; i++)
   {
     if (pins[i] == pinbyte)
     {
@@ -365,7 +376,7 @@ bool isPin(unsigned char pinbyte)
 
 void actERR()
 {
-  for (int i = 0; i < numberOfActors; i++)
+  for (uint8_t i = 0; i < numberOfActors; i++)
   {
     if (actors[i].switchable && actors[i].actor_state && actors[i].isOn)
     {

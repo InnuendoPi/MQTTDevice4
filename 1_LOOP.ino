@@ -4,12 +4,11 @@ void loop()
   if (WiFi.status() == WL_CONNECTED)
   {
     TickerPUBSUB.update();            // Ticker PubSubClient
-    TickerNTP.update();               // Ticker NTP
+    if (timeClient.update())
+      Serial.printf("*** SYSINFO: %s\n", timeClient.getFormattedTime().c_str());
     if (startMDNS)                    // mDNS handle
       mdns.update();
   }
-  else
-    EM_WLAN();                        // Event handing WLAN
 
   if (numberOfSensors > 0)            // Ticker Sensoren
     TickerSen.update();

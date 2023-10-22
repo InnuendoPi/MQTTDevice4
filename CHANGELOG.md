@@ -2,7 +2,12 @@
 
 Version 4.56
 
+- added:      WiFi events
+- Changed:    WebUpdate
+- Fix:        File explorer
 - Removed:    PCF8574 support (I2C) - OOM
+- Removed:    TickerNTP (save mem)
+- Removed:    TickerWLAN (save mem)
 
 Version 4.55a
 

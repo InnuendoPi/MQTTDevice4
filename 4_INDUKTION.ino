@@ -1,45 +1,44 @@
 class induction
 {
   unsigned long timeTurnedoff;
-
   unsigned long lastInterrupt;
   unsigned long lastCommand;
   bool inputStarted = false;
   unsigned char inputCurrent = 0;
   unsigned char inputBuffer[33];
-  unsigned char error = 0;
+  // unsigned char error = 0;
   long powerSampletime = 20000;
   unsigned long powerLast;
   long powerHigh = powerSampletime; // Dauer des "HIGH"-Anteils im Schaltzyklus
   long powerLow = 0;
   // Induktion Signallaufzeiten
-  const int SIGNAL_HIGH = 5120;
-  const int SIGNAL_HIGH_TOL = 1500;
-  const int SIGNAL_LOW = 1280;
-  const int SIGNAL_LOW_TOL = 500;
-  const int SIGNAL_START = 25;
-  const int SIGNAL_START_TOL = 10;
-  const int SIGNAL_WAIT = 10;
-  const int SIGNAL_WAIT_TOL = 5;
+  const int16_t SIGNAL_HIGH = 5120;
+  const int16_t SIGNAL_HIGH_TOL = 1500;
+  const int16_t SIGNAL_LOW = 1280;
+  const int16_t SIGNAL_LOW_TOL = 500;
+  const int16_t SIGNAL_START = 25;
+  const int16_t SIGNAL_START_TOL = 10;
+  const int16_t SIGNAL_WAIT = 10;
+  const int16_t SIGNAL_WAIT_TOL = 5;
 
   /*  Binäre Signale für Induktionsplatte */
-  int CMD[6][33] = {
+  int16_t CMD[6][33] = {
       {1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0},  // Aus
       {1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0},  // P1
       {1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0},  // P2
       {1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0},  // P3
       {1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0},  // P4
       {1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0}}; // P5
-  unsigned char PWR_STEPS[6] = {0, 20, 40, 60, 80, 100};
+  uint8_t PWR_STEPS[6] = {0, 20, 40, 60, 80, 100};
 
 public:
-  unsigned char PIN_WHITE = 13;     // D7 Relay white
-  unsigned char PIN_YELLOW = 12;    // D6 Command channel yellow AUSGABE AN PLATTE
-  unsigned char PIN_INTERRUPT = 14; // D5 Back channel blue EINGABE VON PLATTE
-  int power = 0;
-  int newPower = 0;
-  int oldPower = 0;
-  unsigned char CMD_CUR = 0; // Aktueller Befehl
+  int8_t PIN_WHITE = 13;     // D7 Relay white
+  int8_t PIN_YELLOW = 12;    // D6 Command channel yellow AUSGABE AN PLATTE
+  int8_t PIN_INTERRUPT = 14; // D5 Back channel blue EINGABE VON PLATTE
+  uint8_t power = 0;
+  uint8_t newPower = 0;
+  uint8_t oldPower = 0;
+  int8_t CMD_CUR = 0; // Aktueller Befehl
   boolean isRelayon = false; // Systemstatus: ist das Relais in der Platte an?
   boolean oldisRelayon = false; // Systemstatus: ist das Relais in der Platte an?
   boolean isInduon = false;  // Systemstatus: ist Power > 0?
@@ -47,8 +46,8 @@ public:
   boolean isPower = false;
   String mqtttopic = "";
   boolean isEnabled = false;
-  int powerLevelOnError = 100;   // 100% schaltet das Event handling für Induktion aus
-  int powerLevelBeforeError = 0; // in error event save last power state
+  uint8_t powerLevelOnError = 100;   // 100% schaltet das Event handling für Induktion aus
+  uint8_t powerLevelBeforeError = 0; // in error event save last power state
   bool induction_state = true;   // Error state induction
 
   induction()
@@ -56,7 +55,7 @@ public:
     setupCommands();
   }
 
-  void change(unsigned char pinwhite, unsigned char pinyellow, unsigned char pinblue, String topic, bool is_enabled, int powerLevel)
+  void change(const int8_t &pinwhite, const int8_t &pinyellow, const int8_t &pinblue, const String &topic, const bool &is_enabled, const uint8_t &powerLevel)
   {
     if (isEnabled)
     {
@@ -172,9 +171,9 @@ public:
 
   void setupCommands()
   {
-    for (int i = 0; i < 33; i++)
+    for (uint8_t i = 0; i < 33; i++)
     {
-      for (int j = 0; j < 6; j++)
+      for (uint8_t j = 0; j < 6; j++)
       {
         if (CMD[j][i] == 1)
         {
@@ -242,10 +241,11 @@ public:
     }
   }
 
-  void inductionNewPower(int value)
+  void inductionNewPower(int16_t val)
   {
-    newPower = min(100, value);
-    newPower = max(0, newPower);
+    // newPower = min(100, value);
+    // newPower = max(0, newPower);
+    newPower = constrain(val, 0, 100);
   }
 
   void updatePower()
@@ -258,9 +258,9 @@ public:
       //   newPower = 0; // Nicht < 0
       // power = newPower;
 
-      newPower = min(100, newPower);
-      power = max(0, newPower);
-
+      // newPower = min(100, newPower);
+      // power = max(0, newPower);
+      power = newPower;
       timeTurnedoff = 0;
       isInduon = true;
       if (power == 0)
@@ -274,7 +274,7 @@ public:
       }
       else
       {
-        for (int i = 1; i < 7; i++)
+        for (uint8_t i = 1; i < 7; i++)
         {
           if (power <= PWR_STEPS[i])
           {
@@ -289,7 +289,7 @@ public:
     }
   }
 
-  void sendCommand(int command[33])
+  void sendCommand(int16_t command[33])
   {
     digitalWrite(PIN_YELLOW, HIGH);
     millis2wait(SIGNAL_START);
@@ -297,7 +297,7 @@ public:
     millis2wait(SIGNAL_WAIT);
 
     // PIN_YELLOW := Ausgabe an IDS2
-    for (int i = 0; i < 33; i++)
+    for (uint8_t i = 0; i < 33; i++)
     {
       digitalWrite(PIN_YELLOW, HIGH);
       micros2wait(command[i]);
@@ -413,7 +413,7 @@ void handleRequestInduction()
   doc["pl"] = inductionCooker.powerLevelOnError;
   String response;
   serializeJson(doc, response);
-  server.send_P(200, "application/json", response.c_str() );
+  server.send(200, FPSTR("application/json"), response.c_str() );
   // size_t len = measureJson(doc);
   // int memoryUsed = doc.memoryUsage();
   // DEBUG_MSG("Ind JSON config length: %d\n", len);
@@ -427,7 +427,7 @@ void handleRequestIndu()
 
   if (request == "pins")
   {
-    int id = server.arg(1).toInt();
+    int8_t id = server.arg(1).toInt();
     unsigned char pinswitched;
     switch (id)
     {
@@ -447,8 +447,8 @@ void handleRequestIndu()
       message += PinToString(pinswitched);
       message += F("</option><option disabled>──────────</option>");
     }
-
-    for (int i = 0; i < numberOfPins; i++)
+    const String pin_names[NUMBEROFPINS] = {"D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8"};
+    for (uint8_t i = 0; i < NUMBEROFPINS; i++)
     {
       if (pins_used[pins[i]] == false)
       {
@@ -462,7 +462,7 @@ void handleRequestIndu()
   }
 
   // SendMessage:
-  server.send_P(200, "text/plain", message.c_str() );
+  server.send(200, FPSTR("text/plain"), message.c_str() );
 }
 
 void handleSetIndu()
@@ -472,9 +472,9 @@ void handleSetIndu()
   unsigned char pin_yellow = inductionCooker.PIN_YELLOW;
   bool is_enabled = inductionCooker.isEnabled;
   String topic = inductionCooker.mqtttopic;
-  int pl = inductionCooker.powerLevelOnError;
+  int8_t pl = inductionCooker.powerLevelOnError;
 
-  for (int i = 0; i < server.args(); i++)
+  for (uint8_t i = 0; i < server.args(); i++)
   {
     if (server.argName(i) == "enabled")
     {
@@ -508,6 +508,6 @@ void handleSetIndu()
 
   inductionCooker.change(pin_white, pin_yellow, pin_blue, topic, is_enabled, pl);
   saveConfig();
-  server.send_P(200, "text/plain", "ok");
+  server.send(200, FPSTR("text/plain"), "ok");
   inductionSSE(true);
 }

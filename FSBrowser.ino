@@ -1,37 +1,39 @@
-void replyToCLient(int msg_type = 0, const char *msg = "")
-{
-  server.sendHeader("Access-Control-Allow-Origin", "*");
-  switch (msg_type)
-  {
-  case OK:
-    server.send(200, FPSTR(TEXT_PLAIN), "");
-    break;
-  case CUSTOM:
-    server.send(200, FPSTR(TEXT_PLAIN), msg);
-    break;
-  case NOT_FOUND:
-    server.send(404, FPSTR(TEXT_PLAIN), msg);
-    break;
-  case BAD_REQUEST:
-    server.send(400, FPSTR(TEXT_PLAIN), msg);
-    break;
-  case ERROR:
-    server.send(500, FPSTR(TEXT_PLAIN), msg);
-    break;
-  }
-}
+String unsupportedFiles = String();
+
+////////////////////////////////
+// Utils to return HTTP codes, and determine content-type
 
 void replyOK()
 {
-  replyToCLient(OK, "");
+  server.send(200, FPSTR("text/plain"), "");
 }
 
-void handleGetEdit()
+void replyOKWithMsg(String msg)
 {
-  server.sendHeader(PSTR("Content-Encoding"), "gzip");
-  server.send_P(200, "text/html", edit_htm_gz, sizeof(edit_htm_gz));
+  server.send(200, FPSTR("text/plain"), msg);
 }
 
+void replyNotFound(String msg)
+{
+  server.send(404, FPSTR("text/plain"), msg);
+}
+
+void replyBadRequest(String msg)
+{
+  server.send(400, FPSTR("text/plain"), msg + "\r\n");
+}
+
+void replyServerError(String msg)
+{
+  server.send(500, FPSTR("text/plain"), msg + "\r\n");
+}
+
+////////////////////////////////
+// Request handlers
+
+/*
+   Return the FS type, status and size info
+*/
 void handleStatus()
 {
   FSInfo fs_info;
@@ -48,274 +50,175 @@ void handleStatus()
   server.send(200, "application/json", json);
 }
 
+/*
+   Return the list of files in the directory specified by the "dir" query string parameter.
+   Also demonstrates the use of chunked responses.
+*/
 void handleFileList()
 {
+  // if (!fsOK) { return replyServerError(FPSTR("FS INIT ERROR")); }
+
   if (!server.hasArg("dir"))
   {
-    server.send(500, "text/plain", "BAD ARGS");
+    return replyBadRequest(F("DIR ARG MISSING"));
+  }
+
+  String path = server.arg("dir");
+  // if (path != "/" && !fileSystem->exists(path))
+  // if (path != "/" && LittleFS.exists(path))
+  if (path != "/" && LittleFS.mkdir(path)) // mkdir workarround für exists on directory
+  {
+    // Serial.printf("FSBrowser path: %s\n", path.c_str());
+    return replyBadRequest("BAD PATH");
+  }
+
+  Dir dir = LittleFS.openDir(path);
+  path.clear();
+
+  // use HTTP/1.1 Chunked response to avoid building a huge temporary string
+  if (!server.chunkedResponseModeStart(200, "text/json"))
+  {
+    server.send(505, F("text/html"), F("HTTP1.1 required"));
     return;
   }
-  String path = server.arg("dir");
-  Dir dir = LittleFS.openDir(path);
-  path = String();
 
-  String output = "[";
+  // use the same string for every line
+  String output;
+  output.reserve(64);
   while (dir.next())
   {
-    File entry = dir.openFile("r");
-    if (output != "[")
+    if (output.length())
     {
-      output += ',';
+      // send string from previous iteration
+      // as an HTTP chunk
+      server.sendContent(output);
+      output = ',';
     }
-    bool isDir = false;
+    else
+    {
+      output = '[';
+    }
+
     output += "{\"type\":\"";
-    output += (isDir) ? "dir" : "file";
-    output += "\",\"size\":\"";
-    output += entry.size();
-    output += "\",\"name\":\"";
-    output += String(entry.name()).substring(0);
+    if (dir.isDirectory())
+    {
+      output += "dir";
+    }
+    else
+    {
+      output += F("file\",\"size\":\"");
+      output += dir.fileSize();
+    }
+
+    output += F("\",\"name\":\"");
+    // Always return names without leading "/"
+    if (dir.fileName()[0] == '/')
+    {
+      output += &(dir.fileName()[1]);
+    }
+    else
+    {
+      output += dir.fileName();
+    }
+
     output += "\"}";
-    entry.close();
   }
+
+  // send last string
   output += "]";
-  server.send(200, "text/json", output);
+  server.sendContent(output);
+  server.chunkedResponseFinalize();
 }
 
-void checkForUnsupportedPath(String &filename, String &error)
+/*
+   Read the given file from the filesystem and stream it back to the client
+*/
+bool handleFileRead(String path)
 {
-  if (!filename.startsWith("/"))
-  {
-    error += PSTR(" !! NO_LEADING_SLASH !! ");
-  }
-  if (filename.indexOf("//") != -1)
-  {
-    error += PSTR(" !! DOUBLE_SLASH !! ");
-  }
-  if (filename.endsWith("/"))
-  {
-    error += PSTR(" ! TRAILING_SLASH ! ");
-  }
-}
+  // if (!fsOK) {
+  //   replyServerError(FPSTR("FS INIT ERROR"));
+  //   return true;
+  // }
 
-// format bytes
-String formatBytes(size_t bytes)
-{
-  if (bytes < 1024)
+  if (path.endsWith("/"))
   {
-    return String(bytes) + "B";
+    // path += "index.htm";
+    path += "index.html";
   }
-  else if (bytes < (1024 * 1024))
+
+  String contentType;
+  if (server.hasArg("download"))
   {
-    return String(bytes / 1024.0) + "KB";
-  }
-  else if (bytes < (1024 * 1024 * 1024))
-  {
-    return String(bytes / 1024.0 / 1024.0) + "MB";
+    contentType = F("application/octet-stream");
   }
   else
   {
-    return String(bytes / 1024.0 / 1024.0 / 1024.0) + "GB";
+    contentType = mime::getContentType(path);
   }
-}
-
-String getContentType(String filename)
-{
-  if (server.hasArg("download"))
+  if (!LittleFS.exists(path))
   {
-    return "application/octet-stream";
+    // File not found, try gzip version
+    path = path + ".gz";
   }
-  else if (filename.endsWith(".htm"))
+  if (LittleFS.exists(path))
   {
-    return "text/html";
-  }
-  else if (filename.endsWith(".html"))
-  {
-    return "text/html";
-  }
-  else if (filename.endsWith(".css"))
-  {
-    return "text/css";
-  }
-  else if (filename.endsWith(".sass"))
-  {
-    return "text/css";
-  }
-  else if (filename.endsWith(".js"))
-  {
-    return "application/javascript";
-  }
-  else if (filename.endsWith(".png"))
-  {
-    return "image/svg+xml";
-  }
-  else if (filename.endsWith(".svg"))
-  {
-    return "image/png";
-  }
-  else if (filename.endsWith(".gif"))
-  {
-    return "image/gif";
-  }
-  else if (filename.endsWith(".jpg"))
-  {
-    return "image/jpeg";
-  }
-  else if (filename.endsWith(".ico"))
-  {
-    return "image/x-icon";
-  }
-  else if (filename.endsWith(".xml"))
-  {
-    return "text/xml";
-  }
-  else if (filename.endsWith(".pdf"))
-  {
-    return "application/x-pdf";
-  }
-  else if (filename.endsWith(".zip"))
-  {
-    return "application/x-zip";
-  }
-  else if (filename.endsWith(".gz"))
-  {
-    return "application/x-gzip";
-  }
-  return "text/plain";
-}
-
-// Datei editieren -> speichern CTRL+S
-bool handleFileRead(String path)
-{
-  if (path.endsWith("/"))
-  {
-    path += "index.html";
-  }
-  String contentType = getContentType(path);
-  String pathWithGz = path + ".gz";
-  if (LittleFS.exists(pathWithGz) || LittleFS.exists(path))
-  {
-    if (LittleFS.exists(pathWithGz))
-    {
-      path += ".gz";
-    }
     File file = LittleFS.open(path, "r");
-    server.streamFile(file, contentType);
+    if (server.streamFile(file, contentType) != file.size()) { Serial.println("Sent less data than expected!"); }
     file.close();
     return true;
   }
+
   return false;
 }
 
-void handleFileUpload()
+/*
+   As some FS (e.g. LittleFS) delete the parent folder when the last child has been removed,
+   return the path of the closest parent still existing
+*/
+String lastExistingParent(String path)
 {
-  if (server.uri() != "/edit")
+  while (!path.isEmpty() && !LittleFS.exists(path))
   {
-    return;
-  }
-  HTTPUpload &upload = server.upload();
-  if (upload.status == UPLOAD_FILE_START)
-  {
-    String filename = upload.filename;
-    String result;
-    // Make sure paths always start with "/"
-    if (!filename.startsWith("/"))
+    if (path.lastIndexOf('/') > 0)
     {
-      filename = "/" + filename;
+      path = path.substring(0, path.lastIndexOf('/'));
     }
-    checkForUnsupportedPath(filename, result);
-    if (result.length() > 0)
+    else
     {
-      replyToCLient(ERROR, PSTR("INVALID FILENAME"));
-      return;
-    }
-    DEBUG_MSG("FS: file name upload: %s\n", filename.c_str());
-    fsUploadFile = LittleFS.open(filename, "w");
-    if (!fsUploadFile)
-    {
-      replyToCLient(ERROR, PSTR("CREATE FAILED"));
-      return;
-    }
-    filename = String();
-  }
-  else if (upload.status == UPLOAD_FILE_WRITE)
-  {
-    DEBUG_MSG("FS file size pload: %d\n", upload.currentSize);
-    if (fsUploadFile)
-    {
-      fsUploadFile.write(upload.buf, upload.currentSize);
+      path = String(); // No slash => the top folder does not exist
     }
   }
-  else if (upload.status == UPLOAD_FILE_END)
-  {
-    if (fsUploadFile)
-    {
-      fsUploadFile.close();
-    }
-    DEBUG_MSG("FS: upload size: %d\n", upload.totalSize);
-    // loadConfig();
-  }
+  return path;
 }
 
 /*
-    Handle a file deletion request
-    Operation      | req.responseText
-    ---------------+--------------------------------------------------------------
-    Delete file    | parent of deleted file, or remaining ancestor
-    Delete folder  | parent of deleted folder, or remaining ancestor
+   Handle the creation/rename of a new file
+   Operation      | req.responseText
+   ---------------+--------------------------------------------------------------
+   Create file    | parent of created file
+   Create folder  | parent of created folder
+   Rename file    | parent of source file
+   Move file      | parent of source file, or remaining ancestor
+   Rename folder  | parent of source folder
+   Move folder    | parent of source folder, or remaining ancestor
 */
-
-void handleFileDelete()
-{
-  if (server.args() == 0)
-  {
-    return server.send(500, "text/plain", "BAD ARGS");
-  }
-  String path = server.arg(0);
-  if (!LittleFS.exists(path))
-  {
-    replyToCLient(NOT_FOUND, PSTR(FILE_NOT_FOUND));
-    return;
-  }
-  //deleteRecursive(path);
-  File root = LittleFS.open(path, "r");
-  // If it's a plain file, delete it
-  if (!root.isDirectory())
-  {
-    root.close();
-    LittleFS.remove(path);
-    replyOK();
-  }
-  else
-  {
-    LittleFS.rmdir(path);
-    replyOK();
-  }
-}
-
-/*
-    Handle the creation/rename of a new file
-    Operation      | req.responseText
-    ---------------+--------------------------------------------------------------
-    Create file    | parent of created file
-    Create folder  | parent of created folder
-    Rename file    | parent of source file
-    Move file      | parent of source file, or remaining ancestor
-    Rename folder  | parent of source folder
-    Move folder    | parent of source folder, or remaining ancestor
-*/
-
 void handleFileCreate()
 {
+  // if (!fsOK) { return replyServerError(FPSTR("FS INIT ERROR")); }
+
   String path = server.arg("path");
   if (path.isEmpty())
   {
-    replyToCLient(BAD_REQUEST, PSTR("PATH ARG MISSING"));
-    return;
+    return replyBadRequest(F("PATH ARG MISSING"));
   }
+
   if (path == "/")
   {
-    replyToCLient(BAD_REQUEST, PSTR("BAD PATH"));
-    return;
+    return replyBadRequest("BAD PATH");
+  }
+  if (LittleFS.exists(path))
+  {
+    return replyBadRequest(F("PATH FILE EXISTS"));
   }
 
   String src = server.arg("src");
@@ -328,40 +231,40 @@ void handleFileCreate()
       path.remove(path.length() - 1);
       if (!LittleFS.mkdir(path))
       {
-        replyToCLient(ERROR, PSTR("MKDIR FAILED"));
-        return;
+        return replyServerError(F("MKDIR FAILED"));
       }
     }
     else
     {
       // Create a file
+      // File file = fileSystem->open(path, "w");
       File file = LittleFS.open(path, "w");
       if (file)
       {
-        file.write(0);
+        file.write((const char *)0);
         file.close();
       }
       else
       {
-        replyToCLient(ERROR, PSTR("CREATE FAILED"));
-        return;
+        return replyServerError(F("CREATE FAILED"));
       }
     }
-    replyToCLient(CUSTOM, path.c_str());
+    if (path.lastIndexOf('/') > -1)
+    {
+      path = path.substring(0, path.lastIndexOf('/'));
+    }
+    replyOKWithMsg(path);
   }
   else
   {
     // Source specified: rename
     if (src == "/")
     {
-      replyToCLient(BAD_REQUEST, PSTR("BAD SRC"));
-      return;
+      return replyBadRequest("BAD SRC");
     }
-
     if (!LittleFS.exists(src))
     {
-      replyToCLient(BAD_REQUEST, PSTR("BSRC FILE NOT FOUND"));
-      return;
+      return replyBadRequest(F("SRC FILE NOT FOUND"));
     }
 
     if (path.endsWith("/"))
@@ -374,9 +277,121 @@ void handleFileCreate()
     }
     if (!LittleFS.rename(src, path))
     {
-      replyToCLient(ERROR, PSTR("RENAME FAILED"));
-      return;
+      return replyServerError(F("RENAME FAILED"));
     }
-    replyOK();
+    replyOKWithMsg(lastExistingParent(src));
   }
+}
+
+/*
+   Delete the file or folder designed by the given path.
+   If it's a file, delete it.
+   If it's a folder, delete all nested contents first then the folder itself
+
+   IMPORTANT NOTE: using recursion is generally not recommended on embedded devices and can lead to crashes (stack overflow errors).
+   This use is just for demonstration purpose, and FSBrowser might crash in case of deeply nested filesystems.
+   Please don't do this on a production system.
+*/
+void deleteRecursive(String path)
+{
+  File file = LittleFS.open(path, "r");
+  bool isDir = file.isDirectory();
+  file.close();
+
+  // If it's a plain file, delete it
+  if (!isDir)
+  {
+    LittleFS.remove(path);
+    return;
+  }
+
+  // Otherwise delete its contents first
+  Dir dir = LittleFS.openDir(path);
+
+  while (dir.next())
+  {
+    deleteRecursive(path + '/' + dir.fileName());
+  }
+
+  // Then delete the folder itself
+  LittleFS.rmdir(path);
+}
+
+/*
+   Handle a file deletion request
+   Operation      | req.responseText
+   ---------------+--------------------------------------------------------------
+   Delete file    | parent of deleted file, or remaining ancestor
+   Delete folder  | parent of deleted folder, or remaining ancestor
+*/
+void handleFileDelete()
+{
+  // if (!fsOK) { return replyServerError(FPSTR("FS INIT ERROR")); }
+
+  String path = server.arg(0);
+  if (path.isEmpty() || path == "/")
+  {
+    return replyBadRequest("BAD PATH");
+  }
+
+  if (!LittleFS.exists(path))
+  {
+    return replyNotFound(FPSTR("FileNotFound"));
+  }
+  deleteRecursive(path);
+
+  replyOKWithMsg(lastExistingParent(path));
+}
+
+/*
+   Handle a file upload request
+*/
+
+void handleFileUpload()
+{
+  File fsUploadFile;
+  // if (!fsOK) { return replyServerError(FPSTR("FS INIT ERROR")); }
+  if (server.uri() != "/edit")
+  {
+    return;
+  }
+  HTTPUpload &upload = server.upload();
+  if (upload.status == UPLOAD_FILE_START)
+  {
+    String filename = upload.filename;
+    // Make sure paths always start with "/"
+    if (!filename.startsWith("/"))
+    {
+      filename = "/" + filename;
+    }
+    fsUploadFile = LittleFS.open(filename, "w");
+    if (!fsUploadFile)
+    {
+      return replyServerError(F("CREATE FAILED"));
+    }
+  }
+  else if (upload.status == UPLOAD_FILE_WRITE)
+  {
+    if (fsUploadFile)
+    {
+      size_t bytesWritten = fsUploadFile.write(upload.buf, upload.currentSize);
+      if (bytesWritten != upload.currentSize)
+      {
+        return replyServerError(F("WRITE FAILED"));
+      }
+    }
+  }
+  else if (upload.status == UPLOAD_FILE_END)
+  {
+    if (fsUploadFile)
+    {
+      fsUploadFile.close();
+    }
+  }
+}
+
+void handleGetEdit()
+{
+  server.sendHeader(PSTR("Content-Encoding"), "gzip");
+  server.send_P(200, "text/html", edit_htm_gz, edit_htm_gz_len);
 }

@@ -106,11 +106,8 @@ void setTicker()
   TickerInd.config(tickerIndCallback, IND_UPDATE, 0);
   TickerMQTT.config(tickerMQTTCallback, tickerMQTT, 0);
   TickerPUBSUB.config(tickerPUBSUBCallback, tickerPUSUB, 0);
-  TickerWLAN.config(tickerWLANCallback, tickerWLAN, 0);
-  TickerNTP.config(tickerNTPCallback, NTP_INTERVAL, 0);
   TickerDisp.config(tickerDispCallback, DISP_UPDATE, 0);
   TickerMQTT.stop();
-  TickerWLAN.stop();
 }
 
 void checkSummerTime()
@@ -361,24 +358,24 @@ void EM_REBOOT() // Reboot ESP
   ESP.restart();
 }
 
-void EM_WLAN() // check WLAN and reconnect on error
+void onWifiConnect(const WiFiEventStationModeGotIP &event)
 {
-  if (WiFi.status() == WL_CONNECTED)
+  // Serial.println("onWifiConnect to Wi-Fi sucessfully.");
+  if (wlanStatus > 0)
   {
-    if (TickerWLAN.state() == RUNNING)
-      TickerWLAN.stop();
+    wifiManager.setConnectTimeout(30); // 30sek Timeout für WIFI_STA Modus. Anschließend AP Mode
+    wlanStatus = 0;
   }
-  else
-  {
-    if (TickerWLAN.state() != RUNNING)
-    {
-      WiFi.mode(WIFI_OFF);
-      WiFi.mode(WIFI_STA);
-      TickerWLAN.resume();
-      wlanconnectlasttry = millis();
-    }
-    TickerWLAN.update();
-  }
+}
+
+void onWifiDisconnect(const WiFiEventStationModeDisconnected &event)
+{
+  // Serial.println("onWifiDisconnect");
+  if (wlanStatus == 0)
+    wifiManager.setConnectTimeout(300); // 30sek Timeout für WIFI_STA Modus. Anschließend AP Mode
+  // Serial.printf("*** SYSINFO: onWifiDisconnect from Wi-Fi, trying to connect #%d\n", wlanStatus);
+  wlanStatus++;
+  // wiFi.getMode();
 }
 
 void EM_MQTTCON() // MQTT connect

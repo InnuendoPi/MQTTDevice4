@@ -27,7 +27,7 @@ void handleWebRequests()
   {
     message += " NAME:" + server.argName(i) + "\n VALUE:" + server.arg(i) + "\n";
   }
-  server.send(404, "text/plain", message);
+  server.send(404, FPSTR("text/plain"), message);
 }
 
 bool loadFromLittlefs(String path)
@@ -51,7 +51,7 @@ bool loadFromLittlefs(String path)
     File dataFile = LittleFS.open(path.c_str(), "r");
     if (dataFile)
     {
-      int fsize = dataFile.size();
+      int32_t fsize = dataFile.size();
       // unsigned long timeStart = millis();
       server.sendHeader("Content-Length", (String)fsize);
       size_t sent = server.streamFile(dataFile, contentType);
@@ -80,7 +80,7 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
   // Serial.println(" ");
 
   char payload_msg[length];
-  for (int i = 0; i < length; i++)
+  for (int16_t i = 0; i < length; i++)
   {
     payload_msg[i] = payload[i];
   }
@@ -93,7 +93,7 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
 
   if (numberOfActors > 0)
   {
-    for (int i = 0; i < numberOfActors; i++)
+    for (uint8_t i = 0; i < numberOfActors; i++)
     {
       if (actors[i].argument_actor == topic)
       {
@@ -174,7 +174,7 @@ void handleRequestMisc2()
   String response;
 
   serializeJson(doc, response);
-  server.send_P(200, "application/json", response.c_str());
+  server.send(200, FPSTR("application/json"), response.c_str());
   // size_t len = measureJson(doc);
   // int memoryUsed = doc.memoryUsage();
   // DEBUG_MSG("WEB Misc2 JSON config length: %d\n", len);
@@ -190,7 +190,7 @@ void handleRequestMisc3()
     alertState = false;
   String response;
   serializeJson(doc, response);
-  server.send_P(200, "application/json", response.c_str());
+  server.send(200, FPSTR("application/json"), response.c_str());
 }
 
 void handleRequestMisc()
@@ -217,7 +217,7 @@ void handleRequestMisc()
   doc["s_mqtt"] = mqtt_state; // Anzeige MQTT Status -> mqtt_state verzögerter Status!
   String response;
   serializeJson(doc, response);
-  server.send_P(200, "application/json", response.c_str());
+  server.send(200, FPSTR("application/json"), response.c_str());
   // size_t len = measureJson(doc);
   // int memoryUsed = doc.memoryUsage();
   // DEBUG_MSG("WEB Misc JSON config length: %d\n", len);
@@ -244,12 +244,12 @@ void handleRequestFirm()
   }
 
 SendMessage:
-  server.send_P(200, "text/plain", message.c_str());
+  server.send(200, FPSTR("text/plain"), message.c_str());
 }
 
 void handleSetMisc()
 {
-  for (int i = 0; i < server.args(); i++)
+  for (uint8_t i = 0; i < server.args(); i++)
   {
     if (server.argName(i) == "reset")
     {
@@ -369,7 +369,7 @@ void handleSetMisc()
   }
   saveConfig();
   // server.sendHeader("Location", "/", true);
-  server.send_P(200, "text/plain", "ok");
+  server.send(200, FPSTR("text/plain"), "ok");
   miscSSE();
 }
 
@@ -377,19 +377,19 @@ void handleSetMisc()
 void rebootDevice()
 {
   server.sendHeader("Location", "/", true);
-  server.send(205, "text/plain", "reboot");
+  server.send(205, FPSTR("text/plain"), "reboot");
   EM_REBOOT();
 }
 
 void handleRequestPages()
 {
-  int id = server.arg(0).toInt();
+  int8_t id = server.arg(0).toInt();
   String message;
   message += F("<option>");
   message += page_names[startPage];
   message += F("</option><option disabled>──────────</option>");
 
-  for (int i = 0; i < numberOfPages; i++)
+  for (uint8_t i = 0; i < numberOfPages; i++)
   {
     if (i != startPage)
     {
@@ -398,7 +398,7 @@ void handleRequestPages()
       message += F("</option>");
     }
   }
-  server.send_P(200, "text/plain", message.c_str() );
+  server.send(200, FPSTR("text/plain"), message.c_str() );
 }
 
 void handleRestore()

@@ -80,7 +80,7 @@ bool loadConfig()
   {
     if (i < numberOfActors)
     {
-      actors[i].change(actorObj["PIN"] | "", actorObj["SCRIPT"] | "", actorObj["NAME"] | "", actorObj["INV"] | 0, actorObj["SW"] | 0);
+      actors[i].change(actorObj["PIN"], actorObj["SCRIPT"], actorObj["NAME"], actorObj["INV"], actorObj["SW"]);
       DEBUG_MSG("Actor #: %d Name: %s MQTT: %s PIN: %s INV: %d SW: %d\n", (i + 1), actorObj["NAME"].as<const char *>(), actorObj["SCRIPT"].as<const char *>(), actorObj["PIN"].as<const char *>(), actorObj["INV"].as<int>(), actorObj["SW"].as<int>());
       i++;
     }
@@ -184,7 +184,8 @@ bool saveConfig()
   for (int i = 0; i < numberOfActors; i++)
   {
     JsonObject actorsObj = actorsArray.createNestedObject();
-    actorsObj["PIN"] = PinToString(actors[i].pin_actor);
+    // actorsObj["PIN"] = PinToString(actors[i].pin_actor);
+    actorsObj["PIN"] = actors[i].pin_actor;
     actorsObj["NAME"] = actors[i].name_actor;
     actorsObj["SCRIPT"] = actors[i].argument_actor;
     actorsObj["INV"] = (int)actors[i].isInverted;

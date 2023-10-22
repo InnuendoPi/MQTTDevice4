@@ -80,28 +80,28 @@ void upFirm()
     char line[120];
     BearSSL::WiFiClientSecure clientup;
     clientup.setInsecure();
-    BearSSL::CertStore certStore;
-    int numCerts = certStore.initCertStore(LittleFS, PSTR("/certs.idx"), PSTR(CERT));
-    if (numCerts == 0)
-    {
-        sprintf(line, "CA certificates not found: %d - SSL insecure!", numCerts);
-        debugLog(UPDATELOG, line);
-        sprintf(line, "BearSSL setInsecure - do not use this mode!", numCerts);
-        debugLog(UPDATELOG, line);
-        clientup.setInsecure();
-    }
-    else
-    {
-        sprintf(line, "Number of CA certificates: %d - SSL connection secure", numCerts);
-        debugLog(UPDATELOG, line);
-        clientup.setCertStore(&certStore);
-    }
-    bool mfln = clientup.probeMaxFragmentLength("raw.githubusercontent.com", 443, 1024);
+    // BearSSL::CertStore certStore;
+    // int numCerts = certStore.initCertStore(LittleFS, PSTR("/certs.idx"), PSTR(CERT));
+    // if (numCerts == 0)
+    // {
+    //     sprintf(line, "CA certificates not found: %d - SSL insecure!", numCerts);
+    //     debugLog(UPDATELOG, line);
+    //     sprintf(line, "BearSSL setInsecure - do not use this mode!", numCerts);
+    //     debugLog(UPDATELOG, line);
+    //     clientup.setInsecure();
+    // }
+    // else
+    // {
+    //     sprintf(line, "Number of CA certificates: %d - SSL connection secure", numCerts);
+    //     debugLog(UPDATELOG, line);
+    //     clientup.setCertStore(&certStore);
+    // }
+    bool mfln = clientup.probeMaxFragmentLength("raw.githubusercontent.com", 443, MAXFRAGLEN);
     if (mfln)
     {
-        clientup.setBufferSizes(1024, 1024);
+        clientup.setBufferSizes(MAXFRAGLEN, MAXFRAGLEN);
     }
-    clientup.setCertStore(&certStore);
+    // clientup.setCertStore(&certStore);
     // if (clientup.connect("github.com", 443))
     // clientup.setBufferSizes(1024, 1024);
     if (clientup.connect("raw.githubusercontent.com", 443))
@@ -139,9 +139,9 @@ void updateTools()
     timeClient.update();
     char line[120];
     BearSSL::WiFiClientSecure clientup;
-    BearSSL::CertStore certStore;
+    // BearSSL::CertStore certStore;
     clientup.setInsecure();
-    int numCerts = certStore.initCertStore(LittleFS, PSTR("/certs.idx"), PSTR(CERT));
+    // int numCerts = certStore.initCertStore(LittleFS, PSTR("/certs.idx"), PSTR(CERT));
     if (LittleFS.exists(UPDATETOOLS))
     {
         fsUploadFile = LittleFS.open(LOGUPDATETOOLS, "r");
@@ -166,29 +166,29 @@ void updateTools()
         Serial.printf("*** SYSINFO: Update tools #%d started - free heap: %d\n", anzahlVersuche, ESP.getFreeHeap());
         sprintf(line, "Update Framework/Tools #%d started - free heap: %d", anzahlVersuche, ESP.getFreeHeap());
         debugLog(UPDATELOG, line);
-        if (numCerts == 0)
-        {
-            sprintf(line, "CA certificates not found: %d - SSL setInsecure!", numCerts);
-            debugLog(UPDATELOG, line);
-            clientup.setInsecure();
-        }
-        else
-        {
-            sprintf(line, "Number of CA certificates: %d - SSL connection secure", numCerts);
-            debugLog(UPDATELOG, line);
-            clientup.setCertStore(&certStore);
-        }
+        // if (numCerts == 0)
+        // {
+        //     sprintf(line, "CA certificates not found: %d - SSL setInsecure!", numCerts);
+        //     debugLog(UPDATELOG, line);
+        //     clientup.setInsecure();
+        // }
+        // else
+        // {
+        //     sprintf(line, "Number of CA certificates: %d - SSL connection secure", numCerts);
+        //     debugLog(UPDATELOG, line);
+        //     clientup.setCertStore(&certStore);
+        // }
         if (anzahlVersuche == 1)
         {
             sprintf(line, "Firmware Version: %s", Version);
             debugLog(UPDATELOG, line);
         }
-        bool mfln = clientup.probeMaxFragmentLength("raw.githubusercontent.com", 443, 1024);
+        bool mfln = clientup.probeMaxFragmentLength("raw.githubusercontent.com", 443, MAXFRAGLEN);
         if (mfln)
         {
-            clientup.setBufferSizes(1024, 1024);
+            clientup.setBufferSizes(MAXFRAGLEN, MAXFRAGLEN);
         }
-        clientup.setCertStore(&certStore);
+        // clientup.setCertStore(&certStore);
         // clientup.setBufferSizes(1024, 256);
         if (clientup.connect("raw.githubusercontent.com", 443))
         {

@@ -9,6 +9,10 @@ void setup()
 
   snprintf(mqtt_clientid, maxHostSign, "ESP8266-%08X", ESP.getChipId());
   Serial.printf("\n*** SYSINFO: start up MQTTDevice - device ID: %s\n", mqtt_clientid);
+  // WLAN Events
+  wifiConnectHandler = WiFi.onStationModeGotIP(onWifiConnect);
+  wifiDisconnectHandler = WiFi.onStationModeDisconnected(onWifiDisconnect);
+
   wifiManager.setDebugOutput(false);
   wifiManager.setMinimumSignalQuality(10);
   wifiManager.setConfigPortalTimeout(300);
@@ -41,7 +45,6 @@ void setup()
 
     // Erstelle Ticker Objekte
     setTicker();
-    TickerNTP.start();
 
     if (LittleFS.exists(CONFIG)) // Lade Konfiguration
       loadConfig();
@@ -75,27 +78,6 @@ void setup()
       }
     }
   }
-  // if (useI2C)
-  // {
-  //   if (digitalRead(PIN_SCL) == HIGH && digitalRead(PIN_SDA) == LOW)
-  //     PCF_Reset();
-  //   if (pcf020.begin(D5, D6))
-  //   {
-  //     Serial.printf("*** SYSINFO: PCF8574 init successful lib version %s\n", PCF8574_LIB_VERSION);
-  //     pins_used[D5] = true;
-  //     pins_used[D6] = true;
-  //     // pcf8574.selectNone(); // set all PCF8574 pins to low
-  //     statePCF = true;
-  //   }
-  //   else
-  //   {
-  //     Serial.println("*** SYSINFO: PCF8574 init error");
-  //     statePCF = false;
-  //     if (startBuzzer)
-  //       sendAlarm(ALARM_ERROR);
-  //   }
-  // }
-
   // Pinbelegung
   pins_used[ONE_WIRE_BUS] = true;
 
@@ -106,10 +88,10 @@ void setup()
   if (startMDNS)
     EM_MDNSET();
   else
-  {
     Serial.printf("*** SYSINFO: ESP8266 IP address: %s Time: %s RSSI: %d\n", WiFi.localIP().toString().c_str(), timeClient.getFormattedTime().c_str(), WiFi.RSSI());
-  }
-
+  
+  // MQTT
+  pubsubClient.setBufferSize(512);
   EM_MQTTCON();
   EM_MQTTSUB();
   TickerPUBSUB.start(); // PubSubClient loop ticker

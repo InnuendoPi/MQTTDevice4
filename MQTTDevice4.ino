@@ -27,7 +27,6 @@
 #include <Ticker.h>
 #include <PubSubClient.h>     // MQTT Kommunikation
 #include <SoftwareSerial.h>   // Serieller Port für Display
-// #include <PCF8574.h>          // I2C IO Modul PCF8574
 #include "InnuTicker.h"       // Bibliothek für Hintergrund Aufgaben (Tasks)
 #include "NextionX2.h"        // Display Nextion
 #include "index_htm.h"
@@ -37,14 +36,6 @@ extern "C"
 {
 #include "user_interface.h"
 }
-
-// #ifdef DEBUG_ESP_PORT
-// #define DEBUG_MSG(...)                                                   \
-//     DEBUG_ESP_PORT.printf("%s ", timeClient.getFormattedTime().c_str()); \
-//     DEBUG_ESP_PORT.printf(__VA_ARGS__)
-// #else
-// #define DEBUG_MSG(...)
-// #endif
 
 #ifdef DEBUG_ESP_PORT
 #define DEBUG_MSG(...) DEBUG_ESP_PORT.printf( __VA_ARGS__ )
@@ -64,6 +55,7 @@ extern "C"
 #define DEVBRANCH "/dev.txt"
 #define CERT "/ce.rts"
 #define CONFIG "/config.txt"
+#define MAXFRAGLEN 1024
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -80,16 +72,13 @@ OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature DS18B20(&oneWire);
 bool senRes = false;
 
-// I2C Port expander
-// PCF8574 pcf020(0x20);
-// #define PIN_SDA D5
-// #define PIN_SCL D6
-// bool statePCF = false;
-
 // WiFi und MQTT
 ESP8266WebServer server(80);
 WiFiManager wifiManager;
 WiFiClient espClient;
+//WLAN Events
+WiFiEventHandler wifiConnectHandler, wifiDisconnectHandler;
+
 PubSubClient pubsubClient(espClient);
 MDNSResponder mdns;
 ESP8266HTTPUpdateServer httpUpdate; // DateiUpdate
@@ -106,32 +95,15 @@ const unsigned int port = 80;
 
 #define DEF_DELAY_IND 120000 // Standard Nachlaufzeit nach dem Ausschalten Induktionskochfeld
 
-// bool useI2C = false;
-// #define P0 17
-// #define P1 18
-// #define P2 19
-// #define P3 20
-// #define P4 21
-// #define P5 22
-// #define P6 23
-// #define P7 24
-// #define ALLPINS 17
-#define GPIOPINS 9
-// #define PCFPINS 8
-// bool pins_used[25]; // GPIO
+#define NUMBEROFPINS 9
 bool pins_used[17]; // GPIO
-// unsigned char numberOfPins = ALLPINS;
-unsigned char numberOfPins = GPIOPINS;
-// const unsigned char pins[ALLPINS] = {D0, D1, D2, D3, D4, D5, D6, D7, D8, P0, P1, P2, P3, P4, P5, P6, P7};
-// const String pin_names[ALLPINS] = {"D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "P0", "P1", "P2", "P3", "P4", "P5", "P6", "P7"};
-const unsigned char pins[GPIOPINS] = {D0, D1, D2, D3, D4, D5, D6, D7, D8};
-const String pin_names[GPIOPINS] = {"D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8"};
+static const int8_t pins[NUMBEROFPINS] = {D0, D1, D2, D3, D4, D5, D6, D7, D8};
 
 // Variablen
 unsigned char numberOfSensors = 0; // Gesamtzahl der Sensoren
 #define numberOfSensorsMax 6       // Maximale Anzahl an Sensoren
 unsigned char addressesFound[numberOfSensorsMax][8];
-unsigned char numberOfSensorsFound = 0;
+// unsigned char numberOfSensorsFound = 0;
 unsigned char numberOfActors = 0; // Gesamtzahl der Aktoren
 #define numberOfActorsMax 10      // Maximale Anzahl an Aktoren
 #define maxHostSign 17
@@ -160,14 +132,14 @@ NTPClient timeClient(ntpUDP, NTP_ADDRESS, NTP_OFFSET, NTP_INTERVAL);
 // Event handling Status Variablen
 bool StopOnMQTTError = false;     // Event handling für MQTT Fehler
 unsigned long mqttconnectlasttry; // Zeitstempel bei Fehler MQTT
-unsigned long wlanconnectlasttry; // Zeitstempel bei Fehler WLAN
+// unsigned long wlanconnectlasttry; // Zeitstempel bei Fehler WLAN
 bool mqtt_state = true;           // Status MQTT
 bool devBranch = false;           // Check out development branch
 
-// Event handling Zeitintervall für Reconnects WLAN und MQTT
-#define tickerWLAN 10000 // für Ticker Objekt WLAN in ms
+// Event handling Zeitintervall für Reconnects MQTT
 #define tickerMQTT 10000 // für Ticker Objekt MQTT in ms
 #define tickerPUSUB 10   // Ticker PubSubClient
+uint8_t wlanStatus = 0;
 
 // Event handling Standard Verzögerungen
 unsigned long wait_on_error_mqtt = 120000;             // How long should device wait between tries to reconnect WLAN      - approx in ms
@@ -180,8 +152,6 @@ InnuTicker TickerAct;
 InnuTicker TickerInd;
 InnuTicker TickerMQTT;
 InnuTicker TickerPUBSUB;
-InnuTicker TickerWLAN;
-InnuTicker TickerNTP;
 InnuTicker TickerDisp;
 
 // Update Intervalle für Ticker Objekte

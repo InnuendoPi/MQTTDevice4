@@ -1,7 +1,7 @@
 // 2827c59d0d0000b1
 class TemperatureSensor
 {
-  int sens_err = 0;
+  int8_t sens_err = 0;
   bool sens_sw = false;          // Events aktivieren
   bool sens_state = true;        // Fehlerstatus ensor
   bool sens_isConnected;         // ist der Sensor verbunden
@@ -13,6 +13,7 @@ class TemperatureSensor
   char sens_mqtttopic[50];       // Für MQTT Kommunikation
   unsigned char sens_address[8]; // 1-Wire Adresse
   String sens_id;
+  char buf[8];
 
 public:
   TemperatureSensor(String new_address, String new_mqtttopic, String new_name, String new_id, float new_offset1, float new_offset2, bool new_sw)
@@ -72,8 +73,8 @@ public:
       char address_char[20];
       new_address.toCharArray(address_char, new_address.length() + 1);
       char hexbyte[2];
-      int octets[8];
-      for (int d = 0; d < 16; d += 2)
+      int32_t octets[8];
+      for (uint8_t d = 0; d < 16; d += 2)
       {
         // Assemble a digit pair into the hexbyte string
         hexbyte[0] = address_char[d];
@@ -83,7 +84,7 @@ public:
         sscanf(hexbyte, "%x", &octets[d / 2]);
         yield();
       }
-      for (int i = 0; i < 8; i++)
+      for (uint8_t i = 0; i < 8; i++)
       {
         sens_address[i] = octets[i];
       }
@@ -115,7 +116,7 @@ public:
       pubsubClient.publish(sens_mqtttopic, jsonMessage);
     }
   }
-  int getErr()
+  int8_t getErr()
   {
     return sens_err;
   }
@@ -159,10 +160,10 @@ public:
   {
     return sens_id;
   }
-  char buf[10];
   char *getValueString()
   {
-    dtostrf(sens_value, 2, 1, buf);
+    // dtostrf(sens_value, 2, 1, buf);
+    dtostrf(sens_value, -1, 1, buf);
     return buf;
   }
 
@@ -178,7 +179,8 @@ public:
     else
     {
       sprintf(buf, "%s", "0.0");
-      dtostrf((round((calcOffset() - 0.05) * 10) / 10.0), 2, 1, buf);
+      // dtostrf((round((calcOffset() - 0.05) * 10) / 10.0), 2, 1, buf);
+      dtostrf((round((calcOffset() - 0.04) * 10) / 10.0), -1, 1, buf);
     }
     return buf;
   }
@@ -231,8 +233,8 @@ void handleSensors(bool checkSen)
   JsonArray sseArray = ssedoc.to<JsonArray>();
   // bool checkSen = false;
 
-  int max_status = 0;
-  for (int i = 0; i < numberOfSensors; i++)
+  int8_t max_status = 0;
+  for (uint8_t i = 0; i < numberOfSensors; i++)
   {
     sensors[i].Update();
 
@@ -268,10 +270,10 @@ void handleSensors(bool checkSen)
   }
 }
 
-unsigned char searchSensors()
+uint8_t searchSensors()
 {
-  unsigned char i;
-  unsigned char n = 0;
+  // unsigned char i;
+  uint8_t n = 0;
   unsigned char addr[8];
 
   while (oneWire.search(addr))
@@ -279,16 +281,15 @@ unsigned char searchSensors()
 
     if (OneWire::crc8(addr, 7) == addr[7])
     {
-      for (i = 0; i < 8; i++)
+      for (uint8_t i = 0; i < 8; i++)
       {
         addressesFound[n][i] = addr[i];
       }
-      n += 1;
+      n++;
     }
-    yield();
   }
-  return n;
   oneWire.reset_search();
+  return n;
 }
 
 String SensorAddressToString(unsigned char addr[8])
@@ -301,7 +302,7 @@ String SensorAddressToString(unsigned char addr[8])
 // Sensor wird geändert
 void handleSetSensor()
 {
-  int id = server.arg(0).toInt();
+  int8_t id = server.arg(0).toInt();
 
   if (id == -1)
   {
@@ -319,7 +320,7 @@ void handleSetSensor()
   float new_offset2 = sensors[id].getOffset2();
   bool new_sw = sensors[id].getSw();
 
-  for (int i = 0; i < server.args(); i++)
+  for (uint8_t i = 0; i < server.args(); i++)
   {
     if (server.argName(i) == "name")
     {
@@ -352,15 +353,15 @@ void handleSetSensor()
     yield();
   }
   sensors[id].change(new_address, new_mqtttopic, new_name, new_id, new_offset1, new_offset2, new_sw);
+  server.send(200, FPSTR("text/plain"), "ok");
   saveConfig();
-  server.send(201, "text/plain", "created");
   handleSensors(true);
 }
 
 void handleDelSensor()
 {
-  int id = server.arg(0).toInt();
-  for (int i = id; i < numberOfSensors; i++)
+  int8_t id = server.arg(0).toInt();
+  for (uint8_t i = id; i < numberOfSensors; i++)
   {
     if (i == (numberOfSensorsMax - 1)) // 5 - Array von 0 bis (numberOfSensorsMax-1)
     {
@@ -371,16 +372,19 @@ void handleDelSensor()
 
     yield();
   }
-  numberOfSensors--;
+  if (numberOfSensors > 0)
+    numberOfSensors--;
+  else
+    numberOfSensors = 0;
   saveConfig();
-  server.send(200, "text/plain", "deleted");
+  server.send(200, FPSTR("text/plain"), "ok");
   handleSensors(true);
 }
 
 void handleRequestSensorAddresses()
 {
-  numberOfSensorsFound = searchSensors();
-  int id = server.arg(0).toInt();
+  uint8_t numberOfSensorsFound = searchSensors();
+  int8_t id = server.arg(0).toInt();
   String message;
   if (id != -1)
   {
@@ -389,25 +393,25 @@ void handleRequestSensorAddresses()
     message += sensors[id].getSens_adress_string();
     message += F("</option><option disabled>──────────</option>");
   }
-  for (int i = 0; i < numberOfSensorsFound; i++)
+  for (uint8_t i = 0; i < numberOfSensorsFound; i++)
   {
     message += F("<option>");
     message += SensorAddressToString(addressesFound[i]);
     message += F("</option>");
     yield();
   }
-  server.send_P(200, "text/html", message.c_str() );
+  server.send(200, FPSTR("text/html"), message.c_str());
 }
 
 void handleRequestSensors()
 {
-  int id = server.arg(0).toInt();
+  int8_t id = server.arg(0).toInt();
   DynamicJsonDocument doc(1024);
 
   if (id == -1) // fetch all sensors
   {
     JsonArray sensorsArray = doc.to<JsonArray>();
-    for (int i = 0; i < numberOfSensors; i++)
+    for (uint8_t i = 0; i < numberOfSensors; i++)
     {
       JsonObject sensorsObj = doc.createNestedObject();
       sensorsObj["name"] = sensors[i].getName();
@@ -449,5 +453,5 @@ void handleRequestSensors()
 
   String response;
   serializeJson(doc, response);
-  server.send_P(200, "application/json", response.c_str() );
+  server.send(200, FPSTR("application/json"), response.c_str() );
 }
