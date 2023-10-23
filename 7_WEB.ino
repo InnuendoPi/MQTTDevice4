@@ -216,6 +216,8 @@ void handleRequestFirm()
       message = F("MQTTDevice4 V ");
 
     message += Version;
+    if (devBranch == 1)
+      message += F(" dev");
   }
   server.send(200, FPSTR("text/plain"), message.c_str());
 }
