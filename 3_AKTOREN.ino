@@ -1,22 +1,20 @@
 class Actor
 {
   unsigned long powerLast; // Zeitmessung für High oder Low
-  int16_t dutycycle_actor = 5000;
   unsigned char OFF;
   unsigned char ON;
-
-public:
   int8_t pin_actor = 9; // the number of the LED pin
   String argument_actor;
   String name_actor;
   uint8_t power_actor;
-  bool isOn;
-  bool old_isOn;
   bool isInverted = false;
   bool switchable;              // actors switchable on error events?
   bool isOnBeforeError = false; // isOn status before error event
   bool actor_state = true;      // Error state actor
+  bool isOn;
+  bool old_isOn;
 
+public:
   Actor(int8_t pin, String argument, String aname, bool ainverted, bool aswitchable)
   {
     change(pin, argument, aname, ainverted, aswitchable);
@@ -28,11 +26,11 @@ public:
     {
       if (isOn && power_actor > 0)
       {
-        if (millis() > powerLast + dutycycle_actor)
+        if (millis() > powerLast + DUTYCYLCE)
         {
           powerLast = millis();
         }
-        if (millis() > powerLast + (dutycycle_actor * power_actor / 100L))
+        if (millis() > powerLast + (DUTYCYLCE * power_actor / 100L))
         {
           digitalWrite(pin_actor, OFF);
         }
@@ -69,7 +67,6 @@ public:
       ON = LOW;
       OFF = HIGH;
     }
-    // pin_actor = StringToPin(pin);
     pin_actor = pin;
 
     if (isPin(pin_actor))
@@ -139,6 +136,62 @@ public:
       return;
     }
   }
+  String getActorName()
+  {
+    return name_actor;
+  }
+  String getActorTopic()
+  {
+    return argument_actor;
+  }
+  bool getInverted()
+  {
+    return isInverted;
+  }
+  bool getActorSwitch()
+  {
+    return switchable;
+  }
+  bool getIsOn()
+  {
+    return isOn;
+  }
+  void setIsOn(bool val)
+  {
+    isOn = val;
+  }
+  bool getOldIsOn()
+  {
+    return old_isOn;
+  }
+  bool getActorState()
+  {
+    return actor_state;
+  }
+  void setActorState(bool val)
+  {
+    actor_state = val;
+  }
+  bool getIsOnBeforeError()
+  {
+    return isOnBeforeError;
+  }
+  void setIsOnBeforeError(bool val)
+  {
+    isOnBeforeError = val;
+  }
+  uint8_t getPinActor()
+  {
+    return pin_actor;
+  }
+  uint8_t getActorPower()
+  {
+    return power_actor;
+  }
+  void setOldIsOn()
+  {
+    old_isOn = isOn;
+  }
 };
 
 // Initialisierung des Arrays max 10
@@ -162,24 +215,21 @@ void handleActors(bool checkAct)
 
   DynamicJsonDocument ssedoc(768);
   JsonArray sseArray = ssedoc.to<JsonArray>();
-  // bool checkAct = false;
   for (uint8_t i = 0; i < numberOfActors; i++)
   {
     actors[i].Update();
-    if (actors[i].old_isOn != actors[i].isOn)
+    if (actors[i].getOldIsOn() != actors[i].getIsOn())
     {
-      actors[i].old_isOn = actors[i].isOn;
+      actors[i].setOldIsOn();
       checkAct = true;
     }
-
     JsonObject sseObj = ssedoc.createNestedObject();
-    sseObj["name"] = actors[i].name_actor;
-    sseObj["ison"] = actors[i].isOn;
-    sseObj["power"] = actors[i].power_actor;
-    sseObj["mqtt"] = actors[i].argument_actor;
-    // sseObj["sw"] = actors[i].switchable;
-    sseObj["state"] = actors[i].actor_state;
-    sseObj["pin"] = PinToString(actors[i].pin_actor);
+    sseObj["name"] = actors[i].getActorName();
+    sseObj["ison"] = actors[i].getIsOn();
+    sseObj["power"] = actors[i].getActorPower();
+    sseObj["mqtt"] = actors[i].getActorTopic();
+    sseObj["state"] = actors[i].getActorState();
+    sseObj["pin"] = PinToString(actors[i].getPinActor());
     yield();
   }
 
@@ -205,22 +255,23 @@ void handleRequestActors()
     {
       JsonObject actorsObj = doc.createNestedObject();
 
-      actorsObj["name"] = actors[i].name_actor;
-      actorsObj["ison"] = actors[i].isOn;
-      actorsObj["power"] = actors[i].power_actor;
-      actorsObj["mqtt"] = actors[i].argument_actor;
-      actorsObj["pin"] = PinToString(actors[i].pin_actor);
-      actorsObj["sw"] = actors[i].switchable;
-      actorsObj["state"] = actors[i].actor_state;
+      actorsObj["name"] = actors[i].getActorName();
+      actorsObj["ison"] = actors[i].getIsOn();
+      actorsObj["power"] = actors[i].getActorPower();
+      actorsObj["mqtt"] = actors[i].getActorTopic();
+      // actorsObj["pin"] = PinToString(actors[i].pin_actor);
+      actorsObj["pin"] = actors[i].getPinActor();
+      actorsObj["sw"] = actors[i].getActorSwitch();
+      actorsObj["state"] = actors[i].getActorState();
       yield();
     }
   }
   else
   {
-    doc["name"] = actors[id].name_actor;
-    doc["mqtt"] = actors[id].argument_actor;
-    doc["sw"] = actors[id].switchable;
-    doc["inv"] = actors[id].isInverted;
+    doc["name"] = actors[id].getActorName();
+    doc["mqtt"] = actors[id].getActorTopic();
+    doc["sw"] = actors[id].getActorSwitch();
+    doc["inv"] = actors[id].getInverted();
   }
 
   String response;
@@ -240,11 +291,11 @@ void handleSetActor()
       return;
   }
 
-  int8_t ac_pin = actors[id].pin_actor;
-  String ac_argument = actors[id].argument_actor;
-  String ac_name = actors[id].name_actor;
-  bool ac_isinverted = actors[id].isInverted;
-  bool ac_switchable = actors[id].switchable;
+  int8_t ac_pin = actors[id].getPinActor();
+  String ac_argument = actors[id].getActorTopic();
+  String ac_name = actors[id].getActorName();
+  bool ac_isinverted = actors[id].getInverted();
+  bool ac_switchable = actors[id].getActorSwitch();
 
   for (uint8_t i = 0; i < server.args(); i++)
   {
@@ -284,8 +335,8 @@ void handleDelActor()
     server.send(200, FPSTR("text/plain"), "ok");
     return;
   }
-  actors[id].isOn = false;
-  pins_used[actors[id].pin_actor] = false;
+  actors[id].setIsOn(false);
+  pins_used[actors[id].getPinActor()] = false;
 
   for (uint8_t i = id; i < numberOfActors; i++)
   {
@@ -295,7 +346,7 @@ void handleDelActor()
     }
     else
     {
-      actors[i].change(actors[i + 1].pin_actor, actors[i + 1].argument_actor, actors[i + 1].name_actor, actors[i + 1].isInverted, actors[i + 1].switchable);
+      actors[i].change(actors[i + 1].getPinActor(), actors[i + 1].getActorTopic(), actors[i + 1].getActorName(), actors[i + 1].getInverted(), actors[i + 1].getActorSwitch());
     }
     yield();
   }
@@ -318,7 +369,7 @@ void handlereqPins()
   if (id != -1)
   {
     message += F("<option>");
-    message += PinToString(actors[id].pin_actor);
+    message += PinToString(actors[id].getPinActor());
     message += F("</option><option disabled>──────────</option>");
   }
   for (uint8_t i = 0; i < NUMBEROFPINS; i++)
@@ -378,13 +429,13 @@ void actERR()
 {
   for (uint8_t i = 0; i < numberOfActors; i++)
   {
-    if (actors[i].switchable && actors[i].actor_state && actors[i].isOn)
+    if (actors[i].getActorSwitch() && actors[i].getActorState() && actors[i].getIsOn())
     {
-      actors[i].isOnBeforeError = actors[i].isOn;
-      actors[i].isOn = false;
-      actors[i].actor_state = false;
+      actors[i].setIsOnBeforeError(actors[i].getIsOn());
+      actors[i].setIsOn(false);
+      actors[i].setActorState(false);
       actors[i].Update();
-      DEBUG_MSG("ACT ERR Aktor: %s : %d isOnBeforeError: %d\n", actors[i].name_actor.c_str(), actors[i].actor_state, actors[i].isOnBeforeError);
+      DEBUG_MSG("ACT ERR Aktor: %s : %d isOnBeforeError: %d\n", actors[i].getActorName().c_str(), actors[i].getActorState(), actors[i].getIsOnBeforeError());
     }
     yield();
   }

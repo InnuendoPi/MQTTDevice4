@@ -6,7 +6,6 @@ class induction
   bool inputStarted = false;
   unsigned char inputCurrent = 0;
   unsigned char inputBuffer[33];
-  // unsigned char error = 0;
   long powerSampletime = 20000;
   unsigned long powerLast;
   long powerHigh = powerSampletime; // Dauer des "HIGH"-Anteils im Schaltzyklus
@@ -38,17 +37,17 @@ public:
   uint8_t power = 0;
   uint8_t newPower = 0;
   uint8_t oldPower = 0;
-  int8_t CMD_CUR = 0; // Aktueller Befehl
-  boolean isRelayon = false; // Systemstatus: ist das Relais in der Platte an?
+  int8_t CMD_CUR = 0;           // Aktueller Befehl
+  boolean isRelayon = false;    // Systemstatus: ist das Relais in der Platte an?
   boolean oldisRelayon = false; // Systemstatus: ist das Relais in der Platte an?
-  boolean isInduon = false;  // Systemstatus: ist Power > 0?
+  boolean isInduon = false;     // Systemstatus: ist Power > 0?
   boolean oldisInduon = false;
   boolean isPower = false;
   String mqtttopic = "";
   boolean isEnabled = false;
   uint8_t powerLevelOnError = 100;   // 100% schaltet das Event handling für Induktion aus
   uint8_t powerLevelBeforeError = 0; // in error event save last power state
-  bool induction_state = true;   // Error state induction
+  bool induction_state = true;       // Error state induction
 
   induction()
   {
@@ -73,6 +72,7 @@ public:
 
       if (isPin(PIN_INTERRUPT))
       {
+        // Interrupt deaktivert
         // detachInterrupt(PIN_INTERRUPT);
         pinMode(PIN_INTERRUPT, OUTPUT);
 
@@ -88,7 +88,6 @@ public:
     PIN_INTERRUPT = pinblue;
 
     mqtttopic = topic;
-    // delayAfteroff = delayoff;
     powerLevelOnError = powerLevel;
     induction_state = true;
     isEnabled = is_enabled;
@@ -111,6 +110,7 @@ public:
 
       if (isPin(PIN_INTERRUPT)) // D7
       {
+        // Interrupt deaktivert
         // attachInterrupt(digitalPinToInterrupt(PIN_INTERRUPT), readInputWrap, CHANGE);
         pinMode(PIN_INTERRUPT, INPUT_PULLUP);
         pins_used[PIN_INTERRUPT] = true;
@@ -154,20 +154,16 @@ public:
       return;
     }
     if (doc["state"] == "off")
-    {
       newPower = 0;
-      return;
-    }
     else
-    {
       newPower = doc["power"];
-    }
   }
 
-  unsigned char getPinInterrupt()
-  {
-    return PIN_INTERRUPT;
-  }
+  // Interrupt deaktivert
+  // unsigned char getPinInterrupt()
+  // {
+  //   return PIN_INTERRUPT;
+  // }
 
   void setupCommands()
   {
@@ -176,13 +172,9 @@ public:
       for (uint8_t j = 0; j < 6; j++)
       {
         if (CMD[j][i] == 1)
-        {
           CMD[j][i] = SIGNAL_HIGH;
-        }
         else
-        {
           CMD[j][i] = SIGNAL_LOW;
-        }
       }
     }
   }
@@ -243,8 +235,6 @@ public:
 
   void inductionNewPower(int16_t val)
   {
-    // newPower = min(100, value);
-    // newPower = max(0, newPower);
     newPower = constrain(val, 0, 100);
   }
 
@@ -252,14 +242,6 @@ public:
   {
     if (power != newPower) // Neuer Befehl empfangen
     {
-      // if (newPower > 100)
-      //   newPower = 100; // Nicht > 100
-      // if (newPower < 0)
-      //   newPower = 0; // Nicht < 0
-      // power = newPower;
-
-      // newPower = min(100, newPower);
-      // power = max(0, newPower);
       power = newPower;
       timeTurnedoff = 0;
       isInduon = true;
@@ -306,59 +288,61 @@ public:
     }
   }
 
-/*
-  void readInput()
-  {
-    // Variablen sichern
-    bool ishigh = digitalRead(PIN_INTERRUPT);
-    unsigned long newInterrupt = micros();
-    long signalTime = newInterrupt - lastInterrupt;
-
-    // Glitch rausfiltern
-    if (signalTime > 10)
+  // Interrupt deaktivert
+  /*
+    void readInput()
     {
-      if (ishigh)
-      {
-        lastInterrupt = newInterrupt; // PIN ist auf Rising, Bit senden hat gestartet :)
-      }
-      else
-      { // Bit ist auf Falling, Bit Übertragung fertig. Auswerten.
+      // Variablen sichern
+      bool ishigh = digitalRead(PIN_INTERRUPT);
+      unsigned long newInterrupt = micros();
+      long signalTime = newInterrupt - lastInterrupt;
 
-        if (!inputStarted)
-        { // suche noch nach StartBit.
-          if (signalTime < 35000L && signalTime > 15000L)
-          {
-            inputStarted = true;
-            inputCurrent = 0;
-          }
+      // Glitch rausfiltern
+      if (signalTime > 10)
+      {
+        if (ishigh)
+        {
+          lastInterrupt = newInterrupt; // PIN ist auf Rising, Bit senden hat gestartet :)
         }
         else
-        { // Hat Begonnen. Nehme auf.
-          if (inputCurrent < 34)
-          { // nur bis 33 aufnehmen.
-            if (signalTime < (SIGNAL_HIGH + SIGNAL_HIGH_TOL) && signalTime > (SIGNAL_HIGH - SIGNAL_HIGH_TOL))
+        { // Bit ist auf Falling, Bit Übertragung fertig. Auswerten.
+
+          if (!inputStarted)
+          { // suche noch nach StartBit.
+            if (signalTime < 35000L && signalTime > 15000L)
             {
-              // HIGH BIT erkannt
-              inputBuffer[inputCurrent] = 1;
-              inputCurrent += 1;
-            }
-            if (signalTime < (SIGNAL_LOW + SIGNAL_LOW_TOL) && signalTime > (SIGNAL_LOW - SIGNAL_LOW_TOL))
-            {
-              // LOW BIT erkannt
-              inputBuffer[inputCurrent] = 0;
-              inputCurrent += 1;
+              inputStarted = true;
+              inputCurrent = 0;
             }
           }
           else
-          { // Aufnahme vorbei.
-            inputCurrent = 0;
-            inputStarted = false;
+          { // Hat Begonnen. Nehme auf.
+            if (inputCurrent < 34)
+            { // nur bis 33 aufnehmen.
+              if (signalTime < (SIGNAL_HIGH + SIGNAL_HIGH_TOL) && signalTime > (SIGNAL_HIGH - SIGNAL_HIGH_TOL))
+              {
+                // HIGH BIT erkannt
+                inputBuffer[inputCurrent] = 1;
+                inputCurrent += 1;
+              }
+              if (signalTime < (SIGNAL_LOW + SIGNAL_LOW_TOL) && signalTime > (SIGNAL_LOW - SIGNAL_LOW_TOL))
+              {
+                // LOW BIT erkannt
+                inputBuffer[inputCurrent] = 0;
+                inputCurrent += 1;
+              }
+            }
+            else
+            { // Aufnahme vorbei.
+              inputCurrent = 0;
+              inputStarted = false;
+            }
           }
         }
       }
     }
-  }
-*/
+  */
+
   void indERR()
   {
     if (isInduon && powerLevelOnError < 100 && induction_state) // powerlevelonerror == 100 -> kein event handling
@@ -379,6 +363,7 @@ public:
 
 induction inductionCooker = induction();
 
+// Interrupt deaktivert
 // ICACHE_RAM_ATTR void readInputWrap()
 // {
 //   inductionCooker.readInput();
@@ -413,7 +398,7 @@ void handleRequestInduction()
   doc["pl"] = inductionCooker.powerLevelOnError;
   String response;
   serializeJson(doc, response);
-  server.send(200, FPSTR("application/json"), response.c_str() );
+  server.send(200, FPSTR("application/json"), response.c_str());
   // size_t len = measureJson(doc);
   // int memoryUsed = doc.memoryUsage();
   // DEBUG_MSG("Ind JSON config length: %d\n", len);
@@ -458,18 +443,15 @@ void handleRequestIndu()
       }
       yield();
     }
-    // goto SendMessage;
   }
-
-  // SendMessage:
-  server.send(200, FPSTR("text/plain"), message.c_str() );
+  server.send(200, FPSTR("text/plain"), message.c_str());
 }
 
 void handleSetIndu()
 {
-  unsigned char pin_white = inductionCooker.PIN_WHITE;
-  unsigned char pin_blue = inductionCooker.PIN_INTERRUPT;
-  unsigned char pin_yellow = inductionCooker.PIN_YELLOW;
+  int8_t pin_white = inductionCooker.PIN_WHITE;
+  int8_t pin_blue = inductionCooker.PIN_INTERRUPT;
+  int8_t pin_yellow = inductionCooker.PIN_YELLOW;
   bool is_enabled = inductionCooker.isEnabled;
   String topic = inductionCooker.mqtttopic;
   int8_t pl = inductionCooker.powerLevelOnError;

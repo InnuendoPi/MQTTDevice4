@@ -32,10 +32,10 @@
 #include "index_htm.h"
 #include "edit_htm.h"
 
-extern "C"
-{
-#include "user_interface.h"
-}
+// extern "C"
+// {
+// #include "user_interface.h"
+// }
 
 #ifdef DEBUG_ESP_PORT
 #define DEBUG_MSG(...) DEBUG_ESP_PORT.printf( __VA_ARGS__ )
@@ -44,7 +44,7 @@ extern "C"
 #endif
 
 // Version
-#define Version "4.56"
+#define Version "4.56b"
 
 // System Dateien
 #define UPDATESYS "/updateSys.txt"
@@ -103,7 +103,7 @@ static const int8_t pins[NUMBEROFPINS] = {D0, D1, D2, D3, D4, D5, D6, D7, D8};
 unsigned char numberOfSensors = 0; // Gesamtzahl der Sensoren
 #define numberOfSensorsMax 6       // Maximale Anzahl an Sensoren
 unsigned char addressesFound[numberOfSensorsMax][8];
-// unsigned char numberOfSensorsFound = 0;
+#define DUTYCYLCE 5000      // Aktoren und HLT
 unsigned char numberOfActors = 0; // Gesamtzahl der Aktoren
 #define numberOfActorsMax 10      // Maximale Anzahl an Aktoren
 #define maxHostSign 17
@@ -114,7 +114,9 @@ char mqttuser[maxUserSign];
 char mqttpass[maxPassSign];
 int mqttport;
 char mqtt_clientid[maxHostSign]; // AP-Mode und Gerätename
-bool alertState = false;         // WebUpdate Status
+uint8_t alertState = 0;        // WebUpdate Status
+#define MAXVERSUCHE 3
+
 // Zeitserver Einstellungen
 #define NTP_OFFSET 60 * 60                // Offset Winterzeit in Sekunden
 #define NTP_INTERVAL 60 * 60 * 1000       // Aktualisierung NTP in ms
@@ -132,7 +134,6 @@ NTPClient timeClient(ntpUDP, NTP_ADDRESS, NTP_OFFSET, NTP_INTERVAL);
 // Event handling Status Variablen
 bool StopOnMQTTError = false;     // Event handling für MQTT Fehler
 unsigned long mqttconnectlasttry; // Zeitstempel bei Fehler MQTT
-// unsigned long wlanconnectlasttry; // Zeitstempel bei Fehler WLAN
 bool mqtt_state = true;           // Status MQTT
 bool devBranch = false;           // Check out development branch
 
@@ -155,7 +156,7 @@ InnuTicker TickerPUBSUB;
 InnuTicker TickerDisp;
 
 // Update Intervalle für Ticker Objekte
-#define SEN_UPDATE 3000  //  sensors update
+#define SEN_UPDATE 1000  //  sensors update
 #define ACT_UPDATE 2000  //  actors update
 #define IND_UPDATE 2000  //  induction update
 #define DISP_UPDATE 1000 //  display update
@@ -174,17 +175,7 @@ int inductionStatus = 0;
 
 // FSBrowser
 File fsUploadFile; // a File object to temporarily store the received file
-enum
-{
-    MSG_OK,
-    CUSTOM,
-    NOT_FOUND,
-    BAD_REQUEST,
-    ERROR
-};
-#define TEXT_PLAIN "text/plain"
-#define FS_INIT_ERROR "FS INIT ERROR"
-#define FILE_NOT_FOUND "FileNotFound"
+
 
 // Display Nextion
 bool useDisplay = false;
@@ -192,8 +183,7 @@ int startPage = 0;  // Startseite: BrewPage = 0 Kettlepage = 1 InductionPage = 2
 int activePage = 0; // die aktuell angezeigte Seite
 int tempPage = -1; // die aktuell angezeigte Seite
 
-const unsigned char numberOfPages = 3;
-const String page_names[numberOfPages] = {"BrewPage", "KettlePage", "InductionPage"};
+#define NUMBEROFPAGES 3
 
 SoftwareSerial softSerial; // Objekt SoftSerial ohne GPIO
 NextionComPort nextion;    // Objekt Display Kommunikation
@@ -311,13 +301,3 @@ void configModeCallback(WiFiManager *myWiFiManager)
     Serial.print("*** SYSINFO: Start configuration portal ");
     Serial.println(myWiFiManager->getConfigPortalSSID());
 }
-
-// void PCF_Reset()
-// {
-//     //   Serial.println("*** SYSINFO: PCF8574 I2C reset");
-//     pinMode(D5, OUTPUT); // remove output low
-//     digitalWrite(D5, LOW);
-//     digitalWrite(D6, LOW);
-//     delay(10);
-//     pinMode(D5, INPUT); // and make SDA high i.e. send I2C STOP control.
-// }

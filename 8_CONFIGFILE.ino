@@ -185,12 +185,12 @@ bool saveConfig()
   {
     JsonObject actorsObj = actorsArray.createNestedObject();
     // actorsObj["PIN"] = PinToString(actors[i].pin_actor);
-    actorsObj["PIN"] = actors[i].pin_actor;
-    actorsObj["NAME"] = actors[i].name_actor;
-    actorsObj["SCRIPT"] = actors[i].argument_actor;
-    actorsObj["INV"] = (int)actors[i].isInverted;
-    actorsObj["SW"] = (int)actors[i].switchable;
-    DEBUG_MSG("Actor #: %d Name: %s MQTT: %s PIN: %s INV: %d SW: %d\n", (i + 1), actors[i].name_actor.c_str(), actors[i].argument_actor.c_str(), PinToString(actors[i].pin_actor).c_str(), actors[i].isInverted, actors[i].switchable);
+    actorsObj["PIN"] = actors[i].getPinActor();
+    actorsObj["NAME"] = actors[i].getActorName();
+    actorsObj["SCRIPT"] = actors[i].getActorTopic();
+    actorsObj["INV"] = (int)actors[i].getInverted();
+    actorsObj["SW"] = (int)actors[i].getActorSwitch();
+    DEBUG_MSG("Actor #: %d Name: %s MQTT: %s PIN: %s INV: %d SW: %d\n", (i + 1), actors[i].getActorName().c_str(), actors[i].getActorTopic().c_str(), PinToString(actors[i].getPinActor()).c_str(), actors[i].getInverted(), actors[i].getActorSwitch());
   }
   if (numberOfActors == 0)
   {
@@ -204,13 +204,13 @@ bool saveConfig()
   {
     JsonObject sensorsObj = sensorsArray.createNestedObject();
     sensorsObj["ADDRESS"] = sensors[i].getSens_adress_string();
-    sensorsObj["NAME"] = sensors[i].getName();
+    sensorsObj["NAME"] = sensors[i].getSensorName();
     sensorsObj["OFFSET1"] = (int(sensors[i].getOffset1() * 100)) / 100.0;
     sensorsObj["OFFSET2"] = (int(sensors[i].getOffset2() * 100)) / 100.0;
-    sensorsObj["SCRIPT"] = sensors[i].getTopic();
+    sensorsObj["SCRIPT"] = sensors[i].getSensorTopic();
     sensorsObj["CBPIID"] = sensors[i].getId();
-    sensorsObj["SW"] = (int)sensors[i].getSw();
-    DEBUG_MSG("Sensor #: %d Name: %s Address: %s MQTT: %s CBPi-ID: %s Offset1: %f Offset2: %f SW: %d\n", (i + 1), sensors[i].getName().c_str(), sensors[i].getSens_adress_string().c_str(), sensors[i].getTopic().c_str(), sensors[i].getId().c_str(), sensors[i].getOffset1(), sensors[i].getOffset2(), sensors[i].getSw());
+    sensorsObj["SW"] = (int)sensors[i].getSensorSwitch();
+    DEBUG_MSG("Sensor #: %d Name: %s Address: %s MQTT: %s CBPi-ID: %s Offset1: %f Offset2: %f SW: %d\n", (i + 1), sensors[i].getSensorName().c_str(), sensors[i].getSens_adress_string().c_str(), sensors[i].getSensorTopic().c_str(), sensors[i].getId().c_str(), sensors[i].getOffset1(), sensors[i].getOffset2(), sensors[i].getSensorSwitch());
   }
 
   DEBUG_MSG("%s\n", "--------------------");

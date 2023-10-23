@@ -41,12 +41,19 @@ void powerButtonCallback()
 
 void tickerDispCallback()
 {
-  if (tempPage < 0)
+  // if (tempPage < 0)
+  //   activePage = nextion.getCurrentPageID();
+  // else
+  // {
+  //   activePage = tempPage;
+  //   tempPage = -1;
+  // }
+  if (tempPage > 2)
     activePage = nextion.getCurrentPageID();
   else
   {
     activePage = tempPage;
-    tempPage = -1;
+    tempPage = 10;
   }
 
   char ipMQTT[50];
@@ -56,7 +63,7 @@ void tickerDispCallback()
   else
     sprintf_P(ipMQTT, (PGM_P)F("http://%s"), WiFi.localIP().toString().c_str());
 
-  activePage = nextion.getCurrentPageID();
+  // activePage = nextion.getCurrentPageID();
   switch (activePage)
   {
   case 0:            // BrewPage
@@ -70,7 +77,7 @@ void tickerDispCallback()
     break;
   case 1:            // KettlePage
     if (!activeBrew) // aktiver Step vorhanden?
-      strlcpy(currentStepName, sensors[0].getName().c_str(), maxStepSign);
+      strlcpy(currentStepName, sensors[0].getSensorName().c_str(), maxStepSign);
 
     strlcpy(structKettles[0].current_temp, sensors[0].getTotalValueString(), maxTempSign);
 
@@ -99,15 +106,14 @@ void tickerSenCallback() // Timer Objekt Sensoren
     lastSenAct = 0; // Delete actor timestamp after event
     // if (WiFi.status() == WL_CONNECTED && pubsubClient.connected() && mqtt_state)
     if (WiFi.status() == WL_CONNECTED && TickerPUBSUB.state() == RUNNING && mqtt_state)
-    // if (WiFi.status() == WL_CONNECTED && !mqttoff && mqtt_state)
     {
       for (int i = 0; i < numberOfActors; i++)
       {
-        if (actors[i].switchable && !actors[i].actor_state) // Sensor in normal mode: check actor in error state
+        if (actors[i].getActorSwitch() && !actors[i].getActorState()) // Sensor in normal mode: check actor in error state
         {
-          DEBUG_MSG("EM SenOK: %s isOnBeforeError: %d power level: %d\n", actors[i].name_actor.c_str(), actors[i].isOnBeforeError, actors[i].power_actor);
-          actors[i].isOn = actors[i].isOnBeforeError;
-          actors[i].actor_state = true;
+          DEBUG_MSG("EM SenOK: %s isOnBeforeError: %d power level: %d\n", actors[i].getActorName().c_str(), actors[i].getIsOnBeforeError(), actors[i].getActorPower()) ;
+          actors[i].setIsOn(actors[i].getIsOnBeforeError());
+          actors[i].setActorState(true);
           actors[i].Update();
           lastSenAct = 0; // Delete actor timestamp after event
         }
@@ -143,28 +149,28 @@ void tickerSenCallback() // Timer Objekt Sensoren
     {
       for (int i = 0; i < numberOfSensors; i++)
       {
-        if (!sensors[i].getState())
+        if (!sensors[i].getSensorState())
         {
           switch (sensorsStatus)
           {
           case EM_CRCER:
             // Sensor CRC ceck failed
-            DEBUG_MSG("EM CRCER: Sensor %s crc check failed\n", sensors[i].getName().c_str());
+            DEBUG_MSG("EM CRCER: Sensor %s crc check failed\n", sensors[i].getSensorName().c_str());
             break;
           case EM_DEVER:
             // -127°C device error
-            DEBUG_MSG("EM DEVER: Sensor %s device error\n", sensors[i].getName().c_str());
+            DEBUG_MSG("EM DEVER: Sensor %s device error\n", sensors[i].getSensorName().c_str());
             break;
           case EM_UNPL:
             // sensor unpluged
-            DEBUG_MSG("EM UNPL: Sensor %s unplugged\n", sensors[i].getName().c_str());
+            DEBUG_MSG("EM UNPL: Sensor %s unplugged\n", sensors[i].getSensorName().c_str());
             break;
           default:
             break;
           }
         }
 
-        if (sensors[i].getSw() && !sensors[i].getState())
+        if (sensors[i].getSensorSwitch() && !sensors[i].getSensorState())
         {
           if (lastSenAct == 0)
           {

@@ -77,44 +77,40 @@ bool upTools(String url, String fname, BearSSL::WiFiClientSecure &clientup)
 
 void upFirm()
 {
-    char line[120];
     BearSSL::WiFiClientSecure clientup;
     clientup.setInsecure();
     // BearSSL::CertStore certStore;
     // int numCerts = certStore.initCertStore(LittleFS, PSTR("/certs.idx"), PSTR(CERT));
     // if (numCerts == 0)
     // {
-    //     sprintf(line, "CA certificates not found: %d - SSL insecure!", numCerts);
-    //     debugLog(UPDATELOG, line);
-    //     sprintf(line, "BearSSL setInsecure - do not use this mode!", numCerts);
+    //     sprintf(line, "CA certificates not found: %d - insecure SSL connection!", numCerts);
     //     debugLog(UPDATELOG, line);
     //     clientup.setInsecure();
     // }
     // else
     // {
-    //     sprintf(line, "Number of CA certificates: %d - SSL connection secure", numCerts);
+    //     sprintf(line, "Number of CA certificates: %d - secure SSL connection", numCerts);
     //     debugLog(UPDATELOG, line);
     //     clientup.setCertStore(&certStore);
     // }
+    char line[120];
     bool mfln = clientup.probeMaxFragmentLength("raw.githubusercontent.com", 443, MAXFRAGLEN);
     if (mfln)
     {
         clientup.setBufferSizes(MAXFRAGLEN, MAXFRAGLEN);
     }
-    // clientup.setCertStore(&certStore);
-    // if (clientup.connect("github.com", 443))
-    // clientup.setBufferSizes(1024, 1024);
     if (clientup.connect("raw.githubusercontent.com", 443))
     {
-        // Serial.printf("MFLN status: %s ", clientup.getMFLNStatus() ? "true" : "false");
-        sprintf(line, "MFLN Status: %s - connected (Buffers 1024b)", clientup.getMFLNStatus() ? "true" : "false");
+        sprintf(line, "MFLN Status: %s - connected", clientup.getMFLNStatus() ? "true" : "false");
         debugLog(UPDATELOG, line);
     }
     else
     {
-        // Serial.printf("Unable to connect\n");
         sprintf(line, "MFLN Status: %s - unable to connect", clientup.getMFLNStatus() ? "true" : "false");
         debugLog(UPDATELOG, line);
+        LittleFS.end(); // unmount LittleFS
+        millis2wait(100);
+        ESP.restart();
         return;
     }
 
@@ -136,12 +132,23 @@ void upFirm()
 
 void updateTools()
 {
-    timeClient.update();
-    char line[120];
     BearSSL::WiFiClientSecure clientup;
-    // BearSSL::CertStore certStore;
     clientup.setInsecure();
+    // BearSSL::CertStore certStore;
     // int numCerts = certStore.initCertStore(LittleFS, PSTR("/certs.idx"), PSTR(CERT));
+    // if (numCerts == 0)
+    // {
+    //     sprintf(line, "CA certificates not found: %d - insecure SSL connection!", numCerts);
+    //     debugLog(UPDATELOG, line);
+    //     clientup.setInsecure();
+    // }
+    // else
+    // {
+    //     sprintf(line, "Number of CA certificates: %d - secure SSL connection", numCerts);
+    //     debugLog(UPDATELOG, line);
+    //     clientup.setCertStore(&certStore);
+    // }
+    char line[120];
     if (LittleFS.exists(UPDATETOOLS))
     {
         fsUploadFile = LittleFS.open(LOGUPDATETOOLS, "r");
@@ -166,18 +173,6 @@ void updateTools()
         Serial.printf("*** SYSINFO: Update tools #%d started - free heap: %d\n", anzahlVersuche, ESP.getFreeHeap());
         sprintf(line, "Update Framework/Tools #%d started - free heap: %d", anzahlVersuche, ESP.getFreeHeap());
         debugLog(UPDATELOG, line);
-        // if (numCerts == 0)
-        // {
-        //     sprintf(line, "CA certificates not found: %d - SSL setInsecure!", numCerts);
-        //     debugLog(UPDATELOG, line);
-        //     clientup.setInsecure();
-        // }
-        // else
-        // {
-        //     sprintf(line, "Number of CA certificates: %d - SSL connection secure", numCerts);
-        //     debugLog(UPDATELOG, line);
-        //     clientup.setCertStore(&certStore);
-        // }
         if (anzahlVersuche == 1)
         {
             sprintf(line, "Firmware Version: %s", Version);
@@ -188,17 +183,13 @@ void updateTools()
         {
             clientup.setBufferSizes(MAXFRAGLEN, MAXFRAGLEN);
         }
-        // clientup.setCertStore(&certStore);
-        // clientup.setBufferSizes(1024, 256);
         if (clientup.connect("raw.githubusercontent.com", 443))
         {
-            // Serial.printf("MFLN status: %s ", clientup.getMFLNStatus() ? "true" : "false");
-            sprintf(line, "MFLN Status: %s - connected (Buffers 1024b)", clientup.getMFLNStatus() ? "true" : "false");
+            sprintf(line, "MFLN Status: %s - connected", clientup.getMFLNStatus() ? "true" : "false");
             debugLog(UPDATELOG, line);
         }
         else
         {
-            // Serial.printf("Unable to connect\n");
             sprintf(line, "MFLN Status: %s - unable to connect", clientup.getMFLNStatus() ? "true" : "false");
             debugLog(UPDATELOG, line);
             return;
@@ -211,16 +202,6 @@ void updateTools()
             test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "mqttdevice.min.js", clientup);
             test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "favicon.ico", clientup);
             test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "ce.rts", clientup);
-
-            // test = upTools("https://github.com/InnuendoPi/MQTTDevice4/blob/development/data/", "mqttfont.ttf?raw=true");
-            // test = upTools("https://github.com/InnuendoPi/MQTTDevice4/blob/development/data/", "mqttdevice.min.css?raw=true");
-            // test = upTools("https://github.com/InnuendoPi/MQTTDevice4/blob/development/data/", "mqttdevice.min.js?raw=true");
-            // test = upTools("https://github.com/InnuendoPi/MQTTDevice4/blob/development/data/", "favicon.ico?raw=true");
-
-            // test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "mqttfont.ttf");
-            // test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "mqttdevice.min.css");
-            // test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "mqttdevice.min.js");
-            // test = upTools("https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "favicon.ico");
         }
         else
         {
@@ -269,56 +250,10 @@ void updateSys()
         debugLog(UPDATELOG, line);
         sprintf(line, "Firmware Version: %s", Version);
         debugLog(UPDATELOG, line);
-        // if (LittleFS.exists(CERT))
         upFirm();
     }
 }
 
-/*
-void startToolsUpdate()
-{
-    char line[120];
-    server.send_P(200, "text/plain", "ok");
-    millis2wait(1000);
-    fsUploadFile = LittleFS.open(UPDATETOOLS, "w");
-    if (!fsUploadFile)
-    {
-        Serial.println("*** Error WebUpdate tools create file (LittleFS)");
-        return;
-    }
-    else
-    {
-        Serial.println("*** WebUpdate tools create file (LittleFS)");
-        uint8_t bytesWritten = fsUploadFile.print(0);
-        fsUploadFile.close();
-    }
-
-    if (devBranch)
-    {
-        fsUploadFile = LittleFS.open(DEVBRANCH, "w");
-        if (!fsUploadFile)
-        {
-            Serial.println("*** Error WebUpdate tools dev create file (LittleFS)");
-            return;
-        }
-        else
-        {
-            Serial.println("*** WebUpdate tools dev create file (LittleFS)");
-            uint8_t bytesWritten = fsUploadFile.print("0");
-            fsUploadFile.close();
-        }
-    }
-    else
-    {
-        bool check = LittleFS.remove(DEVBRANCH);
-        // url = "https://guest:guest:x-oauth-basic@raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/";
-    }
-    Serial.println("*** WebUpdate tools reboot");
-    LittleFS.end(); // unmount LittleFS
-    millis2wait(1000);
-    ESP.restart();
-}
-*/
 void startHTTPUpdate()
 {
     char line[120];

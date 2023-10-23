@@ -108,6 +108,7 @@ void setTicker()
   TickerPUBSUB.config(tickerPUBSUBCallback, tickerPUSUB, 0);
   TickerDisp.config(tickerDispCallback, DISP_UPDATE, 0);
   TickerMQTT.stop();
+  TickerDisp.start();
 }
 
 void checkSummerTime()
@@ -293,7 +294,10 @@ void EM_LOG()
     {
       Serial.printf("*** SYSINFO: Update firmware retries count %d\n", anzahlSys);
     }
-    alertState = true;
+    if (anzahlSys > MAXVERSUCHE)
+      alertState = 2;
+    else
+      alertState = 1;
   }
 
   if (LittleFS.exists(LOGUPDATETOOLS)) // WebUpdate Firmware
@@ -316,7 +320,8 @@ void EM_LOG()
     {
       Serial.printf("*** SYSINFO: Update tools retries count %d\n", anzahlTools);
     }
-    alertState = true;
+    if (anzahlTools > MAXVERSUCHE)
+      alertState = 2;
   }
 }
 
@@ -337,9 +342,9 @@ void EM_REBOOT() // Reboot ESP
   // Stop actors
   for (int i = 0; i < numberOfActors; i++)
   {
-    if (actors[i].isOn)
+    if (actors[i].getIsOn())
     {
-      actors[i].isOn = false;
+      actors[i].setIsOn(false);
       actors[i].Update();
       DEBUG_MSG("EM ACTER: Aktor: %s  switched off\n", actors[i].name_actor.c_str());
     }
@@ -424,11 +429,11 @@ void EM_MQTTRES() // restore saved values after reconnect MQTT
     mqtt_state = true;
     for (int i = 0; i < numberOfActors; i++)
     {
-      if (actors[i].switchable && !actors[i].actor_state)
+      if (actors[i].getActorSwitch() && !actors[i].getActorState())
       {
-        DEBUG_MSG("EM MQTTRES: %s isOnBeforeError: %d Powerlevel: %d\n", actors[i].name_actor.c_str(), actors[i].isOnBeforeError, actors[i].power_actor);
-        actors[i].isOn = actors[i].isOnBeforeError;
-        actors[i].actor_state = true; // Sensor ok
+        DEBUG_MSG("EM MQTTRES: %s isOnBeforeError: %d Powerlevel: %d\n", actors[i].getActorName().c_str(), actors[i].getIsOnBeforeError(), actors[i].getActorPower());
+        actors[i].setIsOn(actors[i].getIsOnBeforeError());
+        actors[i].setActorState(true); // Sensor ok
         actors[i].Update();
       }
       yield();

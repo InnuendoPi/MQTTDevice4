@@ -31,7 +31,7 @@ void setup()
   if (LittleFS.begin())
   {
     Serial.printf("*** SYSINFO: setup LittleFS free heap: %d\n", ESP.getFreeHeap());
-    
+
     // Starte NTP
     timeClient.begin();
     timeClient.forceUpdate();
@@ -89,7 +89,7 @@ void setup()
     EM_MDNSET();
   else
     Serial.printf("*** SYSINFO: ESP8266 IP address: %s Time: %s RSSI: %d\n", WiFi.localIP().toString().c_str(), timeClient.getFormattedTime().c_str(), WiFi.RSSI());
-  
+
   // MQTT
   pubsubClient.setBufferSize(512);
   EM_MQTTCON();
@@ -110,24 +110,24 @@ void setupServer()
   server.on("/reqActors", handleRequestActors);   // Liste der Aktoren ausgeben
   server.on("/reqInduction", handleRequestInduction);
   server.on("/reqSearchSensorAdresses", handleRequestSensorAddresses);
-  server.on("/reqPins", handlereqPins);       // GPIO Pins actors
-  server.on("/reqPages", handleRequestPages); // Display page
-  server.on("/reqIndu", handleRequestIndu);   // Induction für WebConfig
-  server.on("/setSensor", handleSetSensor);   // Sensor ändern
-  server.on("/setActor", handleSetActor);     // Aktor ändern
-  server.on("/setIndu", handleSetIndu);       // Indu ändern
-  server.on("/delSensor", handleDelSensor);   // Sensor löschen
-  server.on("/delActor", handleDelActor);     // Aktor löschen
-  server.on("/reboot", rebootDevice);         // reboots the whole Device
-  server.on("/reqMisc", handleRequestMisc);         // Misc Infos für WebConfig
-  server.on("/reqMisc2", handleRequestMisc2); // Misc Infos für WebConfig
-  server.on("/reqMisc3", handleRequestMisc3); // Misc Infos für WebConfig
-  server.on("/reqFirm", handleRequestFirm);         // Firmware version
-  server.on("/setMisc", handleSetMisc);             // Misc ändern
-  server.on("/startHTTPUpdate", startHTTPUpdate);   // Firmware WebUpdate
+  server.on("/reqPins", handlereqPins);           // GPIO Pins actors
+  server.on("/reqPages", handleRequestPages);     // Display page
+  server.on("/reqIndu", handleRequestIndu);       // Induction für WebConfig
+  server.on("/setSensor", handleSetSensor);       // Sensor ändern
+  server.on("/setActor", handleSetActor);         // Aktor ändern
+  server.on("/setIndu", handleSetIndu);           // Indu ändern
+  server.on("/delSensor", handleDelSensor);       // Sensor löschen
+  server.on("/delActor", handleDelActor);         // Aktor löschen
+  server.on("/reboot", rebootDevice);             // reboots the whole Device
+  server.on("/reqMisc", handleRequestMisc);       // Misc Infos für WebConfig
+  server.on("/reqMisc2", handleRequestMisc2);     // Misc Infos für WebConfig
+  server.on("/reqMiscAlert", handleRequestMiscAlert); // Misc Alert WebUpdate
+  server.on("/reqFirm", handleRequestFirm);       // Firmware version
+  server.on("/setMisc", handleSetMisc);           // Misc ändern
+  server.on("/startHTTPUpdate", startHTTPUpdate); // Firmware WebUpdate
   // server.on("/startToolsUpdate", startToolsUpdate); // Firmware WebUpdate
-  server.on("/channel", handleChannel);   //Server Sent Events will be handled from this URI
-  server.on("/startSSE", startSSE);   //Server Sent Events will be handled from this URI
+  server.on("/channel", handleChannel);       // Server Sent Events will be handled from this URI
+  server.on("/startSSE", startSSE);           // Server Sent Events will be handled from this URI
   server.on("/checkAliveSSE", checkAliveSSE); // Server Sent Events check IP on channel
   // FSBrowser initialisieren
   server.on("/edit", HTTP_GET, handleGetEdit);

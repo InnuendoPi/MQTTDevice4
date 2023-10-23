@@ -8,6 +8,8 @@ Version 4.56
 - Removed:    PCF8574 support (I2C) - OOM
 - Removed:    TickerNTP (save mem)
 - Removed:    TickerWLAN (save mem)
+- Changed:    sensor class (getter/setter)
+- Changed:    actor class (getter/setter)
 
 Version 4.55a
 

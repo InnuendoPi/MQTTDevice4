@@ -120,11 +120,11 @@ public:
   {
     return sens_err;
   }
-  bool getSw()
+  bool getSensorSwitch()
   {
     return sens_sw;
   }
-  bool getState()
+  bool getSensorState()
   {
     return sens_state;
   }
@@ -148,11 +148,11 @@ public:
   {
     old_value = sens_value;
   }
-  String getName()
+  String getSensorName()
   {
     return sens_name;
   }
-  String getTopic()
+  String getSensorTopic()
   {
     return sens_mqtttopic;
   }
@@ -226,29 +226,24 @@ void handleSensors(bool checkSen)
 {
   // checkSen true: init
   // checkSen false: only updates
-  
-  // request to all devices on the bus
-  // DS18B20.requestTemperatures();
+
   DynamicJsonDocument ssedoc(512);
   JsonArray sseArray = ssedoc.to<JsonArray>();
-  // bool checkSen = false;
-
   int8_t max_status = 0;
   for (uint8_t i = 0; i < numberOfSensors; i++)
   {
     sensors[i].Update();
 
     // get max sensorstatus
-    if (sensors[i].getSw() && max_status < sensors[i].getErr())
+    if (sensors[i].getSensorSwitch() && max_status < sensors[i].getErr())
       max_status = sensors[i].getErr();
-
     if (sensors[i].getValue() != sensors[i].oldValue())
     {
       sensors[i].setOldValue();
       checkSen = true;
     }
     JsonObject sseObj = ssedoc.createNestedObject();
-    sseObj["name"] = sensors[i].getName();
+    sseObj["name"] = sensors[i].getSensorName();
     if (sensors[i].getErr() == EM_OK)
       sseObj["value"] = sensors[i].getTotalValueString();
     else if (sensors[i].getErr() == EM_CRCER)
@@ -272,7 +267,6 @@ void handleSensors(bool checkSen)
 
 uint8_t searchSensors()
 {
-  // unsigned char i;
   uint8_t n = 0;
   unsigned char addr[8];
 
@@ -312,13 +306,13 @@ void handleSetSensor()
       return;
   }
 
-  String new_mqtttopic = sensors[id].getTopic();
-  String new_name = sensors[id].getName();
+  String new_mqtttopic = sensors[id].getSensorTopic();
+  String new_name = sensors[id].getSensorName();
   String new_address = sensors[id].getSens_adress_string();
   String new_id = sensors[id].getId();
   float new_offset1 = sensors[id].getOffset1();
   float new_offset2 = sensors[id].getOffset2();
-  bool new_sw = sensors[id].getSw();
+  bool new_sw = sensors[id].getSensorSwitch();
 
   for (uint8_t i = 0; i < server.args(); i++)
   {
@@ -368,7 +362,7 @@ void handleDelSensor()
       sensors[i].change("", "", "", "", 0.0, 0.0, false);
     }
     else
-      sensors[i].change(sensors[i + 1].getSens_adress_string(), sensors[i + 1].getTopic(), sensors[i + 1].getName(), sensors[i + 1].getId(), sensors[i + 1].getOffset1(), sensors[i + 1].getOffset2(), sensors[i + 1].getSw());
+      sensors[i].change(sensors[i + 1].getSens_adress_string(), sensors[i + 1].getSensorTopic(), sensors[i + 1].getSensorName(), sensors[i + 1].getId(), sensors[i + 1].getOffset1(), sensors[i + 1].getOffset2(), sensors[i + 1].getSensorSwitch());
 
     yield();
   }
@@ -389,7 +383,6 @@ void handleRequestSensorAddresses()
   if (id != -1)
   {
     message += F("<option>");
-    // message += SensorAddressToString(sensors[id].sens_address);
     message += sensors[id].getSens_adress_string();
     message += F("</option><option disabled>──────────</option>");
   }
@@ -414,14 +407,14 @@ void handleRequestSensors()
     for (uint8_t i = 0; i < numberOfSensors; i++)
     {
       JsonObject sensorsObj = doc.createNestedObject();
-      sensorsObj["name"] = sensors[i].getName();
-      String str = sensors[i].getName();
+      sensorsObj["name"] = sensors[i].getSensorName();
+      String str = sensors[i].getSensorName();
       str.replace(" ", "%20"); // Erstze Leerzeichen für URL Charts
       sensorsObj["namehtml"] = str;
       sensorsObj["offset1"] = sensors[i].getOffset1();
       sensorsObj["offset2"] = sensors[i].getOffset2();
-      sensorsObj["sw"] = sensors[i].getSw();
-      sensorsObj["state"] = sensors[i].getState();
+      sensorsObj["sw"] = sensors[i].getSensorSwitch();
+      sensorsObj["state"] = sensors[i].getSensorState();
 
       if (sensors[i].getErr() == EM_OK)
         sensorsObj["value"] = sensors[i].getTotalValueString();
@@ -436,22 +429,22 @@ void handleRequestSensors()
       else
         sensorsObj["value"] = "ERR";
 
-      sensorsObj["mqtt"] = sensors[i].getTopic();
+      sensorsObj["mqtt"] = sensors[i].getSensorTopic();
       sensorsObj["cbpiid"] = sensors[i].getId();
       yield();
     }
   }
   else // get single sensor by id
   {
-    doc["name"] = sensors[id].getName();
+    doc["name"] = sensors[id].getSensorName();
     doc["offset1"] = sensors[id].getOffset1();
     doc["offset2"] = sensors[id].getOffset2();
-    doc["sw"] = sensors[id].getSw();
-    doc["script"] = sensors[id].getTopic();
+    doc["sw"] = sensors[id].getSensorSwitch();
+    doc["script"] = sensors[id].getSensorTopic();
     doc["cbpiid"] = sensors[id].getId();
   }
 
   String response;
   serializeJson(doc, response);
-  server.send(200, FPSTR("application/json"), response.c_str() );
+  server.send(200, FPSTR("application/json"), response.c_str());
 }

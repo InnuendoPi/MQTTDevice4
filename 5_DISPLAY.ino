@@ -2,12 +2,12 @@ void initDisplay()
 {
 
   // register callback functions
-  p0ForButton.touch(pageCallback1);  // BrewPage forward to KettlePage
-  p0BackButton.touch(pageCallback2); // BrewPage backward to InductionPage
-  p1ForButton.touch(pageCallback2);  // KelltlePage forward to InductionPage
-  p1BackButton.touch(pageCallback0); // KettlePage backward to BrewPage
-  p2ForButton.touch(pageCallback0);  // InductionPage forward to BrewPage
-  p2BackButton.touch(pageCallback1); // InductionPage backward to KettlePage
+  p0ForButton.touch(pageCallback1);         // BrewPage forward to KettlePage
+  p0BackButton.touch(pageCallback2);        // BrewPage backward to InductionPage
+  p1ForButton.touch(pageCallback2);         // KelltlePage forward to InductionPage
+  p1BackButton.touch(pageCallback0);        // KettlePage backward to BrewPage
+  p2ForButton.touch(pageCallback0);         // InductionPage forward to BrewPage
+  p2BackButton.touch(pageCallback1);        // InductionPage backward to KettlePage
   powerButton.release(powerButtonCallback); // buttonBack auf induction page backward auf page 1
 
   activePage = startPage;
@@ -30,7 +30,6 @@ void initDisplay()
   nextion.command("doevents"); // Force immediate screen refresh and receive serial bytes to buffer
   // start display tikcer
   activePage = nextion.getCurrentPageID();
-  TickerDisp.start();
 }
 
 void dispPublishmqtt()
@@ -40,7 +39,6 @@ void dispPublishmqtt()
     DynamicJsonDocument doc(128);
     char jsonMessage[48];
     serializeJson(doc, jsonMessage);
-    // DEBUG_MSG("%s\n", "Disp: Request CBPi4 configuration");
     pubsubClient.publish("cbpi/updatekettle", jsonMessage);
     pubsubClient.publish("cbpi/updateactor", jsonMessage);
     pubsubClient.publish("cbpi/updatesensor", jsonMessage);
@@ -95,12 +93,12 @@ void KettlePage()
   {
     for (uint8_t i = 0; i < maxKettles; i++)
     {
-      DEBUG_MSG("structKettleID %s - sensorID: %s\n", structKettles[i].sensor, sensors[0].getId().c_str());
+      // DEBUG_MSG("structKettleID %s - sensorID: %s\n", structKettles[i].sensor, sensors[0].getId().c_str());
       if (strcmp(structKettles[i].sensor, sensors[0].getId().c_str()) == 0)
       {
         p1temp_text.attribute("txt", structKettles[i].current_temp);
         p1target_text.attribute("txt", structKettles[i].target_temp);
-        DEBUG_MSG("KP Kettle %d: %s Current: %s Target: %s \n", i, structKettles[i].name, sensors[0].getTotalValueString(), structKettles[i].target_temp);
+        // DEBUG_MSG("KP Kettle %d: %s Current: %s Target: %s \n", i, structKettles[i].name, sensors[0].getTotalValueString(), structKettles[i].target_temp);
         break;
       }
     }
@@ -129,26 +127,18 @@ void InductionPage()
   if (aktSlider >= 0 && aktSlider <= 100)
     inductionCooker.inductionNewPower(aktSlider); // inductionCooker.handleInductionPage(aktSlider);
 
-  // String aktTemp = strcat(structKettles[0].current_temp, "°C");
   p2temp_text.attribute("txt", String(structKettles[0].current_temp).c_str());
   if (sensors[0].calcOffset() < 16.0)
-  {
-    // p2gauge.attribute("val", (int)((sensors[0].getValue() + sensors[0].getOffset1()) * 2.7 + 316));
     p2gauge.attribute("val", (int)(sensors[0].calcOffset() * 2.7 + 316));
-  }
   else
-  {
     p2gauge.attribute("val", (int)(sensors[0].calcOffset() * 2.7 - 44));
-  }
-
-  // p2temp_text.attribute("txt", strcat(structKettles[0].current_temp, "°C"));
 }
 
 void cbpi4kettle_subscribe()
 {
   if (pubsubClient.connected())
   {
-    // DEBUG_MSG("Disp: Subscribing to %s\n", cbpi4kettle_topic);
+    DEBUG_MSG("Disp: Subscribing to %s\n", cbpi4kettle_topic);
     pubsubClient.subscribe(cbpi4kettle_topic);
     pubsubClient.loop();
   }
@@ -202,7 +192,6 @@ void cbpi4notification_unsubscribe()
 
 void cbpi4kettle_handlemqtt(char *payload)
 {
-  // StaticJsonDocument<1024> doc;
   DynamicJsonDocument doc(1024);
   DeserializationError error = deserializeJson(doc, (const char *)payload);
   if (error)
@@ -218,7 +207,8 @@ void cbpi4kettle_handlemqtt(char *payload)
       // DEBUG_MSG("New Kettle setup start %d ID: %s Name: %s Current: %s Target: %s Sensor: %s activepage %d\n", i, structKettles[i].id, structKettles[i].name, structKettles[i].current_temp, structKettles[i].target_temp, structKettles[i].sensor, activePage);
       strlcpy(structKettles[i].id, doc["id"], maxIdSign);
       strlcpy(structKettles[i].name, doc["name"], maxKettleSign);
-      dtostrf(doc["target_temp"], 1, 1, structKettles[i].target_temp);
+      // dtostrf(doc["target_temp"], 1, 1, structKettles[i].target_temp);
+      dtostrf(doc["target_temp"], -1, 1, structKettles[i].target_temp);
       strlcpy(structKettles[i].sensor, doc["sensor"], maxSensorSign);
       char sensorupdate[45];
       sprintf(sensorupdate, "%s%s", cbpi4sensor_topic, structKettles[i].sensor);
@@ -250,7 +240,8 @@ void cbpi4kettle_handlemqtt(char *payload)
       // DEBUG_MSG("++ OLD kettle ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
       if (structKettles[i].id == doc["id"])
       {
-        dtostrf(doc["target_temp"], 1, 1, structKettles[i].target_temp);
+        // dtostrf(doc["target_temp"], 1, 1, structKettles[i].target_temp);
+        dtostrf(doc["target_temp"], -1, 1, structKettles[i].target_temp);
         switch (i)
         {
         case 0:
@@ -276,7 +267,6 @@ void cbpi4kettle_handlemqtt(char *payload)
 
 void cbpi4sensor_handlemqtt(char *payload)
 {
-  // StaticJsonDocument<256> doc;
   DynamicJsonDocument doc(256);
   DeserializationError error = deserializeJson(doc, (const char *)payload);
   if (error)
@@ -293,7 +283,8 @@ void cbpi4sensor_handlemqtt(char *payload)
       // DEBUG_MSG("Sensor value PRE %d Sensor-ID: %s Kettle-Sensor: %s value: %s activepage: %d\n", i, structKettles[i].id, structKettles[i].sensor, structKettles[i].current_temp, activePage);
       if (activePage == 0)
       {
-        dtostrf(doc["value"], 1, 1, structKettles[i].current_temp);
+        // dtostrf(doc["value"], 1, 1, structKettles[i].current_temp);
+        dtostrf(doc["value"], -1, 1, structKettles[i].current_temp);
         switch (i)
         {
         case 0:
@@ -321,7 +312,6 @@ void cbpi4sensor_handlemqtt(char *payload)
 
 void cbpi4steps_handlemqtt(char *payload)
 {
-  // StaticJsonDocument<1024> doc;
   DynamicJsonDocument doc(1024);
   DeserializationError error = deserializeJson(doc, (const char *)payload);
   if (error)
@@ -480,14 +470,6 @@ void cbpi4steps_handlemqtt(char *payload)
           p1progress.value(0);
       }
       // DEBUG_MSG("DISP stephandle 5 ActivePage: %d ID: %s Name: %s Sensor: %s strlen: %d\n", activePage, structKettles[0].id, structKettles[0].name, structKettles[0].sensor, strlen(structKettles[0].id));
-      /*
-      min = min * 60;
-      int akt = min + sec;
-      valTimer = valTimer * 60;
-      int rest = valTimer - akt;
-      rest = rest * 100 / valTimer;
-      slider.value(rest);
-      */
     }
     else
     {
@@ -524,7 +506,6 @@ void cbpi4steps_handlemqtt(char *payload)
 
 void cbpi4notification_handlemqtt(char *payload)
 {
-  // StaticJsonDocument<384> doc;
   DynamicJsonDocument doc(384);
   DeserializationError error = deserializeJson(doc, (const char *)payload);
   if (error)
@@ -568,7 +549,7 @@ void cbpi4notification_handlemqtt(char *payload)
     }
     if (activePage == 1)
     {
-      strlcpy(currentStepName, sensors[0].getName().c_str(), maxStepSign);
+      strlcpy(currentStepName, sensors[0].getSensorName().c_str(), maxStepSign);
     }
     strlcpy(notify, "", maxNotifySign);
     return;

@@ -1,10 +1,5 @@
 void handleRoot()
 {
-  // server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1
-  // server.sendHeader("Pragma", "no-cache"); // HTTP 1.0
-  // server.sendHeader("Expires", "0"); // Proxies
-  // server.sendHeader("description", "MQTTDevice for CraftbeerPi");
-  // server.sendHeader("author", "Innuendo");
   server.sendHeader(PSTR("Content-Encoding"), "gzip");
   server.send_P(200, "text/html", index_htm_gz, index_htm_gz_len);
 }
@@ -33,37 +28,27 @@ void handleWebRequests()
 bool loadFromLittlefs(String path)
 {
   if (path.endsWith("/"))
-  {
     path += "index.htm";
-  }
 
   String contentType;
   if (server.hasArg("download"))
-  {
     contentType = F("application/octet-stream");
-  }
   else
-  {
     contentType = mime::getContentType(path); // ESPWebServer mimeType Tabelle
-  }
+
   if (LittleFS.exists(path.c_str()))
   {
     File dataFile = LittleFS.open(path.c_str(), "r");
     if (dataFile)
     {
       int32_t fsize = dataFile.size();
-      // unsigned long timeStart = millis();
       server.sendHeader("Content-Length", (String)fsize);
       size_t sent = server.streamFile(dataFile, contentType);
-      // Serial.printf("file: %s path: %s content: %s size: %d sent: %d duration: %03.02fs\n", dataFile.name(), path.c_str(), contentType.c_str(), fsize, sent, ((float)(millis() - timeStart)) / 1000.0);
       dataFile.close();
       return true;
     }
     else
-    {
-      // Serial.printf("failed to read %s\n", dataFile.name());
       return false;
-    }
   }
   return false;
 }
@@ -95,7 +80,7 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
   {
     for (uint8_t i = 0; i < numberOfActors; i++)
     {
-      if (actors[i].argument_actor == topic)
+      if (actors[i].getActorTopic() == topic)
       {
         actors[i].handlemqtt(payload_msg);
         // Serial.printf("Actor payload received %s\n", actors[i].argument_actor.c_str());
@@ -148,7 +133,7 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
     p = strstr(topic, notificationupdate);
     if (p)
     {
-      // DEBUG_MSG("%s\n", "Web: notificationupdate mqttBuzzer");
+      DEBUG_MSG("%s\n", "Web: notificationupdate mqttBuzzer");
       cbpi4notification_handlemqtt(payload_msg);
       return;
     }
@@ -157,20 +142,15 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
 
 void handleRequestMisc2()
 {
-  // StaticJsonDocument<512> doc;
   DynamicJsonDocument doc(256);
   doc["host"] = mqtthost;
   doc["port"] = mqttport;
   doc["s_mqtt"] = mqtt_state;
   doc["display"] = useDisplay;
-  // doc["i2c"] = useI2C;
   if (startMDNS)
     doc["mdns"] = nameMDNS;
   else
     doc["mdns"] = 0;
-  // doc["alert"] = alertState;
-  // if (alertState)
-  //   alertState = false;
   String response;
 
   serializeJson(doc, response);
@@ -181,21 +161,20 @@ void handleRequestMisc2()
   // DEBUG_MSG("WEB Misc2 JSON memory usage: %d\n", memoryUsed);
 }
 
-void handleRequestMisc3()
+void handleRequestMiscAlert()
 {
-  // StaticJsonDocument<512> doc;
   DynamicJsonDocument doc(32);
   doc["alert"] = alertState;
-  if (alertState)
-    alertState = false;
-  String response;
+  if (alertState > 0)
+    alertState = 0;
+  char response[33];
   serializeJson(doc, response);
-  server.send(200, FPSTR("application/json"), response.c_str());
+  server.send(200, FPSTR("application/json"), response);
+  doc.clear();
 }
 
 void handleRequestMisc()
 {
-  // StaticJsonDocument<768> doc;
   DynamicJsonDocument doc(1024);
   doc["host"] = mqtthost;
   doc["port"] = mqttport;
@@ -203,12 +182,10 @@ void handleRequestMisc()
   doc["pass"] = mqttpass;
   doc["mdns_name"] = nameMDNS;
   doc["mdns"] = startMDNS;
-  // doc["i2c"] = useI2C;
   doc["buzzer"] = startBuzzer;
   doc["mqbuz"] = mqttBuzzer;
   doc["res"] = senRes;
   doc["display"] = useDisplay;
-  // doc["page"] = startPage;
   doc["dev"] = devBranch;
   doc["e_mqtt"] = StopOnMQTTError;
   doc["d_mqtt"] = wait_on_error_mqtt / 1000;
@@ -233,17 +210,13 @@ void handleRequestFirm()
     if (startMDNS)
     {
       message = nameMDNS;
-      message += " V";
+      message += F(" V");
     }
     else
-    {
-      message = "MQTTDevice4 V ";
-    }
-    message += Version;
-    goto SendMessage;
-  }
+      message = F("MQTTDevice4 V ");
 
-SendMessage:
+    message += Version;
+  }
   server.send(200, FPSTR("text/plain"), message.c_str());
 }
 
@@ -337,10 +310,6 @@ void handleSetMisc()
     {
       startMDNS = checkBool(server.arg(i));
     }
-    // if (server.argName(i) == "i2c")
-    // {
-    //   useI2C = checkBool(server.arg(i));
-    // }
     if (server.argName(i) == "enable_mqtt")
     {
       StopOnMQTTError = checkBool(server.arg(i));
@@ -348,21 +317,23 @@ void handleSetMisc()
     if (server.argName(i) == "delay_mqtt")
       if (isValidInt(server.arg(i)))
       {
-        wait_on_error_mqtt = constrain(server.arg(i).toInt(), 1, 600) * 1000;
+        int16_t tmpVal = server.arg(i).toInt();
+        wait_on_error_mqtt = constrain(tmpVal, 1, 600) * 1000;
       }
     if (server.argName(i) == "del_sen_act")
     {
       if (isValidInt(server.arg(i)))
       {
-        // wait_on_Sensor_error_actor = server.arg(i).toInt() * 1000;
-        wait_on_Sensor_error_actor = constrain(server.arg(i).toInt(), 1, 600) * 1000;
+        int16_t tmpVal = server.arg(i).toInt();
+        wait_on_Sensor_error_actor = constrain(tmpVal, 1, 600) * 1000;
       }
     }
     if (server.argName(i) == "del_sen_ind")
     {
       if (isValidInt(server.arg(i)))
       {
-        wait_on_Sensor_error_induction = constrain(server.arg(i).toInt(), 1, 600) * 1000;
+        int16_t tmpVal = server.arg(i).toInt();
+        wait_on_Sensor_error_induction = constrain(tmpVal, 1, 600) * 1000;
       }
     }
     yield();
@@ -384,12 +355,13 @@ void rebootDevice()
 void handleRequestPages()
 {
   int8_t id = server.arg(0).toInt();
+  const String page_names[NUMBEROFPAGES] = {"BrewPage", "KettlePage", "InductionPage"};
   String message;
   message += F("<option>");
   message += page_names[startPage];
   message += F("</option><option disabled>──────────</option>");
 
-  for (uint8_t i = 0; i < numberOfPages; i++)
+  for (uint8_t i = 0; i < NUMBEROFPAGES; i++)
   {
     if (i != startPage)
     {
@@ -398,7 +370,7 @@ void handleRequestPages()
       message += F("</option>");
     }
   }
-  server.send(200, FPSTR("text/plain"), message.c_str() );
+  server.send(200, FPSTR("text/plain"), message.c_str());
 }
 
 void handleRestore()

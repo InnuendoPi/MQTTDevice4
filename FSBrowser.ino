@@ -349,7 +349,6 @@ void handleFileDelete()
 
 void handleFileUpload()
 {
-  File fsUploadFile;
   // if (!fsOK) { return replyServerError(FPSTR("FS INIT ERROR")); }
   if (server.uri() != "/edit")
   {
@@ -392,6 +391,7 @@ void handleFileUpload()
 
 void handleGetEdit()
 {
+  //  if (handleFileRead(F("/edit.htm"))) { return; }
   server.sendHeader(PSTR("Content-Encoding"), "gzip");
   server.send_P(200, "text/html", edit_htm_gz, edit_htm_gz_len);
 }

@@ -16,7 +16,7 @@ void loop()
     TickerAct.update();
   if (inductionStatus > 0)            // Ticker Induktion
       TickerInd.update();
-  if (useDisplay) // Ticker Display
+  if (useDisplay)                     // Ticker Display
   {
     TickerDisp.update();
     nextion.update();
