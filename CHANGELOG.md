@@ -2,6 +2,7 @@
 
 Version 4.56
 
+- Fix:        Display flicker
 - Fix:        Refactor Web Server parsing-impl.h #9005
 - added:      WiFi events
 - Changed:    WebUpdate
@@ -11,6 +12,7 @@ Version 4.56
 - Removed:    TickerWLAN (save mem)
 - Changed:    sensor class (getter/setter)
 - Changed:    actor class (getter/setter)
+- Changed:    induction class (getter/setter)
 
 Version 4.55a
 

@@ -91,6 +91,7 @@ void KettlePage()
 {
   if (strlen(structKettles[0].sensor) != 0)
   {
+    bool check = false;
     for (uint8_t i = 0; i < maxKettles; i++)
     {
       // DEBUG_MSG("structKettleID %s - sensorID: %s\n", structKettles[i].sensor, sensors[0].getId().c_str());
@@ -99,8 +100,15 @@ void KettlePage()
         p1temp_text.attribute("txt", structKettles[i].current_temp);
         p1target_text.attribute("txt", structKettles[i].target_temp);
         // DEBUG_MSG("KP Kettle %d: %s Current: %s Target: %s \n", i, structKettles[i].name, sensors[0].getTotalValueString(), structKettles[i].target_temp);
+        check = true;
         break;
       }
+    }
+    // Test
+    if (!check)
+    {
+      p1temp_text.attribute("txt", structKettles[0].current_temp);
+      p1target_text.attribute("txt", structKettles[0].target_temp);
     }
   }
   else

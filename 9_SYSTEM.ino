@@ -351,11 +351,11 @@ void EM_REBOOT() // Reboot ESP
     yield();
   }
   // Stop induction
-  if (inductionCooker.isInduon)
+  if (inductionCooker.getisInduon())
   {
     DEBUG_MSG("%s\n", "EM INDOFF: induction switched off");
-    inductionCooker.newPower = 0;
-    inductionCooker.isInduon = false;
+    inductionCooker.setNewPower(0);
+    inductionCooker.setisInduon(false);
     inductionCooker.Update();
   }
   server.send_P(205, "text/plain", "reboot");
@@ -405,7 +405,7 @@ void EM_MQTTSUB() // MQTT subscribe
       actors[i].mqtt_subscribe();
       yield();
     }
-    if (inductionCooker.isEnabled)
+    if (inductionCooker.getIsEnabled())
       inductionCooker.mqtt_subscribe();
     if (useDisplay)
     {
@@ -438,14 +438,14 @@ void EM_MQTTRES() // restore saved values after reconnect MQTT
       }
       yield();
     }
-    if (!inductionCooker.induction_state)
+    if (!inductionCooker.getInductionState())
     {
       DEBUG_MSG("EM MQTTRES: Induction power: %d powerLevelOnError: %d powerLevelBeforeError: %d\n", inductionCooker.power, inductionCooker.powerLevelOnError, inductionCooker.powerLevelBeforeError);
-      inductionCooker.newPower = inductionCooker.powerLevelBeforeError;
-      inductionCooker.isInduon = true;
-      inductionCooker.induction_state = true; // Induction ok
+      inductionCooker.setNewPower(inductionCooker.getPowerLevelBeforeError());
+      inductionCooker.setisInduon(true);
+      inductionCooker.setInductionState(true); // Induction ok
       inductionCooker.Update();
-      DEBUG_MSG("EM MQTTRES: Induction restore old value: %d\n", inductionCooker.newPower);
+      DEBUG_MSG("EM MQTTRES: Induction restore old value: %d\n", inductionCooker.getNewPower());
     }
   }
 }

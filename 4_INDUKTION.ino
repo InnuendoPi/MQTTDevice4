@@ -1,5 +1,23 @@
 class induction
 {
+  int8_t PIN_WHITE = 13;     // D7 Relay white
+  int8_t PIN_YELLOW = 12;    // D6 Command channel yellow AUSGABE AN PLATTE
+  int8_t PIN_INTERRUPT = 14; // D5 Back channel blue EINGABE VON PLATTE
+  uint8_t power = 0;
+  uint8_t newPower = 0;
+  uint8_t oldPower = 0;
+  int8_t CMD_CUR = 0;           // Aktueller Befehl
+  boolean isRelayon = false;    // Systemstatus: ist das Relais in der Platte an?
+  boolean oldisRelayon = false; // Systemstatus: ist das Relais in der Platte an?
+  boolean isInduon = false;     // Systemstatus: ist Power > 0?
+  boolean oldisInduon = false;
+  boolean isPower = false;
+  String mqtttopic = "";
+  boolean isEnabled = false;
+  uint8_t powerLevelOnError = 100;   // 100% schaltet das Event handling für Induktion aus
+  uint8_t powerLevelBeforeError = 0; // in error event save last power state
+  bool induction_state = true;       // Error state induction
+
   unsigned long timeTurnedoff;
   unsigned long lastInterrupt;
   unsigned long lastCommand;
@@ -31,24 +49,7 @@ class induction
   uint8_t PWR_STEPS[6] = {0, 20, 40, 60, 80, 100};
 
 public:
-  int8_t PIN_WHITE = 13;     // D7 Relay white
-  int8_t PIN_YELLOW = 12;    // D6 Command channel yellow AUSGABE AN PLATTE
-  int8_t PIN_INTERRUPT = 14; // D5 Back channel blue EINGABE VON PLATTE
-  uint8_t power = 0;
-  uint8_t newPower = 0;
-  uint8_t oldPower = 0;
-  int8_t CMD_CUR = 0;           // Aktueller Befehl
-  boolean isRelayon = false;    // Systemstatus: ist das Relais in der Platte an?
-  boolean oldisRelayon = false; // Systemstatus: ist das Relais in der Platte an?
-  boolean isInduon = false;     // Systemstatus: ist Power > 0?
-  boolean oldisInduon = false;
-  boolean isPower = false;
-  String mqtttopic = "";
-  boolean isEnabled = false;
-  uint8_t powerLevelOnError = 100;   // 100% schaltet das Event handling für Induktion aus
-  uint8_t powerLevelBeforeError = 0; // in error event save last power state
-  bool induction_state = true;       // Error state induction
-
+  
   induction()
   {
     setupCommands();
@@ -359,6 +360,114 @@ public:
       Update();
     }
   }
+    int8_t getPinWhite()
+  {
+    return PIN_WHITE;
+  }
+  int8_t getPinYellow()
+  {
+    return PIN_YELLOW;
+  }
+  int8_t getPinInterrupt()
+  {
+    return PIN_INTERRUPT;
+  }
+  void setPinWhite(int8_t val)
+  {
+    PIN_WHITE = val;
+  }
+  void setPinYellow(int8_t val)
+  {
+    PIN_YELLOW = val;
+  }
+  void setPinInterrupt(int8_t val)
+  {
+    PIN_INTERRUPT = val;
+  }
+  String getTopic()
+  {
+    return mqtttopic;
+  }
+  uint8_t getPower()
+  {
+    return power;
+  }
+  uint8_t getOldPower()
+  {
+    return oldPower;
+  }
+  void setOldPower()
+  {
+    oldPower = power;
+  }
+  int8_t getCMD_CUR()
+  {
+    return CMD_CUR;
+  }
+  uint8_t getNewPower()
+  {
+    return newPower;
+  }
+  void setNewPower(int16_t val)
+  {
+    newPower = constrain(val, 0, 100);
+  }
+  bool getisRelayon()
+  {
+    return isRelayon;
+  }
+  bool getoldisRelayon()
+  {
+    return oldisRelayon;
+  }
+  void setoldisRelayon()
+  {
+    oldisRelayon = isRelayon;
+  }
+  bool getisInduon()
+  {
+    return isInduon;
+  }
+  void setisInduon(bool val)
+  {
+    isInduon = val;
+  }
+  bool getoldisInduon()
+  {
+    return oldisInduon;
+  }
+  void setoldisInduon()
+  {
+    oldisInduon = isInduon;
+  }
+  bool getisPower()
+  {
+    return isPower;
+  }
+  uint8_t getIsEnabled()
+  {
+    return isEnabled;
+  }
+  void setIsEnabled(uint8_t val)
+  {
+    isEnabled = val;
+  }
+  bool getInductionState()
+  {
+    return induction_state;
+  }
+  void setInductionState(bool val)
+  {
+    induction_state = val;
+  }
+  uint8_t getPowerLevelOnError()
+  {
+    return powerLevelOnError;
+  }
+  uint8_t getPowerLevelBeforeError()
+  {
+    return powerLevelBeforeError;
+  }
 };
 
 induction inductionCooker = induction();
@@ -377,25 +486,25 @@ void handleInduction()
 void handleRequestInduction()
 {
   DynamicJsonDocument doc(386);
-  doc["enabled"] = inductionCooker.isEnabled;
+  doc["enabled"] = inductionCooker.getIsEnabled();
   doc["power"] = 0;
-  if (inductionCooker.isEnabled)
+  if (inductionCooker.getIsEnabled())
   {
-    doc["relayOn"] = inductionCooker.isRelayon;
-    doc["power"] = inductionCooker.power;
-    doc["state"] = inductionCooker.induction_state;
-    if (inductionCooker.isPower)
+    doc["relayOn"] = inductionCooker.getisRelayon();
+    doc["power"] = inductionCooker.getPower();
+    doc["state"] = inductionCooker.getInductionState();
+    if (inductionCooker.getisPower())
     {
-      doc["powerLevel"] = inductionCooker.CMD_CUR;
+      doc["powerLevel"] = inductionCooker.getCMD_CUR();
     }
     else
     {
-      doc["powerLevel"] = max(0, inductionCooker.CMD_CUR - 1);
+      doc["powerLevel"] = max(0, inductionCooker.getCMD_CUR() - 1);
     }
   }
 
-  doc["topic"] = inductionCooker.mqtttopic;
-  doc["pl"] = inductionCooker.powerLevelOnError;
+  doc["topic"] = inductionCooker.getTopic();
+  doc["pl"] = inductionCooker.getPowerLevelOnError();
   String response;
   serializeJson(doc, response);
   server.send(200, FPSTR("application/json"), response.c_str());
@@ -417,13 +526,13 @@ void handleRequestIndu()
     switch (id)
     {
     case 0:
-      pinswitched = inductionCooker.PIN_WHITE;
+      pinswitched = inductionCooker.getPinWhite();
       break;
     case 1:
-      pinswitched = inductionCooker.PIN_YELLOW;
+      pinswitched = inductionCooker.getPinYellow();
       break;
     case 2:
-      pinswitched = inductionCooker.PIN_INTERRUPT;
+      pinswitched = inductionCooker.getPinInterrupt();
       break;
     }
     if (isPin(pinswitched))
@@ -449,12 +558,12 @@ void handleRequestIndu()
 
 void handleSetIndu()
 {
-  int8_t pin_white = inductionCooker.PIN_WHITE;
-  int8_t pin_blue = inductionCooker.PIN_INTERRUPT;
-  int8_t pin_yellow = inductionCooker.PIN_YELLOW;
-  bool is_enabled = inductionCooker.isEnabled;
-  String topic = inductionCooker.mqtttopic;
-  int8_t pl = inductionCooker.powerLevelOnError;
+  int8_t pin_white = inductionCooker.getPinWhite();
+  int8_t pin_blue = inductionCooker.getPinInterrupt();
+  int8_t pin_yellow = inductionCooker.getPinYellow();
+  bool is_enabled = inductionCooker.getIsEnabled();
+  String topic = inductionCooker.getTopic();
+  int8_t pl = inductionCooker.getPowerLevelOnError();
 
   for (uint8_t i = 0; i < server.args(); i++)
   {

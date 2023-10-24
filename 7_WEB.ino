@@ -70,7 +70,7 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
     payload_msg[i] = payload[i];
   }
 
-  if (inductionCooker.mqtttopic == topic)
+  if (inductionCooker.getTopic() == topic)
   {
     inductionCooker.handlemqtt(payload_msg);
     return;

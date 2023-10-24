@@ -115,8 +115,8 @@ bool loadConfig()
   // read induction
   JsonArray indArray = doc["induction"];
   JsonObject indObj = indArray[0];
-  inductionCooker.isEnabled = indObj["ENABLED"] | 0;
-  inductionStatus = inductionCooker.isEnabled;
+  inductionCooker.setIsEnabled(indObj["ENABLED"] | 0); // 0: Aus 1: IDS1 2: IDS2
+  inductionStatus = inductionCooker.getIsEnabled();
   if (inductionStatus)
   {
     inductionCooker.change(StringToPin(indObj["PINWHITE"]), StringToPin(indObj["PINYELLOW"]), StringToPin(indObj["PINBLUE"]), indObj["TOPIC"] | "", true, indObj["PL"] | 100);
@@ -217,17 +217,17 @@ bool saveConfig()
 
   // Write Induction
   JsonArray indArray = doc.createNestedArray("induction");
-  if (inductionCooker.isEnabled)
+  if (inductionCooker.getIsEnabled())
   {
     inductionStatus = 1;
     JsonObject indObj = indArray.createNestedObject();
-    indObj["PINWHITE"] = PinToString(inductionCooker.PIN_WHITE);
-    indObj["PINYELLOW"] = PinToString(inductionCooker.PIN_YELLOW);
-    indObj["PINBLUE"] = PinToString(inductionCooker.PIN_INTERRUPT);
-    indObj["TOPIC"] = inductionCooker.mqtttopic;
-    indObj["ENABLED"] = (int)inductionCooker.isEnabled;
-    indObj["PL"] = inductionCooker.powerLevelOnError;
-    DEBUG_MSG("Induction: %d MQTT: %s Relais (WHITE): %s, Command channel (YELLOW): %s, Backchannel (BLUE): %s, PlOnErr: %d\n", inductionCooker.isEnabled, inductionCooker.mqtttopic.c_str(), PinToString(inductionCooker.PIN_WHITE).c_str(), PinToString(inductionCooker.PIN_YELLOW).c_str(), PinToString(inductionCooker.PIN_INTERRUPT).c_str(), inductionCooker.powerLevelOnError);
+    indObj["PINWHITE"] = PinToString(inductionCooker.getPinWhite());
+    indObj["PINYELLOW"] = PinToString(inductionCooker.getPinYellow());
+    indObj["PINBLUE"] = PinToString(inductionCooker.getPinInterrupt());
+    indObj["ENABLED"] = inductionCooker.getIsEnabled();
+    indObj["TOPIC"] = inductionCooker.getTopic();
+    indObj["PL"] = inductionCooker.getPowerLevelOnError();
+    DEBUG_MSG("Induction: %d MQTT: %s Relais (WHITE): %s, Command channel (YELLOW): %s, Backchannel (BLUE): %s, PlOnErr: %d\n", inductionCooker.getIsEnabled(), inductionCooker.getTopic().c_str(), PinToString(inductionCooker.getPinWhite()).c_str(), PinToString(inductionCooker.getPinYellow()).c_str(), PinToString(inductionCooker.getPinInterrupt()).c_str(), inductionCooker.getPowerLevelOnError());
   }
   else
   {

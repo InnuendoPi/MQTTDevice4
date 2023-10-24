@@ -36,7 +36,7 @@ void pageCallback2()
 
 void powerButtonCallback()
 {
-  inductionCooker.induction_state = !inductionCooker.induction_state;
+  inductionCooker.setInductionState(!inductionCooker.getInductionState());
 }
 
 void tickerDispCallback()
@@ -120,16 +120,15 @@ void tickerSenCallback() // Timer Objekt Sensoren
         yield();
       }
 
-      if (!inductionCooker.induction_state)
+      if (!inductionCooker.getInductionState())
       {
-        DEBUG_MSG("EM SenOK: Induction power: %d powerLevelOnError: %d powerLevelBeforeError: %d\n", inductionCooker.power, inductionCooker.powerLevelOnError, inductionCooker.powerLevelBeforeError);
-        if (!inductionCooker.induction_state)
+        DEBUG_MSG("EM SenOK: Induction power: %d powerLevelOnError: %d powerLevelBeforeError: %d\n", inductionCooker.getPower(), inductionCooker.getPowerLevelOnError(), inductionCooker.getPowerLevelBeforeError());
+        if (!inductionCooker.getInductionState())
         {
-          inductionCooker.newPower = inductionCooker.powerLevelBeforeError;
-          inductionCooker.isInduon = true;
-          inductionCooker.induction_state = true;
+          inductionCooker.setNewPower(inductionCooker.getPowerLevelBeforeError());
+          inductionCooker.setisInduon(true);
+          inductionCooker.setInductionState(true);
           inductionCooker.Update();
-          DEBUG_MSG("EM SenOK: Induction restore old value: %d\n", inductionCooker.newPower);
           lastSenInd = 0; // Delete induction timestamp after event
         }
       }
@@ -188,7 +187,7 @@ void tickerSenCallback() // Timer Objekt Sensoren
           }
           if (millis() - lastSenInd >= wait_on_Sensor_error_induction) // Wait bevor Event handling
           {
-            if (inductionCooker.isInduon && inductionCooker.powerLevelOnError < 100 && inductionCooker.induction_state)
+            if (inductionCooker.getisInduon() && inductionCooker.getPowerLevelOnError() < 100 && inductionCooker.getInductionState())
             {
               inductionCooker.indERR();
             }
