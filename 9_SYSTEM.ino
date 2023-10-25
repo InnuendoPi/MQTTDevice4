@@ -102,6 +102,7 @@ void setTicker()
   TickerSen.config(tickerSenCallback, SEN_UPDATE, 0);
   TickerAct.config(tickerActCallback, ACT_UPDATE, 0);
   TickerInd.config(tickerIndCallback, IND_UPDATE, 0);
+  TickerPUBSUB.config(tickerPUBSUBCallback, tickerPUSUB, 0);
   TickerMQTT.config(tickerMQTTCallback, tickerMQTT, 0);
   TickerDisp.config(tickerDispCallback, DISP_UPDATE, 0);
   TickerMQTT.stop();
@@ -412,31 +413,31 @@ void EM_MQTTSUBSCRIBE() // MQTT subscribe
   }
 }
 
-void EM_MQTTUPDATE()
-{
-  if (pubsubClient.connected())
-  {
-    mqtt_state = true;
-    pubsubClient.loop();
-    if (TickerMQTT.state() == RUNNING)
-      TickerMQTT.stop();
+// void EM_MQTTUPDATE()
+// {
+//   if (pubsubClient.connected())
+//   {
+//     mqtt_state = true;
+//     pubsubClient.loop();
+//     if (TickerMQTT.state() == RUNNING)
+//       TickerMQTT.stop();
 
-    return;
-  }
-  else
-  {
-    if (TickerMQTT.state() != RUNNING)
-    {
-      DEBUG_MSG("%s\n", "MQTT not connected - TickerMQTT started");
-      DEBUG_MSG("pubdubClient error rc=%d \n", pubsubClient.state());
-      // mqtt_state = false;
-      TickerMQTT.start();
-      mqttconnectlasttry = millis();
-      miscSSE();
-    }
-    TickerMQTT.update();
-  }
-}
+//     return;
+//   }
+//   else
+//   {
+//     if (TickerMQTT.state() != RUNNING)
+//     {
+//       DEBUG_MSG("%s\n", "MQTT not connected - TickerMQTT started");
+//       DEBUG_MSG("pubdubClient error rc=%d \n", pubsubClient.state());
+//       // mqtt_state = false;
+//       TickerMQTT.start();
+//       mqttconnectlasttry = millis();
+//       miscSSE();
+//     }
+//     TickerMQTT.update();
+//   }
+// }
 
 void EM_MQTTRESTORE() // restore saved values after reconnect MQTT
 {

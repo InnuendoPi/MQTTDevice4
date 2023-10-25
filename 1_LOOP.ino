@@ -1,9 +1,9 @@
 void loop()
 {
+  server.handleClient();              // Webserver handle
   if (WiFi.status() == WL_CONNECTED)
   {
-    server.handleClient();              // Webserver handle
-    EM_MQTTUPDATE();                  // MQTT handle
+    TickerPUBSUB.update();            // Ticker PubSubClient
     if (timeClient.update())
       Serial.printf("*** SYSINFO: %s\n", timeClient.getFormattedTime().c_str());
     if (startMDNS)                    // mDNS handle

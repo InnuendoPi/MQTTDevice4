@@ -139,6 +139,7 @@ bool devBranch = false;           // Check out development branch
 
 // Event handling Zeitintervall für Reconnects MQTT
 #define tickerMQTT 10000 // für Ticker Objekt MQTT in ms
+#define tickerPUSUB 50   // Ticker PubSubClient
 uint8_t wlanStatus = 0;
 
 // Event handling Standard Verzögerungen
@@ -151,10 +152,11 @@ InnuTicker TickerSen;
 InnuTicker TickerAct;
 InnuTicker TickerInd;
 InnuTicker TickerMQTT;
+InnuTicker TickerPUBSUB;
 InnuTicker TickerDisp;
 
 // Update Intervalle für Ticker Objekte
-#define SEN_UPDATE 1000  //  sensors update
+#define SEN_UPDATE 2000  //  sensors update
 #define ACT_UPDATE 2000  //  actors update
 #define IND_UPDATE 2000  //  induction update
 #define DISP_UPDATE 1000 //  display update

@@ -67,6 +67,7 @@ void setup()
       pins_used[D2] = true;
       nextion.begin(softSerial);
       // nextion.debug(Serial);
+      TickerDisp.start();
       initDisplay();
     }
     else
@@ -94,6 +95,7 @@ void setup()
   pubsubClient.setBufferSize(512);
   EM_MQTTCONNECT();
   EM_MQTTSUBSCRIBE();
+  TickerPUBSUB.start(); // PubSubClient loop ticker
   // webUpdate log
   EM_LOG();
 }

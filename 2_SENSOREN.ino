@@ -55,7 +55,7 @@ public:
       sens_state = true;
     }
     sens_err = sensorsStatus;
-    if (TickerMQTT.state() != RUNNING)
+    if (TickerPUBSUB.state() == RUNNING && TickerMQTT.state() != RUNNING)
       publishmqtt();
   } // void Update
 

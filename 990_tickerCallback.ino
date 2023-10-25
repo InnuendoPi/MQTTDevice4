@@ -92,7 +92,8 @@ void tickerSenCallback() // Timer Objekt Sensoren
     // all sensors ok
     lastSenInd = 0; // Delete induction timestamp after event
     lastSenAct = 0; // Delete actor timestamp after event
-    if (WiFi.status() == WL_CONNECTED && mqtt_state)
+    // if (WiFi.status() == WL_CONNECTED && mqtt_state)
+    if (WiFi.status() == WL_CONNECTED && TickerPUBSUB.state() == RUNNING && mqtt_state)
     {
       for (int i = 0; i < numberOfActors; i++)
       {
@@ -129,7 +130,8 @@ void tickerSenCallback() // Timer Objekt Sensoren
     // sensor unpluged
   case EM_SENER:
     // all other errors
-    if (WiFi.status() == WL_CONNECTED && mqtt_state)
+    // if (WiFi.status() == WL_CONNECTED && mqtt_state)
+    if (WiFi.status() == WL_CONNECTED && TickerPUBSUB.state() == RUNNING && mqtt_state)
     {
       for (int i = 0; i < numberOfSensors; i++)
       {
@@ -197,6 +199,32 @@ void tickerIndCallback() // Timer Objekt Sensoren
 {
   handleInduction();
   inductionSSE(false);
+}
+
+void tickerPUBSUBCallback() // Timer Objekt Sensoren
+{
+  if (pubsubClient.connected())
+  {
+    mqtt_state = true;
+    pubsubClient.loop();
+    if (TickerMQTT.state() == RUNNING)
+      TickerMQTT.stop();
+
+    return;
+  }
+  else
+  {
+    if (TickerMQTT.state() != RUNNING)
+    {
+      DEBUG_MSG("%s\n", "Ticker PubSub Error: TickerMQTT started");
+      DEBUG_MSG("Ticker PubSub error rc=%d \n", pubsubClient.state());
+      // mqtt_state = false;
+      TickerMQTT.start();
+      mqttconnectlasttry = millis();
+      miscSSE();
+    }
+    TickerMQTT.update();
+  }
 }
 
 void tickerMQTTCallback() // Ticker helper function calling Event MQTT Error
