@@ -44,7 +44,7 @@
 #endif
 
 // Version
-#define Version "4.56c"
+#define Version "4.56d"
 
 // System Dateien
 #define UPDATESYS "/updateSys.txt"
@@ -101,11 +101,11 @@ static const int8_t pins[NUMBEROFPINS] = {D0, D1, D2, D3, D4, D5, D6, D7, D8};
 
 // Variablen
 unsigned char numberOfSensors = 0; // Gesamtzahl der Sensoren
-#define numberOfSensorsMax 6       // Maximale Anzahl an Sensoren
-unsigned char addressesFound[numberOfSensorsMax][8];
+#define NUMBEROFSENSORSMAX 6       // Maximale Anzahl an Sensoren
+unsigned char addressesFound[NUMBEROFSENSORSMAX][8];
 #define DUTYCYLCE 5000      // Aktoren und HLT
-unsigned char numberOfActors = 0; // Gesamtzahl der Aktoren
-#define numberOfActorsMax 10      // Maximale Anzahl an Aktoren
+uint8_t numberOfActors = 0; // Gesamtzahl der Aktoren
+#define NUMBEROFACTORSMAX 10      // Maximale Anzahl an Aktoren
 #define maxHostSign 17
 #define maxUserSign 10
 #define maxPassSign 10
@@ -152,7 +152,6 @@ InnuTicker TickerSen;
 InnuTicker TickerAct;
 InnuTicker TickerInd;
 InnuTicker TickerMQTT;
-InnuTicker TickerPUBSUB;
 InnuTicker TickerDisp;
 
 // Update Intervalle für Ticker Objekte
@@ -175,7 +174,6 @@ int inductionStatus = 0;
 
 // FSBrowser
 File fsUploadFile; // a File object to temporarily store the received file
-
 
 // Display Nextion
 bool useDisplay = false;

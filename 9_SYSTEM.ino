@@ -1,6 +1,5 @@
 void millis2wait(const int &value)
 {
-  // DEBUG_MSG("SYS: millis2wait %d\n", value);
   unsigned long pause = millis();
   while (millis() < pause + value)
   {
@@ -9,7 +8,6 @@ void millis2wait(const int &value)
 }
 void micros2wait(const int &value)
 {
-  // DEBUG_MSG("SYS: millis2wait %d\n", value);
   unsigned long pause = micros();
   while (micros() < pause + value)
   {
@@ -105,7 +103,6 @@ void setTicker()
   TickerAct.config(tickerActCallback, ACT_UPDATE, 0);
   TickerInd.config(tickerIndCallback, IND_UPDATE, 0);
   TickerMQTT.config(tickerMQTTCallback, tickerMQTT, 0);
-  TickerPUBSUB.config(tickerPUBSUBCallback, tickerPUSUB, 0);
   TickerDisp.config(tickerDispCallback, DISP_UPDATE, 0);
   TickerMQTT.stop();
   TickerDisp.start();
@@ -327,7 +324,6 @@ void EM_LOG()
 
 void EM_MDNSET() // MDNS setup
 {
-  // if (startMDNS && nameMDNS[0] != '\0' && WiFi.status() == WL_CONNECTED)
   if (startMDNS)
   {
     if (mdns.begin(nameMDNS))
@@ -346,7 +342,7 @@ void EM_REBOOT() // Reboot ESP
     {
       actors[i].setIsOn(false);
       actors[i].Update();
-      DEBUG_MSG("EM ACTER: Aktor: %s  switched off\n", actors[i].name_actor.c_str());
+      DEBUG_MSG("EM ACTER: Aktor: %s  switched off\n", actors[i].getActorName().c_str());
     }
     yield();
   }
@@ -363,9 +359,8 @@ void EM_REBOOT() // Reboot ESP
   ESP.restart();
 }
 
-void onWifiConnect(const WiFiEventStationModeGotIP &event)
+void EM_WIFICONNECT(const WiFiEventStationModeGotIP &event)
 {
-  // Serial.println("onWifiConnect to Wi-Fi sucessfully.");
   if (wlanStatus > 0)
   {
     wifiManager.setConnectTimeout(30); // 30sek Timeout für WIFI_STA Modus. Anschließend AP Mode
@@ -373,17 +368,14 @@ void onWifiConnect(const WiFiEventStationModeGotIP &event)
   }
 }
 
-void onWifiDisconnect(const WiFiEventStationModeDisconnected &event)
+void EM_WIFIDISCONNECT(const WiFiEventStationModeDisconnected &event)
 {
-  // Serial.println("onWifiDisconnect");
   if (wlanStatus == 0)
     wifiManager.setConnectTimeout(300); // 30sek Timeout für WIFI_STA Modus. Anschließend AP Mode
-  // Serial.printf("*** SYSINFO: onWifiDisconnect from Wi-Fi, trying to connect #%d\n", wlanStatus);
   wlanStatus++;
-  // wiFi.getMode();
 }
 
-void EM_MQTTCON() // MQTT connect
+void EM_MQTTCONNECT() // MQTT connect
 {
   if (WiFi.status() == WL_CONNECTED) // kein wlan = kein mqtt
   {
@@ -394,7 +386,7 @@ void EM_MQTTCON() // MQTT connect
   }
 }
 
-void EM_MQTTSUB() // MQTT subscribe
+void EM_MQTTSUBSCRIBE() // MQTT subscribe
 {
   if (pubsubClient.connected())
   {
@@ -421,11 +413,36 @@ void EM_MQTTSUB() // MQTT subscribe
   }
 }
 
-void EM_MQTTRES() // restore saved values after reconnect MQTT
+void EM_MQTTUPDATE()
 {
   if (pubsubClient.connected())
   {
-    // wlan_state = true;
+    mqtt_state = true;
+    pubsubClient.loop();
+    if (TickerMQTT.state() == RUNNING)
+      TickerMQTT.stop();
+
+    return;
+  }
+  else
+  {
+    if (TickerMQTT.state() != RUNNING)
+    {
+      DEBUG_MSG("%s\n", "MQTT not connected - TickerMQTT started");
+      DEBUG_MSG("pubdubClient error rc=%d \n", pubsubClient.state());
+      // mqtt_state = false;
+      TickerMQTT.start();
+      mqttconnectlasttry = millis();
+      miscSSE();
+    }
+    TickerMQTT.update();
+  }
+}
+
+void EM_MQTTRESTORE() // restore saved values after reconnect MQTT
+{
+  if (pubsubClient.connected())
+  {
     mqtt_state = true;
     for (int i = 0; i < numberOfActors; i++)
     {
@@ -433,30 +450,30 @@ void EM_MQTTRES() // restore saved values after reconnect MQTT
       {
         DEBUG_MSG("EM MQTTRES: %s isOnBeforeError: %d Powerlevel: %d\n", actors[i].getActorName().c_str(), actors[i].getIsOnBeforeError(), actors[i].getActorPower());
         actors[i].setIsOn(actors[i].getIsOnBeforeError());
-        actors[i].setActorState(true); // Sensor ok
+        actors[i].setActorState(true);
         actors[i].Update();
       }
       yield();
     }
     if (!inductionCooker.getInductionState())
     {
-      DEBUG_MSG("EM MQTTRES: Induction power: %d powerLevelOnError: %d powerLevelBeforeError: %d\n", inductionCooker.power, inductionCooker.powerLevelOnError, inductionCooker.powerLevelBeforeError);
+      DEBUG_MSG("EM MQTTRES: Induction power: %d powerLevelOnError: %d powerLevelBeforeError: %d\n", inductionCooker.getPower(), inductionCooker.getPowerLevelOnError(), inductionCooker.getPowerLevelBeforeError());
       inductionCooker.setNewPower(inductionCooker.getPowerLevelBeforeError());
       inductionCooker.setisInduon(true);
-      inductionCooker.setInductionState(true); // Induction ok
+      inductionCooker.setInductionState(true);
       inductionCooker.Update();
       DEBUG_MSG("EM MQTTRES: Induction restore old value: %d\n", inductionCooker.getNewPower());
     }
   }
 }
 
-void EM_MQTTER() // MQTT Error -> handling
+void EM_MQTTERROR() // MQTT Error -> handling
 {
   if (pubsubClient.connect(mqtt_clientid, mqttuser, mqttpass))
   {
     DEBUG_MSG("%s", "MQTT auto reconnect successful. Subscribing..\n");
-    EM_MQTTSUB();
-    EM_MQTTRES();
+    EM_MQTTSUBSCRIBE();
+    EM_MQTTRESTORE();
     miscSSE();
     return;
   }

@@ -1,14 +1,3 @@
-// void pageCallback()
-// {
-//   if (startBuzzer)
-//     sendAlarm(ALARM_INFO);
-
-//   // currentPageID bei Event Touch nicht aktuell
-//   // activePage = nextion.currentPageID;
-
-//   TickerDisp.updatenow();
-// }
-
 void pageCallback0()
 {
   if (startBuzzer)
@@ -87,7 +76,6 @@ void tickerDispCallback()
     KettlePage();
     break;
   case 2: // Induction mode
-    // DEBUG_MSG("Ticker: dispCallback InductionPage activePage: %d\n", activePage);
     strlcpy(structKettles[0].current_temp, sensors[0].getTotalValueString(), maxTempSign);
     p2uhrzeit_text.attribute("txt", uhrzeit);
     InductionPage();
@@ -104,8 +92,7 @@ void tickerSenCallback() // Timer Objekt Sensoren
     // all sensors ok
     lastSenInd = 0; // Delete induction timestamp after event
     lastSenAct = 0; // Delete actor timestamp after event
-    // if (WiFi.status() == WL_CONNECTED && pubsubClient.connected() && mqtt_state)
-    if (WiFi.status() == WL_CONNECTED && TickerPUBSUB.state() == RUNNING && mqtt_state)
+    if (WiFi.status() == WL_CONNECTED && mqtt_state)
     {
       for (int i = 0; i < numberOfActors; i++)
       {
@@ -142,9 +129,7 @@ void tickerSenCallback() // Timer Objekt Sensoren
     // sensor unpluged
   case EM_SENER:
     // all other errors
-    // if (WiFi.status() == WL_CONNECTED && pubsubClient.connected() && mqtt_state)
-    if (WiFi.status() == WL_CONNECTED && TickerPUBSUB.state() == RUNNING && mqtt_state)
-    // if (WiFi.status() == WL_CONNECTED && !mqttoff && mqtt_state)
+    if (WiFi.status() == WL_CONNECTED && mqtt_state)
     {
       for (int i = 0; i < numberOfSensors; i++)
       {
@@ -214,32 +199,6 @@ void tickerIndCallback() // Timer Objekt Sensoren
   inductionSSE(false);
 }
 
-void tickerPUBSUBCallback() // Timer Objekt Sensoren
-{
-  if (pubsubClient.connected())
-  {
-    mqtt_state = true;
-    pubsubClient.loop();
-    if (TickerMQTT.state() == RUNNING)
-      TickerMQTT.stop();
-
-    return;
-  }
-  else
-  {
-    if (TickerMQTT.state() != RUNNING)
-    {
-      DEBUG_MSG("%s\n", "Ticker PubSub Error: TickerMQTT started");
-      DEBUG_MSG("Ticker PubSub error rc=%d \n", pubsubClient.state());
-      mqtt_state = false;
-      TickerMQTT.start();
-      mqttconnectlasttry = millis();
-      miscSSE();
-    }
-    TickerMQTT.update();
-  }
-}
-
 void tickerMQTTCallback() // Ticker helper function calling Event MQTT Error
 {
   if (TickerMQTT.counter() == 1)
@@ -280,5 +239,5 @@ void tickerMQTTCallback() // Ticker helper function calling Event MQTT Error
       break;
     }
   }
-  EM_MQTTER();
+  EM_MQTTERROR();
 }

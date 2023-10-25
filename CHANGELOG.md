@@ -2,14 +2,17 @@
 
 Version 4.56
 
-- Fix:        Display flicker
+- Fix:        Event on MQTT error
+- Fix:        Debug output
+- Fix:        Display flicker BrewPage actual temperature when CBPi4 ID not set
 - Fix:        Refactor Web Server parsing-impl.h #9005
-- added:      WiFi events
+- added:      WiFi core events
 - Changed:    WebUpdate
 - Fix:        File explorer
 - Removed:    PCF8574 support (I2C) - OOM
 - Removed:    TickerNTP (save mem)
 - Removed:    TickerWLAN (save mem)
+- Removed:    TickerPubSub (save mem)
 - Changed:    sensor class (getter/setter)
 - Changed:    actor class (getter/setter)
 - Changed:    induction class (getter/setter)

@@ -83,7 +83,6 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
       if (actors[i].getActorTopic() == topic)
       {
         actors[i].handlemqtt(payload_msg);
-        // Serial.printf("Actor payload received %s\n", actors[i].argument_actor.c_str());
         return;
       }
     }
@@ -100,28 +99,24 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
     p = strstr(topic, kettleupdate);
     if (p)
     {
-      DEBUG_MSG("%s\n", "Web: kettleupdate");
       cbpi4kettle_handlemqtt(payload_msg);
       return;
     }
     p = strstr(topic, stepupdate);
     if (p)
     {
-      DEBUG_MSG("%s\n", "Web: stepsupdate");
       cbpi4steps_handlemqtt(payload_msg);
       return;
     }
     p = strstr(topic, notificationupdate);
     if (p)
     {
-      DEBUG_MSG("%s\n", "Web: notificationupdate");
       cbpi4notification_handlemqtt(payload_msg);
       return;
     }
     p = strstr(topic, sensorupdate);
     if (p)
     {
-      DEBUG_MSG("%s\n", "Web: sensorupdate");
       cbpi4sensor_handlemqtt(payload_msg);
       return;
     }
@@ -133,7 +128,6 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
     p = strstr(topic, notificationupdate);
     if (p)
     {
-      DEBUG_MSG("%s\n", "Web: notificationupdate mqttBuzzer");
       cbpi4notification_handlemqtt(payload_msg);
       return;
     }
@@ -155,10 +149,6 @@ void handleRequestMisc2()
 
   serializeJson(doc, response);
   server.send(200, FPSTR("application/json"), response.c_str());
-  // size_t len = measureJson(doc);
-  // int memoryUsed = doc.memoryUsage();
-  // DEBUG_MSG("WEB Misc2 JSON config length: %d\n", len);
-  // DEBUG_MSG("WEB Misc2 JSON memory usage: %d\n", memoryUsed);
 }
 
 void handleRequestMiscAlert()
@@ -195,10 +185,6 @@ void handleRequestMisc()
   String response;
   serializeJson(doc, response);
   server.send(200, FPSTR("application/json"), response.c_str());
-  // size_t len = measureJson(doc);
-  // int memoryUsed = doc.memoryUsage();
-  // DEBUG_MSG("WEB Misc JSON config length: %d\n", len);
-  // DEBUG_MSG("WEB Misc JSON memory usage: %d\n", memoryUsed);
 }
 
 void handleRequestFirm()

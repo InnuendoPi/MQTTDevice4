@@ -1,4 +1,3 @@
-// 2827c59d0d0000b1
 class TemperatureSensor
 {
   int8_t sens_err = 0;
@@ -56,7 +55,7 @@ public:
       sens_state = true;
     }
     sens_err = sensorsStatus;
-    if (TickerPUBSUB.state() == RUNNING && TickerMQTT.state() != RUNNING)
+    if (TickerMQTT.state() != RUNNING)
       publishmqtt();
   } // void Update
 
@@ -162,7 +161,6 @@ public:
   }
   char *getValueString()
   {
-    // dtostrf(sens_value, 2, 1, buf);
     dtostrf(sens_value, -1, 1, buf);
     return buf;
   }
@@ -179,7 +177,6 @@ public:
     else
     {
       sprintf(buf, "%s", "0.0");
-      // dtostrf((round((calcOffset() - 0.05) * 10) / 10.0), 2, 1, buf);
       dtostrf((round((calcOffset() - 0.04) * 10) / 10.0), -1, 1, buf);
     }
     return buf;
@@ -213,7 +210,7 @@ public:
 };
 
 // Initialisierung des Arrays -> max 6 Sensoren
-TemperatureSensor sensors[numberOfSensorsMax] = {
+TemperatureSensor sensors[NUMBEROFSENSORSMAX] = {
     TemperatureSensor("", "", "", "", 0.0, 0.0, false),
     TemperatureSensor("", "", "", "", 0.0, 0.0, false),
     TemperatureSensor("", "", "", "", 0.0, 0.0, false),
@@ -301,8 +298,8 @@ void handleSetSensor()
   if (id == -1)
   {
     id = numberOfSensors;
-    numberOfSensors += 1;
-    if (numberOfSensors >= numberOfSensorsMax)
+    numberOfSensors++;
+    if (numberOfSensors >= NUMBEROFSENSORSMAX)
       return;
   }
 
@@ -357,7 +354,7 @@ void handleDelSensor()
   int8_t id = server.arg(0).toInt();
   for (uint8_t i = id; i < numberOfSensors; i++)
   {
-    if (i == (numberOfSensorsMax - 1)) // 5 - Array von 0 bis (numberOfSensorsMax-1)
+    if (i == (NUMBEROFSENSORSMAX - 1)) // 5 - Array von 0 bis (NUMBEROFSENSORSMAX-1)
     {
       sensors[i].change("", "", "", "", 0.0, 0.0, false);
     }
@@ -424,8 +421,6 @@ void handleRequestSensors()
         sensorsObj["value"] = "DER";
       else if (sensors[i].getErr() == EM_UNPL)
         sensorsObj["value"] = "UNP";
-      // else if (sensors[i].getErr() == EM_SENER)
-      //   sensorsObj["value"] = "ERR";
       else
         sensorsObj["value"] = "ERR";
 

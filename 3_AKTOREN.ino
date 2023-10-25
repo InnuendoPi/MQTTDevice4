@@ -180,7 +180,7 @@ public:
   {
     isOnBeforeError = val;
   }
-  uint8_t getPinActor()
+  int8_t getPinActor()
   {
     return pin_actor;
   }
@@ -195,7 +195,7 @@ public:
 };
 
 // Initialisierung des Arrays max 10
-Actor actors[numberOfActorsMax] = {
+Actor actors[NUMBEROFACTORSMAX] = {
     Actor(9, "", "", false, false),
     Actor(9, "", "", false, false),
     Actor(9, "", "", false, false),
@@ -259,7 +259,6 @@ void handleRequestActors()
       actorsObj["ison"] = actors[i].getIsOn();
       actorsObj["power"] = actors[i].getActorPower();
       actorsObj["mqtt"] = actors[i].getActorTopic();
-      // actorsObj["pin"] = PinToString(actors[i].pin_actor);
       actorsObj["pin"] = actors[i].getPinActor();
       actorsObj["sw"] = actors[i].getActorSwitch();
       actorsObj["state"] = actors[i].getActorState();
@@ -286,8 +285,8 @@ void handleSetActor()
   if (id == -1)
   {
     id = numberOfActors;
-    numberOfActors += 1;
-    if (numberOfActors >= numberOfActorsMax)
+    numberOfActors++;
+    if (numberOfActors >= NUMBEROFACTORSMAX)
       return;
   }
 
@@ -340,7 +339,7 @@ void handleDelActor()
 
   for (uint8_t i = id; i < numberOfActors; i++)
   {
-    if (i == (numberOfActorsMax - 1)) // 5 - Array von 0 bis (numberOfActorsMax-1)
+    if (i == (NUMBEROFACTORSMAX - 1)) // 5 - Array von 0 bis (NUMBEROFACTORSMAX-1)
     {
       actors[i].change(9, "", "", false, false);
     }
@@ -385,7 +384,7 @@ void handlereqPins()
   server.send(200, FPSTR("text/plain"), message.c_str());
 }
 
-unsigned char StringToPin(String pinstring)
+int8_t StringToPin(String pinstring)
 {
   const String pin_names[NUMBEROFPINS] = {"D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8"};
   for (uint8_t i = 0; i < NUMBEROFPINS; i++)
@@ -398,7 +397,7 @@ unsigned char StringToPin(String pinstring)
   return 9;
 }
 
-String PinToString(unsigned char pinbyte)
+String PinToString(int8_t pinbyte)
 {
   const String pin_names[NUMBEROFPINS] = {"D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8"};
   for (uint8_t i = 0; i < NUMBEROFPINS; i++)
@@ -411,7 +410,7 @@ String PinToString(unsigned char pinbyte)
   return "NaN";
 }
 
-bool isPin(unsigned char pinbyte)
+bool isPin(int8_t pinbyte)
 {
   bool returnValue = false;
   for (uint8_t i = 0; i < NUMBEROFPINS; i++)

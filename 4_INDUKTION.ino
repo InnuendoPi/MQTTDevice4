@@ -22,7 +22,7 @@ class induction
   unsigned long lastInterrupt;
   unsigned long lastCommand;
   bool inputStarted = false;
-  unsigned char inputCurrent = 0;
+  uint8_t inputCurrent = 0;
   unsigned char inputBuffer[33];
   long powerSampletime = 20000;
   unsigned long powerLast;
@@ -49,7 +49,6 @@ class induction
   uint8_t PWR_STEPS[6] = {0, 20, 40, 60, 80, 100};
 
 public:
-  
   induction()
   {
     setupCommands();
@@ -360,7 +359,7 @@ public:
       Update();
     }
   }
-    int8_t getPinWhite()
+  int8_t getPinWhite()
   {
     return PIN_WHITE;
   }
@@ -508,10 +507,6 @@ void handleRequestInduction()
   String response;
   serializeJson(doc, response);
   server.send(200, FPSTR("application/json"), response.c_str());
-  // size_t len = measureJson(doc);
-  // int memoryUsed = doc.memoryUsage();
-  // DEBUG_MSG("Ind JSON config length: %d\n", len);
-  // DEBUG_MSG("Ind JSON memory usage: %d\n", memoryUsed);
 }
 
 void handleRequestIndu()
@@ -522,7 +517,7 @@ void handleRequestIndu()
   if (request == "pins")
   {
     int8_t id = server.arg(1).toInt();
-    unsigned char pinswitched;
+    int8_t pinswitched;
     switch (id)
     {
     case 0:

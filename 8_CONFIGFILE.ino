@@ -40,7 +40,6 @@ bool loadConfig()
   DEBUG_MSG("Switch off actors on MQTT error: %d after %d sec\n", StopOnMQTTError, (wait_on_error_mqtt / 1000));
 
   startBuzzer = miscObj["buzzer"] | 0;
-  // DEBUG_MSG("Buzzer: %d\n", startBuzzer);
   if (startBuzzer)
     mqttBuzzer = miscObj["mqbuz"] | 0;
   else
@@ -56,31 +55,25 @@ bool loadConfig()
 
   strlcpy(nameMDNS, miscObj["mdns_name"] | "", maxHostSign);
   startMDNS = miscObj["mdns"] | 0;
-  // useI2C = miscObj["i2c"] | 0;
   DEBUG_MSG("mDNS: %d name: %s\n", startMDNS, nameMDNS);
   strlcpy(mqtthost, miscObj["MQTTHOST"] | "", maxHostSign);
   strlcpy(mqttuser, miscObj["MQTTUSER"] | "", maxUserSign);
   strlcpy(mqttpass, miscObj["MQTTPASS"] | "", maxPassSign);
   mqttport = miscObj["MQTTPORT"] | 1883;
   DEBUG_MSG("MQTT server IP: %s Port: %d User: %s Pass: %s\n", mqtthost, mqttport, mqttuser, mqttpass);
-
-  // if (useI2C)
-  //   numberOfPins = ALLPINS;
-  // else
-  //   numberOfPins = GPIOPINS;
   DEBUG_MSG("%s\n", "--------------------");
 
   // read actors
   JsonArray actorsArray = doc["actors"];
   numberOfActors = actorsArray.size();
-  if (numberOfActors > numberOfActorsMax)
-    numberOfActors = numberOfActorsMax;
+  if (numberOfActors > NUMBEROFACTORSMAX)
+    numberOfActors = NUMBEROFACTORSMAX;
   int i = 0;
   for (JsonObject actorObj : actorsArray)
   {
     if (i < numberOfActors)
     {
-      actors[i].change(actorObj["PIN"], actorObj["SCRIPT"], actorObj["NAME"], actorObj["INV"], actorObj["SW"]);
+      actors[i].change(StringToPin(actorObj["PIN"]), actorObj["SCRIPT"], actorObj["NAME"], actorObj["INV"], actorObj["SW"]);
       DEBUG_MSG("Actor #: %d Name: %s MQTT: %s PIN: %s INV: %d SW: %d\n", (i + 1), actorObj["NAME"].as<const char *>(), actorObj["SCRIPT"].as<const char *>(), actorObj["PIN"].as<const char *>(), actorObj["INV"].as<int>(), actorObj["SW"].as<int>());
       i++;
     }
@@ -96,14 +89,14 @@ bool loadConfig()
   JsonArray sensorsArray = doc["sensors"];
   numberOfSensors = sensorsArray.size();
 
-  if (numberOfSensors > numberOfSensorsMax)
-    numberOfSensors = numberOfSensorsMax;
+  if (numberOfSensors > NUMBEROFSENSORSMAX)
+    numberOfSensors = NUMBEROFSENSORSMAX;
   i = 0;
   for (JsonObject sensorsObj : sensorsArray)
   {
     if (i < numberOfSensors)
     {
-      sensors[i].change(sensorsObj["ADDRESS"] | "", sensorsObj["SCRIPT"] | "", sensorsObj["NAME"] | "", sensorsObj["CBPIID"] | "", sensorsObj["OFFSET1"] | 0.0, sensorsObj["OFFSET2"] | 0.0, sensorsObj["SW"] | 0);
+      sensors[i].change(sensorsObj["ADDRESS"], sensorsObj["SCRIPT"], sensorsObj["NAME"], sensorsObj["CBPIID"], sensorsObj["OFFSET1"], sensorsObj["OFFSET2"], sensorsObj["SW"]);
       DEBUG_MSG("Sensor #: %d Name: %s Address: %s MQTT: %s CBPi-ID: %s Offset1: %.02f Offset2: %.02f SW: %d\n", (i + 1), sensorsObj["NAME"].as<const char *>(), sensorsObj["ADDRESS"].as<const char *>(), sensorsObj["SCRIPT"].as<const char *>(), sensorsObj["CBPIID"].as<const char *>(), sensorsObj["OFFSET1"].as<float>(), sensorsObj["OFFSET2"].as<float>(), sensorsObj["SW"].as<int>());
       i++;
     }
@@ -119,8 +112,9 @@ bool loadConfig()
   inductionStatus = inductionCooker.getIsEnabled();
   if (inductionStatus)
   {
-    inductionCooker.change(StringToPin(indObj["PINWHITE"]), StringToPin(indObj["PINYELLOW"]), StringToPin(indObj["PINBLUE"]), indObj["TOPIC"] | "", true, indObj["PL"] | 100);
+    inductionCooker.change(StringToPin(indObj["PINWHITE"]), StringToPin(indObj["PINYELLOW"]), StringToPin(indObj["PINBLUE"]), indObj["TOPIC"], true, indObj["PL"]);
     DEBUG_MSG("Induction: %d MQTT: %s Relais (WHITE): %s, Command channel (YELLOW): %s, Backchannel (BLUE): %s, PlOnErr: %d\n", inductionStatus, indObj["TOPIC"].as<const char *>(), indObj["PINWHITE"].as<const char *>(), indObj["PINYELLOW"].as<const char *>(), indObj["PINBLUE"].as<const char *>(), indObj["PL"].as<int>());
+    
   }
   else
   {
@@ -135,10 +129,10 @@ bool loadConfig()
   if (numberOfSensors > 0) // Ticker Sensors
     TickerSen.start();
 
-  if (numberOfActors > 0) // Ticker Sensors
+  if (numberOfActors > 0) // Ticker Actors
     TickerAct.start();
 
-  if (inductionStatus > 0) // Induktion
+  if (inductionStatus > 0) // Ticker Induction
     TickerInd.start();
 
   DEBUG_MSG("Config file size %d\n", size);
@@ -147,11 +141,6 @@ bool loadConfig()
   int memoryUsed = doc.memoryUsage();
   DEBUG_MSG("JSON memory usage: %d\n", memoryUsed);
   DEBUG_MSG("%s\n", "--------------------");
-
-  // if (useI2C)
-  //   numberOfPins = ALLPINS;
-  // else
-  //   numberOfPins = GPIOPINS;
 
   if (startBuzzer)
   {
@@ -184,13 +173,12 @@ bool saveConfig()
   for (int i = 0; i < numberOfActors; i++)
   {
     JsonObject actorsObj = actorsArray.createNestedObject();
-    // actorsObj["PIN"] = PinToString(actors[i].pin_actor);
-    actorsObj["PIN"] = actors[i].getPinActor();
+    actorsObj["PIN"] = PinToString(actors[i].getPinActor());
     actorsObj["NAME"] = actors[i].getActorName();
     actorsObj["SCRIPT"] = actors[i].getActorTopic();
     actorsObj["INV"] = (int)actors[i].getInverted();
     actorsObj["SW"] = (int)actors[i].getActorSwitch();
-    DEBUG_MSG("Actor #: %d Name: %s MQTT: %s PIN: %s INV: %d SW: %d\n", (i + 1), actors[i].getActorName().c_str(), actors[i].getActorTopic().c_str(), PinToString(actors[i].getPinActor()).c_str(), actors[i].getInverted(), actors[i].getActorSwitch());
+    DEBUG_MSG("Actor #: %d Name: %s MQTT: %s PIN: %s INV: %d SW: %d\n", (i + 1), actors[i].getActorName().c_str(), actors[i].getActorTopic().c_str(), PinToString(actors[i].getPinActor()), actors[i].getInverted(), actors[i].getActorSwitch());
   }
   if (numberOfActors == 0)
   {
@@ -210,7 +198,7 @@ bool saveConfig()
     sensorsObj["SCRIPT"] = sensors[i].getSensorTopic();
     sensorsObj["CBPIID"] = sensors[i].getId();
     sensorsObj["SW"] = (int)sensors[i].getSensorSwitch();
-    DEBUG_MSG("Sensor #: %d Name: %s Address: %s MQTT: %s CBPi-ID: %s Offset1: %f Offset2: %f SW: %d\n", (i + 1), sensors[i].getSensorName().c_str(), sensors[i].getSens_adress_string().c_str(), sensors[i].getSensorTopic().c_str(), sensors[i].getId().c_str(), sensors[i].getOffset1(), sensors[i].getOffset2(), sensors[i].getSensorSwitch());
+    DEBUG_MSG("Sensor #: %d Name: %s Address: %s MQTT: %s CBPi-ID: %s Offset1: %.02f Offset2: %.02f SW: %d\n", (i + 1), sensors[i].getSensorName().c_str(), sensors[i].getSens_adress_string().c_str(), sensors[i].getSensorTopic().c_str(), sensors[i].getId().c_str(), sensors[i].getOffset1(), sensors[i].getOffset2(), sensors[i].getSensorSwitch());
   }
 
   DEBUG_MSG("%s\n", "--------------------");
@@ -232,7 +220,7 @@ bool saveConfig()
   else
   {
     inductionStatus = 0;
-    DEBUG_MSG("Induction: %d\n", inductionCooker.isEnabled);
+    DEBUG_MSG("Induction: %d\n", inductionCooker.getIsEnabled());
   }
 
   DEBUG_MSG("%s\n", "--------------------");
@@ -264,7 +252,6 @@ bool saveConfig()
 
   miscObj["mdns_name"] = nameMDNS;
   miscObj["mdns"] = (int)startMDNS;
-  // miscObj["i2c"] = (int)useI2C;
   miscObj["MQTTHOST"] = mqtthost;
   miscObj["MQTTPORT"] = mqttport;
   miscObj["MQTTUSER"] = mqttuser;
@@ -273,9 +260,6 @@ bool saveConfig()
 
   DEBUG_MSG("MQTT broker IP: %s Port: %d User: %s Pass: %s\n", mqtthost, mqttport, mqttuser, mqttpass);
   DEBUG_MSG("%s\n", "--------------------");
-
-  // size_t len = measureJson(doc);
-  // int memoryUsed = doc.memoryUsage();
 
   if (measureJson(doc) > 2048 || doc.memoryUsage() > 2500)
   {
@@ -304,12 +288,7 @@ bool saveConfig()
   DEBUG_MSG("JSON config length: %d\n", measureJson(doc));
   DEBUG_MSG("JSON memory usage: %d\n", doc.memoryUsage());
   DEBUG_MSG("%s\n", "------ saveConfig finished ------");
-
-  // if (useI2C)
-  //   numberOfPins = ALLPINS;
-  // else
-  //   numberOfPins = GPIOPINS;
-  DEBUG_MSG("Maximum number of pins: %d\n", numberOfPins);
+  DEBUG_MSG("Maximum number of pins: %d\n", NUMBEROFPINS);
   DEBUG_MSG("Free heap memory: %d\n", ESP.getFreeHeap());
 
   if (numberOfSensors > 0) // Ticker Sensors
@@ -345,8 +324,6 @@ bool saveConfig()
     }
   }
 
-  TickerPUBSUB.start();
-
   String Network = WiFi.SSID();
   DEBUG_MSG("ESP8266 device IP Address: %s\n", WiFi.localIP().toString().c_str());
   DEBUG_MSG("Configured WLAN SSID: %s\n", Network.c_str());
@@ -358,8 +335,6 @@ bool saveConfig()
     digitalWrite(PIN_BUZZER, LOW);
     sendAlarm(ALARM_ON);
   }
-
   DEBUG_MSG("%s\n", "---------------------------------");
-
   return true;
 }

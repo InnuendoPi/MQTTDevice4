@@ -10,8 +10,8 @@ void setup()
   snprintf(mqtt_clientid, maxHostSign, "ESP8266-%08X", ESP.getChipId());
   Serial.printf("\n*** SYSINFO: start up MQTTDevice - device ID: %s\n", mqtt_clientid);
   // WLAN Events
-  wifiConnectHandler = WiFi.onStationModeGotIP(onWifiConnect);
-  wifiDisconnectHandler = WiFi.onStationModeDisconnected(onWifiDisconnect);
+  wifiConnectHandler = WiFi.onStationModeGotIP(EM_WIFICONNECT);
+  wifiDisconnectHandler = WiFi.onStationModeDisconnected(EM_WIFIDISCONNECT);
 
   wifiManager.setDebugOutput(false);
   wifiManager.setMinimumSignalQuality(10);
@@ -92,10 +92,10 @@ void setup()
 
   // MQTT
   pubsubClient.setBufferSize(512);
-  EM_MQTTCON();
-  EM_MQTTSUB();
-  TickerPUBSUB.start(); // PubSubClient loop ticker
-  EM_LOG();             // webUpdate log
+  EM_MQTTCONNECT();
+  EM_MQTTSUBSCRIBE();
+  // webUpdate log
+  EM_LOG();
 }
 
 void setupServer()
@@ -125,7 +125,6 @@ void setupServer()
   server.on("/reqFirm", handleRequestFirm);       // Firmware version
   server.on("/setMisc", handleSetMisc);           // Misc ändern
   server.on("/startHTTPUpdate", startHTTPUpdate); // Firmware WebUpdate
-  // server.on("/startToolsUpdate", startToolsUpdate); // Firmware WebUpdate
   server.on("/channel", handleChannel);       // Server Sent Events will be handled from this URI
   server.on("/startSSE", startSSE);           // Server Sent Events will be handled from this URI
   server.on("/checkAliveSSE", checkAliveSSE); // Server Sent Events check IP on channel
