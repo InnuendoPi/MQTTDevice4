@@ -100,7 +100,7 @@ bool pins_used[17]; // GPIO
 static const int8_t pins[NUMBEROFPINS] = {D0, D1, D2, D3, D4, D5, D6, D7, D8};
 
 // Variablen
-unsigned char numberOfSensors = 0; // Gesamtzahl der Sensoren
+uint8_t numberOfSensors = 0; // Gesamtzahl der Sensoren
 #define NUMBEROFSENSORSMAX 6       // Maximale Anzahl an Sensoren
 unsigned char addressesFound[NUMBEROFSENSORSMAX][8];
 #define DUTYCYLCE 5000      // Aktoren und HLT
@@ -139,7 +139,6 @@ bool devBranch = false;           // Check out development branch
 
 // Event handling Zeitintervall für Reconnects MQTT
 #define tickerMQTT 10000 // für Ticker Objekt MQTT in ms
-#define tickerPUSUB 10   // Ticker PubSubClient
 uint8_t wlanStatus = 0;
 
 // Event handling Standard Verzögerungen

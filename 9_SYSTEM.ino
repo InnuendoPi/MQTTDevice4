@@ -105,7 +105,6 @@ void setTicker()
   TickerMQTT.config(tickerMQTTCallback, tickerMQTT, 0);
   TickerDisp.config(tickerDispCallback, DISP_UPDATE, 0);
   TickerMQTT.stop();
-  TickerDisp.start();
 }
 
 void checkSummerTime()
@@ -354,7 +353,7 @@ void EM_REBOOT() // Reboot ESP
     inductionCooker.setisInduon(false);
     inductionCooker.Update();
   }
-  server.send_P(205, "text/plain", "reboot");
+  server.send(205, FPSTR("text/plain"), "reboot");
   LittleFS.end(); // unmount LittleFS
   ESP.restart();
 }

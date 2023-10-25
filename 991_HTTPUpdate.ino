@@ -220,38 +220,34 @@ void updateTools()
 }
 void updateSys()
 {
-    timeClient.update();
     char line[120];
-    if (LittleFS.exists(UPDATESYS))
-    {
-        fsUploadFile = LittleFS.open(LOGUPDATESYS, "r");
+    fsUploadFile = LittleFS.open(LOGUPDATESYS, "r");
 
-        int anzahlVersuche = 0;
-        if (fsUploadFile)
-        {
-            char anzahlV = char(fsUploadFile.read()) - '0';
-            anzahlVersuche = (int)anzahlV;
-        }
-        fsUploadFile.close();
-        if (anzahlVersuche > 3)
-        {
-            LittleFS.remove(UPDATESYS);
-            Serial.println("*** SYSINFO: ERROR update firmware");
-            return;
-        }
-        fsUploadFile = LittleFS.open(LOGUPDATESYS, "w");
-        anzahlVersuche++;
-        int bytesWritten = fsUploadFile.print(anzahlVersuche);
-        fsUploadFile.close();
-        Serial.printf("*** SYSINFO: WebUpdate firmware #%d started - free heap: %d\n", anzahlVersuche, ESP.getFreeHeap());
-        if (anzahlVersuche == 1)
-            bool check = LittleFS.remove(UPDATELOG);
-        sprintf(line, "WebUpdate firmware #%d started - free heap: %d", anzahlVersuche, ESP.getFreeHeap());
-        debugLog(UPDATELOG, line);
-        sprintf(line, "Firmware Version: %s", Version);
-        debugLog(UPDATELOG, line);
-        upFirm();
+    int anzahlVersuche = 0;
+    if (fsUploadFile)
+    {
+        char anzahlV = char(fsUploadFile.read()) - '0';
+        anzahlVersuche = (int)anzahlV;
     }
+    fsUploadFile.close();
+    if (anzahlVersuche > 3)
+    {
+        LittleFS.remove(UPDATESYS);
+        Serial.println("*** SYSINFO: ERROR update firmware");
+        return;
+    }
+    fsUploadFile = LittleFS.open(LOGUPDATESYS, "w");
+    anzahlVersuche++;
+    int bytesWritten = fsUploadFile.print(anzahlVersuche);
+    fsUploadFile.close();
+    Serial.printf("*** SYSINFO: WebUpdate firmware #%d started - free heap: %d\n", anzahlVersuche, ESP.getFreeHeap());
+    if (anzahlVersuche == 1)
+        bool check = LittleFS.remove(UPDATELOG);
+    sprintf(line, "WebUpdate firmware #%d started - free heap: %d", anzahlVersuche, ESP.getFreeHeap());
+    debugLog(UPDATELOG, line);
+    sprintf(line, "Firmware Version: %s", Version);
+    debugLog(UPDATELOG, line);
+    upFirm();
 }
 
 void startHTTPUpdate()
