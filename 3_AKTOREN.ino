@@ -434,7 +434,7 @@ void actERR()
       actors[i].setIsOn(false);
       actors[i].setActorState(false);
       actors[i].Update();
-      DEBUG_MSG("ACT ERR Aktor: %s : %d isOnBeforeError: %d\n", actors[i].getActorName().c_str(), actors[i].getActorState(), actors[i].getIsOnBeforeError());
+      DEBUG_MSG("ACT MQTT event handling - actor: %s state: %d isOnBeforeError: %d\n", actors[i].getActorName().c_str(), actors[i].getActorState(), actors[i].getIsOnBeforeError());
     }
     yield();
   }

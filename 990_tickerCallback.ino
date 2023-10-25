@@ -210,6 +210,7 @@ void tickerPUBSUBCallback() // Timer Objekt Sensoren
     if (TickerMQTT.state() == RUNNING)
       TickerMQTT.stop();
 
+
     return;
   }
   else
@@ -217,8 +218,6 @@ void tickerPUBSUBCallback() // Timer Objekt Sensoren
     if (TickerMQTT.state() != RUNNING)
     {
       DEBUG_MSG("%s\n", "Ticker PubSub Error: TickerMQTT started");
-      DEBUG_MSG("Ticker PubSub error rc=%d \n", pubsubClient.state());
-      mqtt_state = false;
       TickerMQTT.start();
       mqttconnectlasttry = millis();
       miscSSE();

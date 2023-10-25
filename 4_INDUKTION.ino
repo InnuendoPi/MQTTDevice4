@@ -348,7 +348,7 @@ public:
     if (isInduon && powerLevelOnError < 100 && induction_state) // powerlevelonerror == 100 -> kein event handling
     {
       powerLevelBeforeError = power;
-      DEBUG_MSG("IND ERR: Induktion powerlevel: %d reduce power to: %d\n", power, powerLevelOnError);
+      DEBUG_MSG("IND MQTT event handling induction - power level: %d event power level: %d\n", power, powerLevelOnError);
       if (powerLevelOnError == 0)
         isInduon = false;
       else
