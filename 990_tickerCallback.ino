@@ -218,7 +218,7 @@ void tickerPUBSUBCallback() // Timer Objekt Sensoren
     {
       DEBUG_MSG("%s\n", "Ticker PubSub Error: TickerMQTT started");
       DEBUG_MSG("Ticker PubSub error rc=%d \n", pubsubClient.state());
-      // mqtt_state = false;
+      mqtt_state = false;
       TickerMQTT.start();
       mqttconnectlasttry = millis();
       miscSSE();
