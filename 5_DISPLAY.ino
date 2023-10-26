@@ -1,6 +1,8 @@
 void initDisplay()
 {
-
+  // BrewPage:    max 4 Kettels mit Temepratur und Ziel
+  // KettlePage:  Kessel an Sensor ID 0 (IDS2 MaischeSud)
+  
   // register callback functions
   p0ForButton.touch(pageCallback1);         // BrewPage forward to KettlePage
   p0BackButton.touch(pageCallback2);        // BrewPage backward to InductionPage
@@ -56,7 +58,10 @@ void BrewPage()
   if (strlen(structKettles[0].id) > 0)
   {
     kettleName1_text.attribute("txt", structKettles[0].name);
-    kettleSoll1_text.attribute("txt", structKettles[0].target_temp);
+    if (sensors[0].getId() != "")
+      kettleSoll1_text.attribute("txt", structKettles[0].target_temp);
+    else
+      kettleSoll1_text.attribute("txt", "na");
     kettleIst1_text.attribute("txt", structKettles[0].current_temp);
   }
   else
@@ -65,19 +70,28 @@ void BrewPage()
   if (strlen(structKettles[1].id) > 0)
   {
     kettleName2_text.attribute("txt", structKettles[1].name);
-    kettleSoll2_text.attribute("txt", structKettles[1].target_temp);
+    if (sensors[1].getId() != "")
+      kettleSoll2_text.attribute("txt", structKettles[1].target_temp);
+    else
+      kettleSoll2_text.attribute("txt", "na");
     kettleIst2_text.attribute("txt", structKettles[1].current_temp);
   }
   if (strlen(structKettles[2].id) > 0)
   {
     kettleName3_text.attribute("txt", structKettles[2].name);
-    kettleSoll3_text.attribute("txt", structKettles[2].target_temp);
+    if (sensors[2].getId() != "")
+      kettleSoll3_text.attribute("txt", structKettles[2].target_temp);
+    else
+      kettleSoll3_text.attribute("txt", "na");
     kettleIst3_text.attribute("txt", structKettles[2].current_temp);
   }
   if (strlen(structKettles[3].id) > 0)
   {
     kettleName4_text.attribute("txt", structKettles[3].name);
-    kettleSoll4_text.attribute("txt", structKettles[3].target_temp);
+    if (sensors[3].getId() != "")
+      kettleSoll4_text.attribute("txt", structKettles[3].target_temp);
+    else
+      kettleSoll4_text.attribute("txt", "na");
     kettleIst4_text.attribute("txt", structKettles[3].current_temp);
   }
   progress.value(sliderval);
@@ -88,27 +102,29 @@ void KettlePage()
 {
   if (strlen(structKettles[0].sensor) != 0)
   {
-    bool check = false;
-    for (uint8_t i = 0; i < maxKettles; i++)
+    if (sensors[0].getId() != "")
     {
-      if (strcmp(structKettles[i].sensor, sensors[0].getId().c_str()) == 0)
+      for (uint8_t i = 0; i < maxKettles; i++)
       {
-        p1temp_text.attribute("txt", structKettles[i].current_temp);
-        p1target_text.attribute("txt", structKettles[i].target_temp);
-        check = true;
-        break;
+        if (strcmp(structKettles[i].sensor, sensors[0].getId().c_str()) == 0)
+        {
+          p1temp_text.attribute("txt", structKettles[i].current_temp);
+          p1target_text.attribute("txt", structKettles[i].target_temp);
+
+          break;
+        }
       }
     }
-    if (!check)
+    else
     {
       p1temp_text.attribute("txt", structKettles[0].current_temp);
-      p1target_text.attribute("txt", structKettles[0].target_temp);
+      p1target_text.attribute("txt", "na");
     }
   }
   else
   {
     p1temp_text.attribute("txt", structKettles[0].current_temp);
-    p1target_text.attribute("txt", "0");
+    p1target_text.attribute("txt", "na");
   }
 
   p1current_text.attribute("txt", currentStepName);
