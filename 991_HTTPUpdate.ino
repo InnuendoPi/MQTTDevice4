@@ -94,25 +94,25 @@ void upFirm()
     //     clientup.setCertStore(&certStore);
     // }
     char line[120];
-    bool mfln = clientup.probeMaxFragmentLength("raw.githubusercontent.com", 443, MAXFRAGLEN);
-    if (mfln)
-    {
-        clientup.setBufferSizes(MAXFRAGLEN, MAXFRAGLEN);
-    }
-    if (clientup.connect("raw.githubusercontent.com", 443))
-    {
-        sprintf(line, "MFLN Status: %s - connected", clientup.getMFLNStatus() ? "true" : "false");
-        debugLog(UPDATELOG, line);
-    }
-    else
-    {
-        sprintf(line, "MFLN Status: %s - unable to connect", clientup.getMFLNStatus() ? "true" : "false");
-        debugLog(UPDATELOG, line);
-        LittleFS.end(); // unmount LittleFS
-        millis2wait(100);
-        ESP.restart();
-        return;
-    }
+    // bool mfln = clientup.probeMaxFragmentLength("raw.githubusercontent.com", 443, MAXFRAGLEN);
+    // if (mfln)
+    // {
+    //     clientup.setBufferSizes(MAXFRAGLEN, MAXFRAGLEN);
+    // }
+    // if (clientup.connect("raw.githubusercontent.com", 443))
+    // {
+    //     sprintf(line, "MFLN Status: %s - connected", clientup.getMFLNStatus() ? "true" : "false");
+    //     debugLog(UPDATELOG, line);
+    // }
+    // else
+    // {
+    //     sprintf(line, "MFLN Status: %s - unable to connect", clientup.getMFLNStatus() ? "true" : "false");
+    //     debugLog(UPDATELOG, line);
+    //     LittleFS.end(); // unmount LittleFS
+    //     millis2wait(100);
+    //     ESP.restart();
+    //     return;
+    // }
 
     ESPhttpUpdate.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
     ESPhttpUpdate.onEnd(update_finished);
@@ -178,22 +178,22 @@ void updateTools()
             sprintf(line, "Firmware Version: %s", Version);
             debugLog(UPDATELOG, line);
         }
-        bool mfln = clientup.probeMaxFragmentLength("raw.githubusercontent.com", 443, MAXFRAGLEN);
-        if (mfln)
-        {
-            clientup.setBufferSizes(MAXFRAGLEN, MAXFRAGLEN);
-        }
-        if (clientup.connect("raw.githubusercontent.com", 443))
-        {
-            sprintf(line, "MFLN Status: %s - connected", clientup.getMFLNStatus() ? "true" : "false");
-            debugLog(UPDATELOG, line);
-        }
-        else
-        {
-            sprintf(line, "MFLN Status: %s - unable to connect", clientup.getMFLNStatus() ? "true" : "false");
-            debugLog(UPDATELOG, line);
-            return;
-        }
+        // bool mfln = clientup.probeMaxFragmentLength("raw.githubusercontent.com", 443, MAXFRAGLEN);
+        // if (mfln)
+        // {
+        //     clientup.setBufferSizes(MAXFRAGLEN, MAXFRAGLEN);
+        // }
+        // if (clientup.connect("raw.githubusercontent.com", 443))
+        // {
+        //     sprintf(line, "MFLN Status: %s - connected", clientup.getMFLNStatus() ? "true" : "false");
+        //     debugLog(UPDATELOG, line);
+        // }
+        // else
+        // {
+        //     sprintf(line, "MFLN Status: %s - unable to connect", clientup.getMFLNStatus() ? "true" : "false");
+        //     debugLog(UPDATELOG, line);
+        //     return;
+        // }
         bool test;
         if (LittleFS.exists(DEVBRANCH))
         {

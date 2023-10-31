@@ -45,7 +45,7 @@ bool loadConfig()
   else
     mqttBuzzer = false;
   DEBUG_MSG("Buzzer: %d mqttBuzzer: %d\n", startBuzzer, mqttBuzzer);
-  
+
   senRes = miscObj["res"] | 0;
   useDisplay = miscObj["display"] | 0;
   startPage = miscObj["page"] | 0;
@@ -114,7 +114,6 @@ bool loadConfig()
   {
     inductionCooker.change(StringToPin(indObj["PINWHITE"]), StringToPin(indObj["PINYELLOW"]), StringToPin(indObj["PINBLUE"]), indObj["TOPIC"], true, indObj["PL"]);
     DEBUG_MSG("Induction: %d MQTT: %s Relais (WHITE): %s, Command channel (YELLOW): %s, Backchannel (BLUE): %s, PlOnErr: %d\n", inductionStatus, indObj["TOPIC"].as<const char *>(), indObj["PINWHITE"].as<const char *>(), indObj["PINYELLOW"].as<const char *>(), indObj["PINBLUE"].as<const char *>(), indObj["PL"].as<int>());
-    
   }
   else
   {
@@ -134,6 +133,19 @@ bool loadConfig()
 
   if (inductionStatus > 0) // Ticker Induction
     TickerInd.start();
+
+  if (!useDisplay) // Ticker Display
+    TickerDisp.stop();
+  else
+  {
+    softSerial.begin(9600, SWSERIAL_8N1, D1, D2, false);
+    DEBUG_MSG("SoftwareSerial init %d\n", int(softSerial));
+    pins_used[D1] = true;
+    pins_used[D2] = true;
+    nextion.begin(softSerial);
+    initDisplay();
+    TickerDisp.start();
+  }
 
   DEBUG_MSG("Config file size %d\n", size);
   size_t len = measureJson(doc);
@@ -310,18 +322,13 @@ bool saveConfig()
     TickerDisp.stop();
   else
   {
-    if (TickerDisp.state() != RUNNING)
-    {
-      if (!softSerial)
-        softSerial.begin(9600, SWSERIAL_8N1, D1, D2, false);
-
-      DEBUG_MSG("SoftwareSerial init %d\n", int(softSerial));
-      pins_used[D1] = true;
-      pins_used[D2] = true;
-      nextion.begin(softSerial);
-      initDisplay();
-      TickerDisp.start();
-    }
+    softSerial.begin(9600, SWSERIAL_8N1, D1, D2, false);
+    DEBUG_MSG("SoftwareSerial init %d\n", int(softSerial));
+    pins_used[D1] = true;
+    pins_used[D2] = true;
+    nextion.begin(softSerial);
+    initDisplay();
+    TickerDisp.start();
   }
 
   String Network = WiFi.SSID();

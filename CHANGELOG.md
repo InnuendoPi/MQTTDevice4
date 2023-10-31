@@ -2,6 +2,8 @@
 
 Version 4.56
 
+- Fix:        Bootreihenfolge Treiber Display
+- Fix:        Bootreihenfolge Treiber DS18B20
 - Fix:        Event on MQTT error
 - Fix:        Debug output
 - Fix:        Display flicker BrewPage actual temperature when CBPi4 ID not set

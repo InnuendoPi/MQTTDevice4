@@ -45,7 +45,7 @@
 #endif
 
 // Version
-#define Version "4.56e"
+#define Version "4.56f"
 
 // System Dateien
 #define UPDATESYS "/updateSys.txt"
@@ -56,7 +56,7 @@
 #define DEVBRANCH "/dev.txt"
 #define CERT "/ce.rts"
 #define CONFIG "/config.txt"
-#define MAXFRAGLEN 1024
+// #define MAXFRAGLEN 1024
 
 // Definiere Pausen
 #define PAUSE1SEC 1000

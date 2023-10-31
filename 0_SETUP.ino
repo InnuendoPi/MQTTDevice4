@@ -46,6 +46,10 @@ void setup()
     // Erstelle Ticker Objekte
     setTicker();
 
+    // Starte Sensoren
+    DS18B20.begin();
+    pins_used[ONE_WIRE_BUS] = true;
+
     if (LittleFS.exists(CONFIG)) // Lade Konfiguration
       loadConfig();
     else
@@ -56,34 +60,6 @@ void setup()
 
   // Starte Webserver
   setupServer();
-
-  if (useDisplay)
-  {
-    softSerial.begin(9600, SWSERIAL_8N1, D1, D2, false);
-    if (softSerial)
-    {
-      Serial.println("*** SYSINFO: SoftwareSerial init successful");
-      pins_used[D1] = true;
-      pins_used[D2] = true;
-      nextion.begin(softSerial);
-      // nextion.debug(Serial);
-      TickerDisp.start();
-      initDisplay();
-    }
-    else
-    {
-      Serial.println("*** SYSINFO: SoftwareSerial init error");
-      if (startBuzzer)
-      {
-        sendAlarm(ALARM_ERROR);
-      }
-    }
-  }
-  // Pinbelegung
-  pins_used[ONE_WIRE_BUS] = true;
-
-  // Starte Sensoren
-  DS18B20.begin();
 
   // Starte mDNS
   if (startMDNS)
@@ -112,24 +88,24 @@ void setupServer()
   server.on("/reqActors", handleRequestActors);   // Liste der Aktoren ausgeben
   server.on("/reqInduction", handleRequestInduction);
   server.on("/reqSearchSensorAdresses", handleRequestSensorAddresses);
-  server.on("/reqPins", handlereqPins);           // GPIO Pins actors
-  server.on("/reqPages", handleRequestPages);     // Display page
-  server.on("/reqIndu", handleRequestIndu);       // Induction für WebConfig
-  server.on("/setSensor", handleSetSensor);       // Sensor ändern
-  server.on("/setActor", handleSetActor);         // Aktor ändern
-  server.on("/setIndu", handleSetIndu);           // Indu ändern
-  server.on("/delSensor", handleDelSensor);       // Sensor löschen
-  server.on("/delActor", handleDelActor);         // Aktor löschen
-  server.on("/reboot", rebootDevice);             // reboots the whole Device
-  server.on("/reqMisc", handleRequestMisc);       // Misc Infos für WebConfig
-  server.on("/reqMisc2", handleRequestMisc2);     // Misc Infos für WebConfig
+  server.on("/reqPins", handlereqPins);               // GPIO Pins actors
+  server.on("/reqPages", handleRequestPages);         // Display page
+  server.on("/reqIndu", handleRequestIndu);           // Induction für WebConfig
+  server.on("/setSensor", handleSetSensor);           // Sensor ändern
+  server.on("/setActor", handleSetActor);             // Aktor ändern
+  server.on("/setIndu", handleSetIndu);               // Indu ändern
+  server.on("/delSensor", handleDelSensor);           // Sensor löschen
+  server.on("/delActor", handleDelActor);             // Aktor löschen
+  server.on("/reboot", rebootDevice);                 // reboots the whole Device
+  server.on("/reqMisc", handleRequestMisc);           // Misc Infos für WebConfig
+  server.on("/reqMisc2", handleRequestMisc2);         // Misc Infos für WebConfig
   server.on("/reqMiscAlert", handleRequestMiscAlert); // Misc Alert WebUpdate
-  server.on("/reqFirm", handleRequestFirm);       // Firmware version
-  server.on("/setMisc", handleSetMisc);           // Misc ändern
-  server.on("/startHTTPUpdate", startHTTPUpdate); // Firmware WebUpdate
-  server.on("/channel", handleChannel);       // Server Sent Events will be handled from this URI
-  server.on("/startSSE", startSSE);           // Server Sent Events will be handled from this URI
-  server.on("/checkAliveSSE", checkAliveSSE); // Server Sent Events check IP on channel
+  server.on("/reqFirm", handleRequestFirm);           // Firmware version
+  server.on("/setMisc", handleSetMisc);               // Misc ändern
+  server.on("/startHTTPUpdate", startHTTPUpdate);     // Firmware WebUpdate
+  server.on("/channel", handleChannel);               // Server Sent Events will be handled from this URI
+  server.on("/startSSE", startSSE);                   // Server Sent Events will be handled from this URI
+  server.on("/checkAliveSSE", checkAliveSSE);         // Server Sent Events check IP on channel
   // FSBrowser initialisieren
   server.on("/edit", HTTP_GET, handleGetEdit);
   server.on("/status", HTTP_GET, handleStatus);
