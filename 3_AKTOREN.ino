@@ -285,7 +285,7 @@ void handleSetActor()
   {
     id = numberOfActors;
     numberOfActors++;
-    if (numberOfActors >= NUMBEROFACTORSMAX)
+    if (numberOfActors > NUMBEROFACTORSMAX)
       return;
   }
 

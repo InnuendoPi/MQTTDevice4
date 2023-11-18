@@ -2,8 +2,9 @@
 
 Version 4.56
 
-- New:        Added Max31865 Amplififer SPI support (PT100/PT1000 support) MOSI: D0 MISO: D1 SCLK: D2 CS: D4
-- New:        Added PT100/1000 sensor - please configure only one single PT100x sensor
+- New:        Added Max31865 Amplififer SPI support (PT100/PT1000 support) MOSI: D0 MISO: D1 SCLK: D2 CS: D4/D5/D6
+- New:        Added PT100/1000 sensor support
+- Changed:    max number of sensors 3
 - Fix:        Remove last sensor/actor did not refresh WebIf table
 - Changed:    request sensor intervall (1000ms)
 - Fix:        Boot order driver Display

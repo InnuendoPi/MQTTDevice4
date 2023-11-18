@@ -47,7 +47,7 @@
 #endif
 
 // Version
-#define Version "4.56i"
+#define Version "4.56j"
 
 // System Dateien
 #define UPDATESYS "/updateSys.txt"
@@ -81,12 +81,17 @@ bool startSPI = false;
 #define SPI_MISO D1
 #define SPI_CLK D2
 #define CS0 D4
+#define CS1 D5
+#define CS2 D6
 #define RREF1000 4300.0     // PT1000
 #define RNOMINAL1000 1000.0 // PT1000
 #define RREF100 430.0       // PT100
 #define RNOMINAL100 100.0   // PT100
 
 Adafruit_MAX31865 pt_0 = Adafruit_MAX31865(CS0, SPI_MOSI, SPI_MISO, SPI_CLK);
+Adafruit_MAX31865 pt_1 = Adafruit_MAX31865(CS1, SPI_MOSI, SPI_MISO, SPI_CLK);
+Adafruit_MAX31865 pt_2 = Adafruit_MAX31865(CS2, SPI_MOSI, SPI_MISO, SPI_CLK);
+bool activePT_0 = false, activePT_1 = false, activePT_2 = false;
 // Adafruit_MAX31865 pt_0 = Adafruit_MAX31865(CS0);
 
 // WiFi und MQTT
@@ -119,7 +124,7 @@ static const int8_t pins[NUMBEROFPINS] = {D0, D1, D2, D3, D4, D5, D6, D7, D8};
 
 // Variablen
 uint8_t numberOfSensors = 0; // Gesamtzahl der Sensoren
-#define NUMBEROFSENSORSMAX 6 // Maximale Anzahl an Sensoren
+#define NUMBEROFSENSORSMAX 3 // Maximale Anzahl an Sensoren
 unsigned char addressesFound[NUMBEROFSENSORSMAX][8];
 #define DUTYCYLCE 5000       // Aktoren und HLT
 uint8_t numberOfActors = 0;  // Gesamtzahl der Aktoren

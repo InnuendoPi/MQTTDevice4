@@ -15,6 +15,7 @@ class TemperatureSensor
   char buf[8];
   uint8_t sens_type = 0; // 0 := DS18B20, 1 := PT100, 2 := PT1000
   uint8_t sens_pin = 0;  // 0 := 2-Leiter, 1 := 3-Leiter, 2 := 4-Leiter
+  int8_t sens_ptid = -1;
 
 public:
   TemperatureSensor(String new_address, String new_mqtttopic, String new_name, String new_id, float new_offset1, float new_offset2, bool new_sw, uint8_t new_type, uint8_t new_pin)
@@ -25,43 +26,81 @@ public:
   void Update()
   {
     if (sens_type == 0)
+    {
       sens_value = DS18B20.getTempC(sens_address);
-    else if (sens_type == 1)
-      sens_value = pt_0.temperature(RNOMINAL100, RREF100);
-    else if (sens_type == 2)
-      sens_value = pt_0.temperature(RNOMINAL1000, RREF1000);
-    sensorsStatus = 0;
-    sens_state = true;
+      // sensorsStatus = 0;
+      // sens_state = true;
 
-    if (OneWire::crc8(sens_address, 7) != sens_address[7])
-    {
-      sensorsStatus = EM_CRCER;
-      sens_state = false;
+      if (OneWire::crc8(sens_address, 7) != sens_address[7])
+      {
+        sensorsStatus = EM_CRCER;
+        sens_state = false;
+      }
+      else if (sens_value <= -127.0)
+      {
+        if (sens_isConnected && sens_address[0] != 0xFF) // Sensor connected AND sensor address exists (not default FF)
+        {
+          sensorsStatus = EM_DEVER;
+          sens_state = false;
+        }
+        else if (!sens_isConnected && sens_address[0] != 0xFF) // Sensor with valid address not connected
+        {
+          sensorsStatus = EM_UNPL;
+          sens_state = false;
+        }
+        else // not connected and unvalid address
+        {
+          sensorsStatus = EM_SENER;
+          sens_state = false;
+        }
+      } // sens_value -127
+      else
+      {
+        sensorsStatus = EM_OK;
+        sens_state = true;
+      }
+      sens_err = sensorsStatus;
     }
-    else if (sens_value <= -127.0)
+    else if (sens_type == 1)
     {
-      if (sens_isConnected && sens_address[0] != 0xFF) // Sensor connected AND sensor address exists (not default FF)
-      {
-        sensorsStatus = EM_DEVER;
-        sens_state = false;
-      }
-      else if (!sens_isConnected && sens_address[0] != 0xFF) // Sensor with valid address not connected
-      {
-        sensorsStatus = EM_UNPL;
-        sens_state = false;
-      }
-      else // not connected and unvalid address
+      sensorsStatus = 0;
+      sens_state = true;
+
+      if (sens_ptid == 0)
+        sens_value = pt_0.temperature(RNOMINAL100, RREF100);
+      else if (sens_ptid == 1)
+        sens_value = pt_1.temperature(RNOMINAL100, RREF100);
+      else if (sens_ptid == 2)
+        sens_value = pt_2.temperature(RNOMINAL100, RREF100);
+
+      if (sens_value > 200.0)
       {
         sensorsStatus = EM_SENER;
         sens_state = false;
       }
-    } // sens_value -127
-    else
-    {
-      sensorsStatus = EM_OK;
-      sens_state = true;
+      sens_err = sensorsStatus;
+      // Serial.printf("Sen Update value: %.03f type: %d id: %d\n", sens_value, sens_type, sens_ptid);
     }
-    sens_err = sensorsStatus;
+    else if (sens_type == 2)
+    {
+      sensorsStatus = 0;
+      sens_state = true;
+      if (sens_ptid == 0)
+        sens_value = pt_0.temperature(RNOMINAL1000, RREF1000);
+      else if (sens_ptid == 1)
+        sens_value = pt_1.temperature(RNOMINAL1000, RREF1000);
+      else if (sens_ptid == 2)
+        sens_value = pt_2.temperature(RNOMINAL1000, RREF1000);
+
+      if (sens_value > 200.0)
+      {
+        sensorsStatus = EM_SENER;
+        sens_state = false;
+      }
+      sens_err = sensorsStatus;
+      // Serial.printf("Sen Update value: %.03f type: %d id: %d\n", sens_value, sens_type, sens_ptid);
+    }
+
     if (TickerPUBSUB.state() == RUNNING && TickerMQTT.state() != RUNNING)
       publishmqtt();
   } // void Update
@@ -78,6 +117,7 @@ public:
     sens_pin = new_pin;
     if (sens_type == 0)
     {
+      sens_ptid = -1;
       if (new_address.length() == 16)
       {
         char address_char[20];
@@ -121,7 +161,12 @@ public:
       {
         sensorsObj["Value"] = sens_value;
       }
-      sensorsObj["Type"] = "1-wire";
+      if (sens_type == 1)
+        sensorsObj["Type"] = "PT100";
+      else if (sens_type == 2)
+        sensorsObj["Type"] = "PT1000";
+      else
+        sensorsObj["Type"] = "1-wire";
       char jsonMessage[100];
       serializeJson(doc, jsonMessage);
       pubsubClient.publish(sens_mqtttopic, jsonMessage);
@@ -196,7 +241,7 @@ public:
 
   float calcOffset()
   {
-    if (sens_value == -127.00)
+    if (sens_value == -127.00 || sens_value > 200.0)
       return sens_value;
     if (sens_offset1 == 0.0 && sens_offset2 == 0.0) // keine Kalibrierung
     {
@@ -231,15 +276,23 @@ public:
   {
     return sens_pin;
   }
+  void setSensPTid(int8_t val)
+  {
+    sens_ptid = val;
+  }
+  // int8_t getSensPTid()
+  // {
+  //   return sens_ptid;
+  // }
 };
 
 // Initialisierung des Arrays -> max 6 Sensoren
 TemperatureSensor sensors[NUMBEROFSENSORSMAX] = {
     TemperatureSensor("", "", "", "", 0.0, 0.0, false, 0, 0),
     TemperatureSensor("", "", "", "", 0.0, 0.0, false, 0, 0),
-    TemperatureSensor("", "", "", "", 0.0, 0.0, false, 0, 0),
-    TemperatureSensor("", "", "", "", 0.0, 0.0, false, 0, 0),
-    TemperatureSensor("", "", "", "", 0.0, 0.0, false, 0, 0),
+    // TemperatureSensor("", "", "", "", 0.0, 0.0, false, 0, 0),
+    // TemperatureSensor("", "", "", "", 0.0, 0.0, false, 0, 0),
+    // TemperatureSensor("", "", "", "", 0.0, 0.0, false, 0, 0),
     TemperatureSensor("", "", "", "", 0.0, 0.0, false, 0, 0)};
 
 // Funktion für Loop im Timer Objekt
@@ -274,6 +327,8 @@ void handleSensors(bool checkSen)
       sseObj["value"] = "DER";
     else if (sensors[i].getErr() == EM_UNPL)
       sseObj["value"] = "UNP";
+    else if (sensors[i].getErr() == EM_SENER)
+      sseObj["value"] = "ERR";
     yield();
   }
   sensorsStatus = max_status;
@@ -323,7 +378,7 @@ void handleSetSensor()
   {
     id = numberOfSensors;
     numberOfSensors++;
-    if (numberOfSensors >= NUMBEROFSENSORSMAX)
+    if (numberOfSensors > NUMBEROFSENSORSMAX)
       return;
   }
 
@@ -387,11 +442,11 @@ void handleSetSensor()
     }
     yield();
   }
-    server.send(200, FPSTR("text/plain"), "ok");
-    sensors[id].change(new_address, new_mqtttopic, new_name, new_id, new_offset1, new_offset2, new_sw, new_type, new_pin);
-    saveConfig();
-    setupPT();
-    handleSensors(true);
+  server.send(200, FPSTR("text/plain"), "ok");
+  sensors[id].change(new_address, new_mqtttopic, new_name, new_id, new_offset1, new_offset2, new_sw, new_type, new_pin);
+  saveConfig();
+  setupPT();
+  handleSensors(true);
 }
 
 void handleDelSensor()
@@ -558,23 +613,81 @@ void setupPT()
   // sens_pin 0 := 2-Leiter, 1 := 3-Leiter, 2 := 4-Leiter
   // Serial.printf("MOSI: %d/%s MISO: %d/%s CLK: %d/%s\n", SPI_MOSI, PinToString(SPI_MOSI).c_str(), SPI_MISO, PinToString(SPI_MISO).c_str(), SPI_CLK, PinToString(SPI_CLK).c_str());
   // Serial.printf("MOSI: %d MISO: %d CLK: %d SS: %d\n", MOSI, MISO, SCK, SS);
-    
+
   pins_used[SPI_MOSI] = true; // MAX31865
   pins_used[SPI_MISO] = true; // MAX31865
   pins_used[SPI_CLK] = true;  // MAX31865
-  pins_used[CS0] = true;      // MAX31865
+                              // pins_used[CS0] = true;      // MAX31865
 
   for (uint8_t i = 0; i < numberOfSensors; i++)
   {
-    if (sensors[i].getSensType() > 0)
+    if (sensors[i].getSensType() > 0) // PT100x?
     {
-      if (sensors[i].getSensPin() == 0)
-        pt_0.begin(MAX31865_2WIRE);
-      else if (sensors[i].getSensPin() == 1)
-        pt_0.begin(MAX31865_3WIRE);
-      else if (sensors[i].getSensPin() == 2)
-        pt_0.begin(MAX31865_4WIRE);
-      break;
+      switch (sensors[i].getSensPin())
+      {
+      case 0: // 2-cable
+        // Serial.printf("Pin 0: 2-cable Sensor: %d %s type: %d\n", i, sensors[i].getSensorName().c_str(), sensors[i].getSensType());
+        if (!activePT_0)
+        {
+          activePT_0 = pt_0.begin(MAX31865_2WIRE);
+          sensors[i].setSensPTid(0);
+        }
+        else if (!activePT_1)
+        {
+          activePT_1 = pt_1.begin(MAX31865_2WIRE);
+          sensors[i].setSensPTid(1);
+        }
+        else if (!activePT_2)
+        {
+          activePT_2 = pt_2.begin(MAX31865_2WIRE);
+          sensors[i].setSensPTid(2);
+        }
+        break;
+      case 1: // 3-cable
+        // Serial.printf("Pin 1: 3-cable Sensor: %d %s type: %d\n", i, sensors[i].getSensorName().c_str(), sensors[i].getSensType());
+        if (!activePT_0)
+        {
+          activePT_0 = pt_0.begin(MAX31865_3WIRE);
+          sensors[i].setSensPTid(0);
+        }
+        else if (!activePT_1)
+        {
+          activePT_1 = pt_1.begin(MAX31865_3WIRE);
+          sensors[i].setSensPTid(1);
+        }
+        else if (!activePT_2)
+        {
+          activePT_2 = pt_2.begin(MAX31865_3WIRE);
+          sensors[i].setSensPTid(2);
+        }
+        break;
+      case 2: // 4-cable
+        // Serial.printf("Pin 2: 4-cable Sensor: %d %s type: %d\n", i, sensors[i].getSensorName().c_str(), sensors[i].getSensType());
+        if (!activePT_0)
+        {
+          activePT_0 = pt_0.begin(MAX31865_4WIRE);
+          sensors[i].setSensPTid(0);
+        }
+        else if (!activePT_1)
+        {
+          activePT_1 = pt_1.begin(MAX31865_4WIRE);
+          sensors[i].setSensPTid(1);
+        }
+        else if (!activePT_2)
+        {
+          activePT_2 = pt_2.begin(MAX31865_4WIRE);
+          sensors[i].setSensPTid(2);
+        }
+        break;
+      }
     }
+    else
+      // Serial.printf("Dallas Sensor: %d %s type: %d\n", i, sensors[i].getSensorName().c_str(), sensors[i].getSensType());
+
+    pins_used[CS0] = activePT_0;
+    pins_used[CS1] = activePT_1;
+    pins_used[CS2] = activePT_2;
+
+    // Serial.printf("active PT100x Sensors: 0:%d 1:%d 2:%d\n", activePT_0, activePT_1, activePT_2);
   }
 }
