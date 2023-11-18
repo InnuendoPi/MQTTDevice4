@@ -218,8 +218,7 @@ bool saveConfig()
     sensorsObj["PIN"] = sensors[i].getSensPin();
     DEBUG_MSG("Sensor #: %d Name: %s Address: %s MQTT: %s CBPi-ID: %s Offset1: %.02f Offset2: %.02f SW: %d Typ: %d Pin: %d\n", (i + 1), sensors[i].getSensorName().c_str(), sensors[i].getSens_adress_string().c_str(), sensors[i].getSensorTopic().c_str(), sensors[i].getId().c_str(), sensors[i].getOffset1(), sensors[i].getOffset2(), sensors[i].getSensorSwitch(), sensors[i].getSensType(), , sensors[i].getSensPin());
   }
-  // if (startSPI && sensors[i].getSensType() > 0) // Max31865 aktiviert und Sensortyp PT100x
-  if (startSPI)
+  if (startSPI) // Max31865 aktiviert und Sensortyp PT100x
       setupPT();
 
   DEBUG_MSG("%s\n", "--------------------");

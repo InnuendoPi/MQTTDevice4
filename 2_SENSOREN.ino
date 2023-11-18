@@ -681,7 +681,7 @@ void setupPT()
         break;
       }
     }
-    else
+    // else
       // Serial.printf("Dallas Sensor: %d %s type: %d\n", i, sensors[i].getSensorName().c_str(), sensors[i].getSensType());
 
     pins_used[CS0] = activePT_0;
