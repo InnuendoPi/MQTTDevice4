@@ -145,6 +145,7 @@ void handleRequestMisc2()
     doc["mdns"] = nameMDNS;
   else
     doc["mdns"] = 0;
+
   String response;
 
   serializeJson(doc, response);
@@ -182,6 +183,22 @@ void handleRequestMisc()
   doc["dsa"] = wait_on_Sensor_error_actor / 1000;
   doc["dsi"] = wait_on_Sensor_error_induction / 1000;
   doc["s_mqtt"] = mqtt_state; // Anzeige MQTT Status -> mqtt_state verzögerter Status!
+  doc["spi"] = startSPI;
+  // const String spi_options[3] = {"off", "PT100", "PT1000"};
+  // String message;
+  // message = F("<option>");
+  // message += spi_options[startSPI];
+  // message += F("</option><option disabled>──────────</option>");
+  // for (uint8_t i = 0; i < 3; i++)
+  // {
+  //   if (i != startSPI)
+  //   {
+  //     message += F("<option>");
+  //     message += spi_options[i];
+  //     message += F("</option>");
+  //   }
+  // }
+  // doc["spi"] = message;
   String response;
   serializeJson(doc, response);
   server.send(200, FPSTR("application/json"), response.c_str());
@@ -323,6 +340,18 @@ void handleSetMisc()
         int16_t tmpVal = server.arg(i).toInt();
         wait_on_Sensor_error_induction = constrain(tmpVal, 1, 600) * 1000;
       }
+    }
+    if (server.argName(i) == "spi")
+    {
+      startSPI = checkBool(server.arg(i));
+      // {
+      //   if (server.arg(i).equals("PT100"))
+      //     startSPI = 1;
+      //   else if (server.arg(i).equals("PT1000"))
+      //     startSPI = 2;
+      //   else
+      //     startSPI = 0; // Aus
+      // }
     }
     yield();
   }

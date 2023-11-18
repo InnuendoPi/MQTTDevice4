@@ -79,41 +79,7 @@ void upFirm()
 {
     BearSSL::WiFiClientSecure clientup;
     clientup.setInsecure();
-    // BearSSL::CertStore certStore;
-    // int numCerts = certStore.initCertStore(LittleFS, PSTR("/certs.idx"), PSTR(CERT));
-    // if (numCerts == 0)
-    // {
-    //     sprintf(line, "CA certificates not found: %d - insecure SSL connection!", numCerts);
-    //     debugLog(UPDATELOG, line);
-    //     clientup.setInsecure();
-    // }
-    // else
-    // {
-    //     sprintf(line, "Number of CA certificates: %d - secure SSL connection", numCerts);
-    //     debugLog(UPDATELOG, line);
-    //     clientup.setCertStore(&certStore);
-    // }
     char line[120];
-    // bool mfln = clientup.probeMaxFragmentLength("raw.githubusercontent.com", 443, MAXFRAGLEN);
-    // if (mfln)
-    // {
-    //     clientup.setBufferSizes(MAXFRAGLEN, MAXFRAGLEN);
-    // }
-    // if (clientup.connect("raw.githubusercontent.com", 443))
-    // {
-    //     sprintf(line, "MFLN Status: %s - connected", clientup.getMFLNStatus() ? "true" : "false");
-    //     debugLog(UPDATELOG, line);
-    // }
-    // else
-    // {
-    //     sprintf(line, "MFLN Status: %s - unable to connect", clientup.getMFLNStatus() ? "true" : "false");
-    //     debugLog(UPDATELOG, line);
-    //     LittleFS.end(); // unmount LittleFS
-    //     millis2wait(100);
-    //     ESP.restart();
-    //     return;
-    // }
-
     ESPhttpUpdate.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
     ESPhttpUpdate.onEnd(update_finished);
     ESPhttpUpdate.onError(update_error);
@@ -134,20 +100,6 @@ void updateTools()
 {
     BearSSL::WiFiClientSecure clientup;
     clientup.setInsecure();
-    // BearSSL::CertStore certStore;
-    // int numCerts = certStore.initCertStore(LittleFS, PSTR("/certs.idx"), PSTR(CERT));
-    // if (numCerts == 0)
-    // {
-    //     sprintf(line, "CA certificates not found: %d - insecure SSL connection!", numCerts);
-    //     debugLog(UPDATELOG, line);
-    //     clientup.setInsecure();
-    // }
-    // else
-    // {
-    //     sprintf(line, "Number of CA certificates: %d - secure SSL connection", numCerts);
-    //     debugLog(UPDATELOG, line);
-    //     clientup.setCertStore(&certStore);
-    // }
     char line[120];
     if (LittleFS.exists(UPDATETOOLS))
     {
@@ -178,22 +130,6 @@ void updateTools()
             sprintf(line, "Firmware Version: %s", Version);
             debugLog(UPDATELOG, line);
         }
-        // bool mfln = clientup.probeMaxFragmentLength("raw.githubusercontent.com", 443, MAXFRAGLEN);
-        // if (mfln)
-        // {
-        //     clientup.setBufferSizes(MAXFRAGLEN, MAXFRAGLEN);
-        // }
-        // if (clientup.connect("raw.githubusercontent.com", 443))
-        // {
-        //     sprintf(line, "MFLN Status: %s - connected", clientup.getMFLNStatus() ? "true" : "false");
-        //     debugLog(UPDATELOG, line);
-        // }
-        // else
-        // {
-        //     sprintf(line, "MFLN Status: %s - unable to connect", clientup.getMFLNStatus() ? "true" : "false");
-        //     debugLog(UPDATELOG, line);
-        //     return;
-        // }
         bool test;
         if (LittleFS.exists(DEVBRANCH))
         {
@@ -201,7 +137,6 @@ void updateTools()
             test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "mqttdevice.min.css", clientup);
             test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "mqttdevice.min.js", clientup);
             test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "favicon.ico", clientup);
-            test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "ce.rts", clientup);
         }
         else
         {
@@ -209,7 +144,6 @@ void updateTools()
             test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "mqttdevice.min.css", clientup);
             test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "mqttdevice.min.js", clientup);
             test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "favicon.ico", clientup);
-            test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "ce.rts", clientup);
         }
 
         LittleFS.remove(UPDATETOOLS);

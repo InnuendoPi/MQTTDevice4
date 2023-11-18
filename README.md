@@ -13,17 +13,17 @@ A detailed documentation CraftbeerPi4 is available on github pages:: <https://op
 
 ## Sketch Information
 
-Libraries: Version 4.56, 10.2023
+Libraries: Version 4.56, 11.2023
 
 - ESP8266 3.1.2
 - Arduino IDE 1.8.19
-- VSCode 1.83 Arduino-CLI 0.34.2 modified ESP8266FS Plugin (LittleFS)
-- OneWire 2.3
-- DallasTemperature 3.9
-- PubSubClient 2.8
-- ArduinoJSON 6.21
-- WiFiManager 2.0
-- modified NextionX2 1.1.2
+- VSCode 1.84 Arduino-CLI 0.34.2 modified ESP8266FS Plugin (LittleFS)
+- OneWire
+- DallasTemperature
+- PubSubClient
+- ArduinoJSON
+- WiFiManager
+- modified NextionX2
 - InnuTicker
 - InnuFramework
 

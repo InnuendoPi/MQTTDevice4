@@ -2,16 +2,20 @@
 
 Version 4.56
 
-- Fix:        Bootreihenfolge Treiber Display
-- Fix:        Bootreihenfolge Treiber DS18B20
+- New:        Added Max31865 Amplififer SPI support (PT100/PT1000 support) MOSI: D0 MISO: D1 SCLK: D2 CS: D4
+- New:        Added PT100/1000 sensor - please configure only one single PT100x sensor
+- Fix:        Remove last sensor/actor did not refresh WebIf table
+- Changed:    request sensor intervall (1000ms)
+- Fix:        Boot order driver Display
+- Fix:        Boot order driver DS18B20
 - Fix:        Event on MQTT error
-- Fix:        Debug output
+- Fix:        remove debug output
 - Fix:        Display flicker BrewPage actual temperature when CBPi4 ID not set
 - Fix:        Refactor Web Server parsing-impl.h #9005
 - added:      WiFi core events
 - Changed:    WebUpdate
 - Fix:        File explorer
-- Removed:    PCF8574 support (I2C) - OOM
+- Removed:    PCF8574 support (I2C)
 - Removed:    TickerNTP (save mem)
 - Removed:    TickerWLAN (save mem)
 - Changed:    sensor class (getter/setter)

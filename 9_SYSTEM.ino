@@ -379,6 +379,7 @@ void EM_MQTTCONNECT() // MQTT connect
 {
   if (WiFi.status() == WL_CONNECTED) // kein wlan = kein mqtt
   {
+    pubsubClient.setBufferSize(512); // Display
     pubsubClient.setServer(mqtthost, mqttport);
     pubsubClient.setCallback(mqttcallback);
     pubsubClient.connect(mqtt_clientid, mqttuser, mqttpass);

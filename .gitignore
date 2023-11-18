@@ -4,7 +4,7 @@
 *.cmd
 *.exe
 *.psd
-*.ino
+*.ori
 *.old
 core
 preproc
@@ -28,7 +28,6 @@ test/
 web/
 Display/
 Backup/
-4_HLT.ino
 board_settings.jpg
 *.hintrc
 *.alt

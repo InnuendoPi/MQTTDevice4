@@ -13,16 +13,23 @@ class TemperatureSensor
   unsigned char sens_address[8]; // 1-Wire Adresse
   String sens_id;
   char buf[8];
+  uint8_t sens_type = 0; // 0 := DS18B20, 1 := PT100, 2 := PT1000
+  uint8_t sens_pin = 0;  // 0 := 2-Leiter, 1 := 3-Leiter, 2 := 4-Leiter
 
 public:
-  TemperatureSensor(String new_address, String new_mqtttopic, String new_name, String new_id, float new_offset1, float new_offset2, bool new_sw)
+  TemperatureSensor(String new_address, String new_mqtttopic, String new_name, String new_id, float new_offset1, float new_offset2, bool new_sw, uint8_t new_type, uint8_t new_pin)
   {
-    change(new_address, new_mqtttopic, new_name, new_id, new_offset1, new_offset2, new_sw);
+    change(new_address, new_mqtttopic, new_name, new_id, new_offset1, new_offset2, new_sw, new_type, new_pin);
   }
 
   void Update()
   {
-    sens_value = DS18B20.getTempC(sens_address);
+    if (sens_type == 0)
+      sens_value = DS18B20.getTempC(sens_address);
+    else if (sens_type == 1)
+      sens_value = pt_0.temperature(RNOMINAL100, RREF100);
+    else if (sens_type == 2)
+      sens_value = pt_0.temperature(RNOMINAL1000, RREF1000);
     sensorsStatus = 0;
     sens_state = true;
 
@@ -59,7 +66,7 @@ public:
       publishmqtt();
   } // void Update
 
-  void change(const String &new_address, const String &new_mqtttopic, const String &new_name, const String &new_id, float new_offset1, float new_offset2, const bool &new_sw)
+  void change(const String &new_address, const String &new_mqtttopic, const String &new_name, const String &new_id, float new_offset1, float new_offset2, const bool &new_sw, const uint8_t &new_type, const uint8_t &new_pin)
   {
     new_mqtttopic.toCharArray(sens_mqtttopic, new_mqtttopic.length() + 1);
     sens_id = new_id;
@@ -67,31 +74,36 @@ public:
     sens_offset1 = new_offset1;
     sens_offset2 = new_offset2;
     sens_sw = new_sw;
-    if (new_address.length() == 16)
+    sens_type = new_type;
+    sens_pin = new_pin;
+    if (sens_type == 0)
     {
-      char address_char[20];
-      new_address.toCharArray(address_char, new_address.length() + 1);
-      char hexbyte[2];
-      int32_t octets[8];
-      for (uint8_t d = 0; d < 16; d += 2)
+      if (new_address.length() == 16)
       {
-        // Assemble a digit pair into the hexbyte string
-        hexbyte[0] = address_char[d];
-        hexbyte[1] = address_char[d + 1];
+        char address_char[20];
+        new_address.toCharArray(address_char, new_address.length() + 1);
+        char hexbyte[2];
+        int32_t octets[8];
+        for (uint8_t d = 0; d < 16; d += 2)
+        {
+          // Assemble a digit pair into the hexbyte string
+          hexbyte[0] = address_char[d];
+          hexbyte[1] = address_char[d + 1];
 
-        // Convert the hex pair to an integer
-        sscanf(hexbyte, "%x", &octets[d / 2]);
-        yield();
-      }
-      for (uint8_t i = 0; i < 8; i++)
-      {
-        sens_address[i] = octets[i];
+          // Convert the hex pair to an integer
+          sscanf(hexbyte, "%x", &octets[d / 2]);
+          // yield();
+        }
+        for (uint8_t i = 0; i < 8; i++)
+        {
+          sens_address[i] = octets[i];
+        }
+        if (senRes)
+          DS18B20.setResolution(sens_address, RESOLUTION_HIGH);
+        else
+          DS18B20.setResolution(sens_address, RESOLUTION);
       }
     }
-    if (senRes)
-      DS18B20.setResolution(sens_address, RESOLUTION_HIGH);
-    else
-      DS18B20.setResolution(sens_address, RESOLUTION);
   }
 
   void publishmqtt()
@@ -207,16 +219,28 @@ public:
   {
     return SensorAddressToString(sens_address);
   }
+  uint8_t getSensType()
+  {
+    return sens_type;
+  }
+  void setSensType(uint8_t val)
+  {
+    sens_type = val;
+  }
+  uint8_t getSensPin()
+  {
+    return sens_pin;
+  }
 };
 
 // Initialisierung des Arrays -> max 6 Sensoren
 TemperatureSensor sensors[NUMBEROFSENSORSMAX] = {
-    TemperatureSensor("", "", "", "", 0.0, 0.0, false),
-    TemperatureSensor("", "", "", "", 0.0, 0.0, false),
-    TemperatureSensor("", "", "", "", 0.0, 0.0, false),
-    TemperatureSensor("", "", "", "", 0.0, 0.0, false),
-    TemperatureSensor("", "", "", "", 0.0, 0.0, false),
-    TemperatureSensor("", "", "", "", 0.0, 0.0, false)};
+    TemperatureSensor("", "", "", "", 0.0, 0.0, false, 0, 0),
+    TemperatureSensor("", "", "", "", 0.0, 0.0, false, 0, 0),
+    TemperatureSensor("", "", "", "", 0.0, 0.0, false, 0, 0),
+    TemperatureSensor("", "", "", "", 0.0, 0.0, false, 0, 0),
+    TemperatureSensor("", "", "", "", 0.0, 0.0, false, 0, 0),
+    TemperatureSensor("", "", "", "", 0.0, 0.0, false, 0, 0)};
 
 // Funktion für Loop im Timer Objekt
 void handleSensors(bool checkSen)
@@ -241,6 +265,7 @@ void handleSensors(bool checkSen)
     }
     JsonObject sseObj = ssedoc.createNestedObject();
     sseObj["name"] = sensors[i].getSensorName();
+    sseObj["typ"] = sensors[i].getSensType();
     if (sensors[i].getErr() == EM_OK)
       sseObj["value"] = sensors[i].getTotalValueString();
     else if (sensors[i].getErr() == EM_CRCER)
@@ -257,8 +282,7 @@ void handleSensors(bool checkSen)
   {
     String jsonValue = "";
     serializeJson(ssedoc, jsonValue);
-    if (measureJson(ssedoc) > 5)
-      SSEBroadcastJson(jsonValue.c_str(), 0);
+    SSEBroadcastJson(jsonValue.c_str(), 0);
   }
 }
 
@@ -310,6 +334,8 @@ void handleSetSensor()
   float new_offset1 = sensors[id].getOffset1();
   float new_offset2 = sensors[id].getOffset2();
   bool new_sw = sensors[id].getSensorSwitch();
+  uint8_t new_type = sensors[id].getSensType();
+  uint8_t new_pin = sensors[id].getSensPin();
 
   for (uint8_t i = 0; i < server.args(); i++)
   {
@@ -341,12 +367,31 @@ void handleSetSensor()
     {
       new_id = server.arg(i);
     }
+    if (server.argName(i) == "type")
+    {
+      if (server.arg(i) == "DS18B20")
+        new_type = 0;
+      else if (server.arg(i) == "PT100")
+        new_type = 1;
+      else if (server.arg(i) == "PT1000")
+        new_type = 2;
+    }
+    if (server.argName(i) == "pin")
+    {
+      if (server.arg(i) == "2-cable")
+        new_pin = 0;
+      else if (server.arg(i) == "3-cable")
+        new_pin = 1;
+      else if (server.arg(i) == "4-cable")
+        new_pin = 2;
+    }
     yield();
   }
-  sensors[id].change(new_address, new_mqtttopic, new_name, new_id, new_offset1, new_offset2, new_sw);
-  server.send(200, FPSTR("text/plain"), "ok");
-  saveConfig();
-  handleSensors(true);
+    server.send(200, FPSTR("text/plain"), "ok");
+    sensors[id].change(new_address, new_mqtttopic, new_name, new_id, new_offset1, new_offset2, new_sw, new_type, new_pin);
+    saveConfig();
+    setupPT();
+    handleSensors(true);
 }
 
 void handleDelSensor()
@@ -356,12 +401,10 @@ void handleDelSensor()
   {
     if (i == (NUMBEROFSENSORSMAX - 1)) // 5 - Array von 0 bis (NUMBEROFSENSORSMAX-1)
     {
-      sensors[i].change("", "", "", "", 0.0, 0.0, false);
+      sensors[i].change("", "", "", "", 0.0, 0.0, false, 0, 0);
     }
     else
-      sensors[i].change(sensors[i + 1].getSens_adress_string(), sensors[i + 1].getSensorTopic(), sensors[i + 1].getSensorName(), sensors[i + 1].getId(), sensors[i + 1].getOffset1(), sensors[i + 1].getOffset2(), sensors[i + 1].getSensorSwitch());
-
-    yield();
+      sensors[i].change(sensors[i + 1].getSens_adress_string(), sensors[i + 1].getSensorTopic(), sensors[i + 1].getSensorName(), sensors[i + 1].getId(), sensors[i + 1].getOffset1(), sensors[i + 1].getOffset2(), sensors[i + 1].getSensorSwitch(), sensors[i + 1].getSensType(), sensors[i + 1].getSensPin());
   }
   if (numberOfSensors > 0)
     numberOfSensors--;
@@ -405,6 +448,7 @@ void handleRequestSensors()
     {
       JsonObject sensorsObj = doc.createNestedObject();
       sensorsObj["name"] = sensors[i].getSensorName();
+      sensorsObj["type"] = sensors[id].getSensType();
       String str = sensors[i].getSensorName();
       str.replace(" ", "%20"); // Erstze Leerzeichen für URL Charts
       sensorsObj["namehtml"] = str;
@@ -426,7 +470,8 @@ void handleRequestSensors()
 
       sensorsObj["mqtt"] = sensors[i].getSensorTopic();
       sensorsObj["cbpiid"] = sensors[i].getId();
-      yield();
+      doc["type"] = sensors[id].getSensType();
+      doc["pin"] = sensors[id].getSensPin();
     }
   }
   else // get single sensor by id
@@ -437,9 +482,99 @@ void handleRequestSensors()
     doc["sw"] = sensors[id].getSensorSwitch();
     doc["script"] = sensors[id].getSensorTopic();
     doc["cbpiid"] = sensors[id].getId();
+    doc["type"] = sensors[id].getSensType();
+    doc["pin"] = sensors[id].getSensPin();
   }
 
   String response;
   serializeJson(doc, response);
   server.send(200, FPSTR("application/json"), response.c_str());
+}
+
+void handleRequestSensorType()
+{
+  int8_t id = server.arg(0).toInt();
+  String message = "";
+  const String type_options[3] = {"DS18B20", "PT100", "PT1000"};
+  if (id != -1)
+  {
+    message = F("<option>");
+    message += type_options[sensors[id].getSensType()];
+    message += F("</option><option disabled>──────────</option>");
+  }
+  for (uint8_t i = 0; i < 3; i++)
+  {
+    if (id == -1) // neuer sensor
+    {
+      message += F("<option>");
+      message += type_options[i];
+      message += F("</option>");
+    }
+    else if (i != sensors[id].getSensType()) // vorhandener sensor
+    {
+      message += F("<option>");
+      message += type_options[i];
+      message += F("</option>");
+    }
+  }
+
+  server.send(200, FPSTR("text/html"), message.c_str());
+}
+
+void handlereqSenPins()
+{
+  int8_t id = server.arg(0).toInt();
+  String message = "";
+  const String pin_options[3] = {"2-cable", "3-cable", "4-cable"};
+  if (id != -1)
+  {
+    message = F("<option>");
+    message += pin_options[sensors[id].getSensPin()];
+    message += F("</option><option disabled>──────────</option>");
+  }
+  for (uint8_t i = 0; i < 3; i++)
+  {
+    if (id == -1) // neuer sensor
+    {
+      message += F("<option>");
+      message += pin_options[i];
+      message += F("</option>");
+    }
+    else if (i != sensors[id].getSensPin()) // vorhandener sensor
+    {
+      message += F("<option>");
+      message += pin_options[i];
+      message += F("</option>");
+    }
+  }
+
+  server.send(200, FPSTR("text/html"), message.c_str());
+}
+
+void setupPT()
+{
+  // startSPI false := Aus, true := starte Max31865
+  // sens_type 0 := DS18B20, 1 := PT100, 2 := PT1000
+  // sens_pin 0 := 2-Leiter, 1 := 3-Leiter, 2 := 4-Leiter
+  // Serial.printf("MOSI: %d/%s MISO: %d/%s CLK: %d/%s\n", SPI_MOSI, PinToString(SPI_MOSI).c_str(), SPI_MISO, PinToString(SPI_MISO).c_str(), SPI_CLK, PinToString(SPI_CLK).c_str());
+  // Serial.printf("MOSI: %d MISO: %d CLK: %d SS: %d\n", MOSI, MISO, SCK, SS);
+    
+  pins_used[SPI_MOSI] = true; // MAX31865
+  pins_used[SPI_MISO] = true; // MAX31865
+  pins_used[SPI_CLK] = true;  // MAX31865
+  pins_used[CS0] = true;      // MAX31865
+
+  for (uint8_t i = 0; i < numberOfSensors; i++)
+  {
+    if (sensors[i].getSensType() > 0)
+    {
+      if (sensors[i].getSensPin() == 0)
+        pt_0.begin(MAX31865_2WIRE);
+      else if (sensors[i].getSensPin() == 1)
+        pt_0.begin(MAX31865_3WIRE);
+      else if (sensors[i].getSensPin() == 2)
+        pt_0.begin(MAX31865_4WIRE);
+      break;
+    }
+  }
 }

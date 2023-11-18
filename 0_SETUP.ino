@@ -42,6 +42,9 @@ void setup()
       updateSys();
     if (LittleFS.exists(UPDATETOOLS))
       updateTools();
+    // webUpdate log
+    if (LittleFS.exists(LOGUPDATESYS) || LittleFS.exists(LOGUPDATETOOLS))
+      EM_LOG();
 
     // Erstelle Ticker Objekte
     setTicker();
@@ -54,6 +57,11 @@ void setup()
       loadConfig();
     else
       Serial.println("*** SYSINFO: config file config.txt missing. Load defaults ...");
+
+    // Starte MQTT
+    EM_MQTTCONNECT();
+    EM_MQTTSUBSCRIBE();
+    TickerPUBSUB.start(); // Ticker PubSubClient
   }
   else
     Serial.println("*** SYSINFO: error - cannot mount LittleFS!");
@@ -66,14 +74,6 @@ void setup()
     EM_MDNSET();
   else
     Serial.printf("*** SYSINFO: ESP8266 IP address: %s Time: %s RSSI: %d\n", WiFi.localIP().toString().c_str(), timeClient.getFormattedTime().c_str(), WiFi.RSSI());
-
-  // MQTT
-  pubsubClient.setBufferSize(512);
-  EM_MQTTCONNECT();
-  EM_MQTTSUBSCRIBE();
-  TickerPUBSUB.start(); // PubSubClient loop ticker
-  // webUpdate log
-  EM_LOG();
 }
 
 void setupServer()
@@ -88,6 +88,8 @@ void setupServer()
   server.on("/reqActors", handleRequestActors);   // Liste der Aktoren ausgeben
   server.on("/reqInduction", handleRequestInduction);
   server.on("/reqSearchSensorAdresses", handleRequestSensorAddresses);
+  server.on("/handleRequestSensorType", handleRequestSensorType);
+  server.on("/reqSenPins", handlereqSenPins);
   server.on("/reqPins", handlereqPins);               // GPIO Pins actors
   server.on("/reqPages", handleRequestPages);         // Display page
   server.on("/reqIndu", handleRequestIndu);           // Induction für WebConfig

@@ -17,7 +17,7 @@
   12  D6        SPI MISO      ok              ok        GGM IDS2 PIN_YELLOW Commandchannel
   13  D7        SPI MOSI      ok              ok        GGM IDS2 PIN_WHITE Relay
   14  D5        SPI SCLK      ok              ok        GGM IDS2 PIN_BLUE Backchannel          Interrupt
-  15  D8        SPI CS        -               (ok)      Buzzer
+  15  D8                     -               (ok)       Buzzer
   16  D0        HIGH at boot  No interrupt    No PWM    Pump
   
 */

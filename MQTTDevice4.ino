@@ -3,6 +3,7 @@
 //    Kommunikation via MQTT mit CraftBeerPi v4
 //
 //    Unterstützung für DS18B20 Sensoren
+//    Unterstützung für PT100/PT1000 Sensoren
 //    Unterstützung für GPIO Aktoren
 //    Unterstützung für GGM IDS2 Induktionskochfeld
 //    Unterstützung für Web Update
@@ -10,25 +11,26 @@
 
 #include <OneWire.h>           // OneWire Bus Kommunikation
 #include <DallasTemperature.h> // Vereinfachte Benutzung der DS18B20 Sensoren
-#include <ESP8266WiFi.h>       // Generelle WiFi Funktionalität
-#include <ESP8266WebServer.h>  // Unterstützung Webserver
+#include <Adafruit_MAX31865.h>
+#include <ESP8266WiFi.h>             // Generelle WiFi Funktionalität
+#include <ESP8266WebServer.h>        // Unterstützung Webserver
 #include <ESP8266HTTPUpdateServer.h> // DateiUpdate
-#include <WiFiManager.h> // WiFiManager zur Einrichtung
-#include <DNSServer.h>   // Benötigt für WiFiManager
-#include <LittleFS.h>    // Dateisystem
-#include <FS.h>          // Files
-#include <ArduinoJson.h> // Lesen und schreiben von JSON Dateien
-#include <ESP8266mDNS.h> // mDNS
-#include <WiFiUdp.h>     // WiFi
+#include <WiFiManager.h>             // WiFiManager zur Einrichtung
+#include <DNSServer.h>               // Benötigt für WiFiManager
+#include <LittleFS.h>                // Dateisystem
+#include <FS.h>                      // Files
+#include <ArduinoJson.h>             // Lesen und schreiben von JSON Dateien
+#include <ESP8266mDNS.h>             // mDNS
+#include <WiFiUdp.h>                 // WiFi
 #include <ESP8266HTTPClient.h>
 #include <ESP8266httpUpdate.h>
 #include <WiFiClientSecure.h>
-#include <NTPClient.h>        // Uhrzeit
+#include <NTPClient.h> // Uhrzeit
 #include <Ticker.h>
-#include <PubSubClient.h>     // MQTT Kommunikation
-#include <SoftwareSerial.h>   // Serieller Port für Display
-#include "InnuTicker.h"       // Bibliothek für Hintergrund Aufgaben (Tasks)
-#include "NextionX2.h"        // Display Nextion
+#include <PubSubClient.h>   // MQTT Kommunikation
+#include <SoftwareSerial.h> // Serieller Port für Display
+#include "InnuTicker.h"     // Bibliothek für Hintergrund Aufgaben (Tasks)
+#include "NextionX2.h"      // Display Nextion
 #include "index_htm.h"
 #include "edit_htm.h"
 #include "MQTTDevice4.h"
@@ -39,13 +41,13 @@
 // }
 
 #ifdef DEBUG_ESP_PORT
-#define DEBUG_MSG(...) DEBUG_ESP_PORT.printf( __VA_ARGS__ )
+#define DEBUG_MSG(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
 #else
 #define DEBUG_MSG(...)
 #endif
 
 // Version
-#define Version "4.56f"
+#define Version "4.56i"
 
 // System Dateien
 #define UPDATESYS "/updateSys.txt"
@@ -56,7 +58,6 @@
 #define DEVBRANCH "/dev.txt"
 #define CERT "/ce.rts"
 #define CONFIG "/config.txt"
-// #define MAXFRAGLEN 1024
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -72,20 +73,36 @@
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature DS18B20(&oneWire);
 bool senRes = false;
+bool startSPI = false;
+
+// PT1000
+// default SPI MOSI: D7 (13) MISO: D6 (12) CLK: D5 (14) SS: D8 (15)
+#define SPI_MOSI D0
+#define SPI_MISO D1
+#define SPI_CLK D2
+#define CS0 D4
+#define RREF1000 4300.0     // PT1000
+#define RNOMINAL1000 1000.0 // PT1000
+#define RREF100 430.0       // PT100
+#define RNOMINAL100 100.0   // PT100
+
+Adafruit_MAX31865 pt_0 = Adafruit_MAX31865(CS0, SPI_MOSI, SPI_MISO, SPI_CLK);
+// Adafruit_MAX31865 pt_0 = Adafruit_MAX31865(CS0);
 
 // WiFi und MQTT
 ESP8266WebServer server(80);
 WiFiManager wifiManager;
 WiFiClient espClient;
-//WLAN Events
+// WLAN Events
 WiFiEventHandler wifiConnectHandler, wifiDisconnectHandler;
 
 PubSubClient pubsubClient(espClient);
 MDNSResponder mdns;
 ESP8266HTTPUpdateServer httpUpdate; // DateiUpdate
 
-#define SSE_MAX_CHANNELS 8  // 8 SSE clients subscription erlaubt
-struct SSESubscription {
+#define SSE_MAX_CHANNELS 8 // 8 SSE clients subscription erlaubt
+struct SSESubscription
+{
   IPAddress clientIP;
   WiFiClient client;
   Ticker keepAliveTimer;
@@ -102,11 +119,11 @@ static const int8_t pins[NUMBEROFPINS] = {D0, D1, D2, D3, D4, D5, D6, D7, D8};
 
 // Variablen
 uint8_t numberOfSensors = 0; // Gesamtzahl der Sensoren
-#define NUMBEROFSENSORSMAX 6       // Maximale Anzahl an Sensoren
+#define NUMBEROFSENSORSMAX 6 // Maximale Anzahl an Sensoren
 unsigned char addressesFound[NUMBEROFSENSORSMAX][8];
-#define DUTYCYLCE 5000      // Aktoren und HLT
-uint8_t numberOfActors = 0; // Gesamtzahl der Aktoren
-#define NUMBEROFACTORSMAX 10      // Maximale Anzahl an Aktoren
+#define DUTYCYLCE 5000       // Aktoren und HLT
+uint8_t numberOfActors = 0;  // Gesamtzahl der Aktoren
+#define NUMBEROFACTORSMAX 10 // Maximale Anzahl an Aktoren
 #define maxHostSign 17
 #define maxUserSign 10
 #define maxPassSign 10
@@ -115,7 +132,7 @@ char mqttuser[maxUserSign];
 char mqttpass[maxPassSign];
 int mqttport;
 char mqtt_clientid[maxHostSign]; // AP-Mode und Gerätename
-uint8_t alertState = 0;        // WebUpdate Status
+uint8_t alertState = 0;          // WebUpdate Status
 #define MAXVERSUCHE 3
 
 // Zeitserver Einstellungen
@@ -136,7 +153,7 @@ NTPClient timeClient(ntpUDP, NTP_ADDRESS, NTP_OFFSET, NTP_INTERVAL);
 bool StopOnMQTTError = false;     // Event handling für MQTT Fehler
 unsigned long mqttconnectlasttry; // Zeitstempel bei Fehler MQTT
 uint8_t wlanStatus = 0;
-bool mqtt_state = true;           // Status MQTT
+bool mqtt_state = true; // Status MQTT
 
 // Event handling Standard Verzögerungen
 unsigned long wait_on_error_mqtt = 120000;             // How long should device wait between tries to reconnect WLAN      - approx in ms
@@ -152,7 +169,7 @@ InnuTicker TickerPUBSUB;
 InnuTicker TickerDisp;
 
 // Update Intervalle für Ticker Objekte
-#define SEN_UPDATE 2000  //  sensors update
+#define SEN_UPDATE 1000  //  sensors update
 #define ACT_UPDATE 2000  //  actors update
 #define IND_UPDATE 2000  //  induction update
 #define DISP_UPDATE 1000 //  display update
@@ -163,7 +180,7 @@ InnuTicker TickerDisp;
 bool startMDNS = true; // Standard mDNS Name ist ESP8266- mit mqtt_chip_key
 char nameMDNS[maxHostSign] = "MQTTDevice";
 bool shouldSaveConfig = false; // WiFiManager
-bool devBranch = false;           // Check out development branch
+bool devBranch = false;        // Check out development branch
 
 unsigned long lastSenAct = 0; // Timestap actors on sensor error
 unsigned long lastSenInd = 0; // Timestamp induction on sensor error
@@ -189,8 +206,8 @@ bool mqttBuzzer = false;   // MQTTBuzzer für CBPi4
 
 void configModeCallback(WiFiManager *myWiFiManager)
 {
-    Serial.print("*** SYSINFO: MQTTDevice in AP mode ");
-    Serial.println(WiFi.softAPIP());
-    Serial.print("*** SYSINFO: Start configuration portal ");
-    Serial.println(myWiFiManager->getConfigPortalSSID());
+  Serial.print("*** SYSINFO: MQTTDevice in AP mode ");
+  Serial.println(WiFi.softAPIP());
+  Serial.print("*** SYSINFO: Start configuration portal ");
+  Serial.println(myWiFiManager->getConfigPortalSSID());
 }

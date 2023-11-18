@@ -237,8 +237,7 @@ void handleActors(bool checkAct)
   {
     String jsonValue = "";
     serializeJson(ssedoc, jsonValue);
-    if (measureJson(ssedoc) > 5)
-      SSEBroadcastJson(jsonValue.c_str(), 1);
+    SSEBroadcastJson(jsonValue.c_str(), 1);
   }
 }
 
