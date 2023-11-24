@@ -1,7 +1,8 @@
 # Changelog
 
-Version 4.57
+Version 4.57a
 
+- Fix:        HMI display mDNS name
 - Changed:    Added ".local" to mDNS hints, views and docs
 - New:        Added Max31865 Amplififer SPI support (PT100/PT1000 support) MOSI: D0 MISO: D1 SCLK: D2 CS: D4/D5/D6
 - New:        Added PT100/1000 sensor support

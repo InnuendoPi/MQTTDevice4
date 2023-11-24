@@ -48,7 +48,7 @@ void tickerDispCallback()
   char ipMQTT[50];
   sprintf_P(uhrzeit, (PGM_P)F("%02d:%02d"), timeClient.getHours(), timeClient.getMinutes());
   if (startMDNS)
-    sprintf_P(ipMQTT, (PGM_P)F("http://%s.local - %s"), nameMDNS, WiFi.localIP().toString().c_str());
+    sprintf_P(ipMQTT, (PGM_P)F("http://%s.local"), nameMDNS);
   else
     sprintf_P(ipMQTT, (PGM_P)F("http://%s"), WiFi.localIP().toString().c_str());
 
