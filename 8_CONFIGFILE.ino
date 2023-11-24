@@ -203,6 +203,9 @@ bool saveConfig()
   DEBUG_MSG("%s\n", "--------------------");
 
   // Write Sensors
+  // reset PT-Sensor IDs
+  activePT_0 = false, activePT_1 = false, activePT_2 = false;
+
   JsonArray sensorsArray = doc.createNestedArray("sensors");
   for (int i = 0; i < numberOfSensors; i++)
   {

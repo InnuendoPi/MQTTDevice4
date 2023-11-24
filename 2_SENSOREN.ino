@@ -65,15 +65,39 @@ public:
     {
       sensorsStatus = 0;
       sens_state = true;
-
+      uint8_t fehlerPT = 0;
       if (sens_ptid == 0)
+      {
         sens_value = pt_0.temperature(RNOMINAL100, RREF100);
+        fehlerPT = pt_0.readFault();
+        if (fehlerPT)
+        {
+          sens_value = -127.0;
+          pt_0.clearFault();
+        }
+      }
       else if (sens_ptid == 1)
+      {
         sens_value = pt_1.temperature(RNOMINAL100, RREF100);
+        fehlerPT = pt_1.readFault();
+        if (fehlerPT)
+        {
+          sens_value = -127.0;
+          pt_1.clearFault();
+        }
+      }
       else if (sens_ptid == 2)
+      {
         sens_value = pt_2.temperature(RNOMINAL100, RREF100);
+        fehlerPT = pt_2.readFault();
+        if (fehlerPT)
+        {
+          sens_value = -127.0;
+          pt_2.clearFault();
+        }
+      }
 
-      if (sens_value > 200.0)
+      if (sens_value <= -127.0)
       {
         sensorsStatus = EM_SENER;
         sens_state = false;
@@ -85,14 +109,39 @@ public:
     {
       sensorsStatus = 0;
       sens_state = true;
+      uint8_t fehlerPT = 0;
       if (sens_ptid == 0)
+      {
         sens_value = pt_0.temperature(RNOMINAL1000, RREF1000);
+        fehlerPT = pt_0.readFault();
+        if (fehlerPT)
+        {
+          sens_value = -127.0;
+          pt_0.clearFault();
+        }
+      }
       else if (sens_ptid == 1)
+      {
         sens_value = pt_1.temperature(RNOMINAL1000, RREF1000);
+        fehlerPT = pt_1.readFault();
+        if (fehlerPT)
+        {
+          sens_value = -127.0;
+          pt_1.clearFault();
+        }
+      }
       else if (sens_ptid == 2)
+      {
         sens_value = pt_2.temperature(RNOMINAL1000, RREF1000);
+        fehlerPT = pt_2.readFault();
+        if (fehlerPT)
+        {
+          sens_value = -127.0;
+          pt_2.clearFault();
+        }
+      }
 
-      if (sens_value > 200.0)
+      if (sens_value <= -127.0)
       {
         sensorsStatus = EM_SENER;
         sens_state = false;
@@ -503,7 +552,6 @@ void handleRequestSensors()
     {
       JsonObject sensorsObj = doc.createNestedObject();
       sensorsObj["name"] = sensors[i].getSensorName();
-      sensorsObj["type"] = sensors[id].getSensType();
       String str = sensors[i].getSensorName();
       str.replace(" ", "%20"); // Erstze Leerzeichen für URL Charts
       sensorsObj["namehtml"] = str;
@@ -525,8 +573,9 @@ void handleRequestSensors()
 
       sensorsObj["mqtt"] = sensors[i].getSensorTopic();
       sensorsObj["cbpiid"] = sensors[i].getId();
-      doc["type"] = sensors[id].getSensType();
-      doc["pin"] = sensors[id].getSensPin();
+      sensorsObj["type"] = sensors[id].getSensType();
+      sensorsObj["pin"] = sensors[id].getSensPin();
+      yield();
     }
   }
   else // get single sensor by id

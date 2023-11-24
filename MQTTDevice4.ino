@@ -47,7 +47,7 @@
 #endif
 
 // Version
-#define Version "4.56j"
+#define Version "4.57"
 
 // System Dateien
 #define UPDATESYS "/updateSys.txt"

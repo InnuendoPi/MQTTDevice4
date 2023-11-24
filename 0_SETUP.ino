@@ -18,7 +18,7 @@ void setup()
   wifiManager.setConfigPortalTimeout(300);
   wifiManager.setAPCallback(configModeCallback);
   wifiManager.setSaveConfigCallback(saveConfigCallback);
-  WiFiManagerParameter p_hint("<small>*Connect your MQTTDevice to WLAN. When connected open http://mqttdevice in your brower</small>");
+  WiFiManagerParameter p_hint("<small>*Connect your MQTTDevice to WLAN. When connected open http://mqttdevice.local in your brower</small>");
   wifiManager.addParameter(&p_hint);
   wifiManager.autoConnect(mqtt_clientid);
   WiFi.setSleepMode(WIFI_NONE_SLEEP);
