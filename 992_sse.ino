@@ -13,7 +13,7 @@ void inductionSSE(bool val)
     // val false: only updates
 
     DynamicJsonDocument doc(386);
-    doc["enabled"] = inductionCooker.getIsEnabled();
+    doc["enabled"] = (int)inductionCooker.getIsEnabled();
     doc["power"] = 0;
     if (inductionCooker.getIsEnabled())
     {
@@ -69,13 +69,11 @@ void miscSSE()
     doc["port"] = mqttport;
     doc["s_mqtt"] = mqtt_state;
     doc["display"] = useDisplay;
+    doc["lang"] = selLang;
     if (startMDNS)
         doc["mdns"] = nameMDNS;
     else
         doc["mdns"] = 0;
-    // doc["alert"] = alertState;
-    // if (alertState)
-    //     alertState = false;
     String response;
 
     serializeJson(doc, response);
@@ -99,7 +97,7 @@ void handleChannel()
     String SSEurl = F("http://");
     SSEurl += WiFi.localIP().toString();
     SSEurl += F(":");
-    SSEurl += port;
+    SSEurl += PORT;
     SSEurl += F("/rest/events/");
     SSEurl += channel;
     server.send_P(200, "text/plain", SSEurl.c_str());
@@ -116,7 +114,7 @@ void SSEKeepAlive()
         if (subscription[i].client.connected())
         {
             // subscription[i].client.println("data: { \"TYPE\":\"KEEP-ALIVE\" }\n"); // Extra newline required by SSE standard
-            String alive = "event: alive\ndata: { \"type\":\"keep alive\", \"ip\":\"" + subscription[i].clientIP.toString() + "\", \"channel\":\"" + i + "\"}\n";
+            String alive = "event: alive\ndata: { \"type\":\"keep alive\", \"ip\":\"" + IPtoString(subscription[i].clientIP) + "\", \"channel\":\"" + i + "\"}\n";
             subscription[i].client.println(alive);
         }
         else
@@ -132,33 +130,34 @@ void SSEKeepAlive()
 
 void SSEHandler(uint8_t channel)
 {
-    IPAddress clientIP = server.client().remoteIP(); // get IP address of client
+  IPAddress clientIP = server.client().remoteIP(); // get IP address of client
 
-    if (subscription[channel].check == true)
+  if (subscription[channel].check == true)
+  {
+    if (clientIP == subscription[channel].clientIP)
     {
-        if (clientIP == subscription[channel].clientIP)
-        {
-            subscription[channel].client = server.client();
-            subscription[channel].keepAliveTimer = Ticker();
-            subscription[channel].check = false;
-            ++subscriptionCount;
-        }
+      subscription[channel].client = server.client();
+      subscription[channel].keepAliveTimer = Ticker();
+      subscription[channel].check = false;
+      subscriptionCount++;
     }
+  }
 
-    WiFiClient client = server.client();
-    SSESubscription &s = subscription[channel];
+  WiFiClient client = server.client();
+  SSESubscription &s = subscription[channel];
 
-    if (s.clientIP != client.remoteIP()) // IP addresses don't match, reject this client
-        return handleNotFound();
+  if (s.clientIP != client.remoteIP())
+  { // IP addresses don't match, reject this client
+    // log_e("Unregistered client with IP %s tries to listen", server.client().remoteIP().toString().c_str());
+    return handleNotFound();
+  }
+  client.setNoDelay(true);
+  s.client = client; // capture SSE server client connection
 
-    client.setNoDelay(true);
-    client.setSync(true);
-    s.client = client; // capture SSE server client connection
-
-    server.setContentLength(CONTENT_LENGTH_UNKNOWN); // the payload can go on forever
-    server.sendContent_P(PSTR("HTTP/1.1 200 OK\nContent-Type: text/event-stream\nConnection: keep-alive\nCache-Control: no-cache\nAccess-Control-Allow-Origin: *\n\n"));
-    s.keepAliveTimer.attach_scheduled(15.0, SSEKeepAlive); // Refresh time every 2min
-    initialSSE(channel);
+  server.setContentLength(CONTENT_LENGTH_UNKNOWN); // the payload can go on forever
+  server.sendContent_P(PSTR("HTTP/1.1 200 OK\nContent-Type: text/event-stream\nConnection: keep-alive\nCache-Control: no-cache\nAccess-Control-Allow-Origin: *\n\n"));
+  s.keepAliveTimer.attach(15.0, SSEKeepAlive); // Refresh time every 30s - WebUpdate benötigt bei langsamer Leitung über 60s
+  initialSSE(channel);
 }
 
 void SSEBroadcastJson(const char *jsonValue, uint8_t typ)
@@ -192,7 +191,7 @@ void SSEBroadcastJson(const char *jsonValue, uint8_t typ)
             client.println(response);
         }
         // else
-        //   Serial.printf("SSEBroadcastState - client %s registered on channel %d but not listening\n", IPaddrstr.c_str(), i);
+        //   log_e("SSEBroadcastState - client %s registered on channel %d but not listening", IPaddrstr.c_str(), i);
     }
 }
 

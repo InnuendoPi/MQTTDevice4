@@ -24,15 +24,181 @@
 .icon-loop2:before {
   content: "\e900";
 }
+.icon-map2:before {
+  content: "\e94c";
+}
+.icon-shrink:before {
+  content: "\e90a";
+}
+.icon-feed:before {
+  content: "\e91d";
+}
+.icon-switch:before {
+  content: "\e909";
+}
+.icon-pencil:before {
+  content: "\e908";
+  font-size: 0.8em;
+}
+.icon-pencil2:before {
+  content: "\e908";
+}
+.icon-cogs:before {
+  content: "\e906";
+  font-size: 0.8em;
+}
+.icon-settings:before {
+  content: "\e906";
+}
+.icon-cog:before {
+  content: "\e907";
+}
+.icon-calendar:before {
+  content: "\e905";
+}
+.icon-minus:before {
+  content: "\ea0b";
+}
+.icon-mail2:before {
+  content: "\ea84";
+}
+.icon-box-add:before {
+  content: "\e903";
+}
+.icon-box:before {
+  content: "\e902";
+}
+.icon-exit:before {
+  content: "\e901";
+}
+.icon-stats-dots:before {
+  content: "\e99b";
+}
+.icon-eye:before {
+  content: "\e9ce";
+}
+.icon-eye-blocked:before {
+  content: "\e9d1";
+}
+.icon-step-backward:before {
+  content: "\e904";
+}
+.icon-envelope-o:before {
+  content: "\f003";
+}
+.icon-edit:before {
+  content: "\f044";
+}
+.icon-pencil-square-o:before {
+  content: "\f044";
+  font-size: 0.8em;
+}
+.icon-loop:before {
+  content: "\e900";
+}
+.icon-loop-button:before {
+  content: "\e900";
+}
+.icon-power-button:before {
+  content: "\f011";
+}
+.icon-power-off:before {
+  content: "\f011";
+}
+.icon-power-on:before {
+  content: "\f011";
+}
+.icon-trash-o:before {
+  content: "\f014";
+}
+.icon-trash2:before {
+  content: "\f014";
+}
+.icon-clock-o:before {
+  content: "\f017";
+}
+.icon-download:before {
+  content: "\f019";
+}
+.icon-refresh:before {
+  content: "\f021";
+}
+.icon-play:before {
+  content: "\f04b";
+}
+.icon-pause:before {
+  content: "\f04c";
+}
+.icon-step-forward:before {
+  content: "\f051";
+}
+.icon-plus:before {
+  content: "\f067";
+  font-size: 0.8em;
+}
+.icon-fire:before {
+  content: "\f06d";
+}
+.icon-fire-red:before {
+  content: "\f06d";
+}
+.icon-chevron-up:before {
+  content: "\f077";
+}
+.icon-chevron-down:before {
+  content: "\f078";
+}
+.icon-eraser:before {
+  content: "\f12d";
+}
+.icon-bullseye:before {
+  content: "\f140";
+}
+.icon-database:before {
+  content: "\f1c0";
+}
+.icon-thermometer:before {
+  content: "\f2c8";
+}
+.icon-chevron-up {
+  color: var(--secondary);
+}
+.icon-chevron-down {
+  color: var(--secondary);
+}
+.icon-pencil {
+  color: var(--success);
+  font-size: 0.8em;
+}
+.icon-sliders {
+  color: var(--secondary);
+}
+.icon-clock-o {
+  color: var(--secondary);
+}
+.icon-bullseye {
+  color: var(--primary);
+}
+.icon-thermometer {
+  color: var(--success);
+}
+.icon-trash2 {
+  color: var(--danger);
+}
+.icon-fire-red {
+  color: var(--danger);
+}
+.icon-fire {
+  color: var(--secondary);
+}
+.icon-power-off {
+  color: var(--secondary);
+}
+.icon-power-on {
+  color: var(--success);
+}
 .input-group>.input-group-append {
   width: 60%;
-}
-.icon-loop2 {
-  color: var(--secondary);
-  margin-right: 5px;
-  margin-left: 5px;
-  font-size: 1.1em;
-  background-size: 100%;
 }
 .label-30 {
   width: 30%;
@@ -40,6 +206,10 @@
 .myalign-right
 {
   float:right;
+}
+.my-15 {
+  font-size: 1.2em;
+  background-size: 120%;
 }
 .input[readonly]{
   position: relative;

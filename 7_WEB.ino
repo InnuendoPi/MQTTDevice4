@@ -4,37 +4,23 @@ void handleRoot()
   server.send_P(200, "text/html", index_htm_gz, index_htm_gz_len);
 }
 
-void handleWebRequests()
-{
-  if (loadFromLittlefs(server.uri()))
-  {
-    return;
-  }
-  String message = "File Not Detected\n\n";
-  message += "URI: ";
-  message += server.uri();
-  message += "\nMethod: ";
-  message += (server.method() == HTTP_GET) ? "GET" : "POST";
-  message += "\nArguments: ";
-  message += server.args();
-  message += "\n";
-  for (uint8_t i = 0; i < server.args(); i++)
-  {
-    message += " NAME:" + server.argName(i) + "\n VALUE:" + server.arg(i) + "\n";
-  }
-  server.send(404, FPSTR("text/plain"), message);
-}
-
 bool loadFromLittlefs(String path)
 {
-  if (path.endsWith("/"))
+  if (path.endsWith("/undefined"))
+  {
+#ifdef ESP32
+    log_e("Web loadFromLittlefs path error: %s", path.c_str());
+#endif
+    return false;
+  }
+  else if (path.endsWith("/"))
     path += "index.htm";
 
   String contentType;
   if (server.hasArg("download"))
     contentType = F("application/octet-stream");
   else
-    contentType = mime::getContentType(path); // ESPWebServer mimeType Tabelle
+    contentType = getContentType(path); // FSBrowser
 
   if (LittleFS.exists(path.c_str()))
   {
@@ -56,7 +42,7 @@ bool loadFromLittlefs(String path)
 void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
 {
   // Uncomment for debug output received MQTT payloads
-  // DEBUG_MSG("Web: Received MQTT Topic with char payload: %s\n", topic);
+  // log_e("Web: Received MQTT Topic with char payload: %s\n", topic);
   // Serial.print("Web: Payload: ");
   // for (int i = 0; i < length; i++)
   // {
@@ -145,7 +131,6 @@ void handleRequestMisc2()
     doc["mdns"] = nameMDNS;
   else
     doc["mdns"] = 0;
-
   String response;
 
   serializeJson(doc, response);
@@ -177,6 +162,7 @@ void handleRequestMisc()
   doc["mqbuz"] = mqttBuzzer;
   doc["res"] = senRes;
   doc["display"] = useDisplay;
+  doc["page"] = startPage;
   doc["dev"] = devBranch;
   doc["e_mqtt"] = StopOnMQTTError;
   doc["d_mqtt"] = wait_on_error_mqtt / 1000;
@@ -184,21 +170,7 @@ void handleRequestMisc()
   doc["dsi"] = wait_on_Sensor_error_induction / 1000;
   doc["s_mqtt"] = mqtt_state; // Anzeige MQTT Status -> mqtt_state verzögerter Status!
   doc["spi"] = startSPI;
-  // const String spi_options[3] = {"off", "PT100", "PT1000"};
-  // String message;
-  // message = F("<option>");
-  // message += spi_options[startSPI];
-  // message += F("</option><option disabled>──────────</option>");
-  // for (uint8_t i = 0; i < 3; i++)
-  // {
-  //   if (i != startSPI)
-  //   {
-  //     message += F("<option>");
-  //     message += spi_options[i];
-  //     message += F("</option>");
-  //   }
-  // }
-  // doc["spi"] = message;
+  doc["ntp"] = ntpServer;
   String response;
   serializeJson(doc, response);
   server.send(200, FPSTR("application/json"), response.c_str());
@@ -208,20 +180,23 @@ void handleRequestFirm()
 {
   String request = server.arg(0);
   String message;
-  if (request == "firmware")
+  if (startMDNS)
   {
-    if (startMDNS)
-    {
-      message = nameMDNS;
-      message += F(" V");
-    }
-    else
-      message = F("MQTTDevice4 V ");
-
-    message += Version;
-    if (devBranch == 1)
-      message += F(" dev");
+    message = nameMDNS;
+    message += F(" V");
   }
+  else
+  {
+#ifdef ESP32
+    message = F("MQTTDevice32 V ");
+#elif ESP8266
+    message = F("MQTTDevice V ");
+#endif
+  }
+  message += Version;
+  if (devBranch == 1)
+    message += F(" dev");
+
   server.send(200, FPSTR("text/plain"), message.c_str());
 }
 
@@ -235,8 +210,8 @@ void handleSetMisc()
       {
         WiFi.disconnect();
         wifiManager.resetSettings();
-        delay(PAUSE2SEC);
-        ESP.reset();
+        millis2wait(PAUSE2SEC);
+        ESP.restart();
       }
     }
     if (server.argName(i) == "clear")
@@ -245,7 +220,7 @@ void handleSetMisc()
       {
         LittleFS.remove("/config.txt");
         delay(PAUSE2SEC);
-        ESP.reset();
+        ESP.restart();
       }
     }
     if (server.argName(i) == "mqtthost")
@@ -285,22 +260,10 @@ void handleSetMisc()
     }
     if (server.argName(i) == "page")
     {
-      if (server.arg(i) == "BrewPage")
-      {
-        startPage = 0;
-      }
-      else if (server.arg(i) == "KettlePage")
-      {
-        startPage = 1;
-      }
-      else if (server.arg(i) == "InductionPage")
-      {
-        startPage = 2;
-      }
+      if (isValidDigit(server.arg(i)))
+        startPage = server.arg(i).toInt();
       else
-      {
         startPage = 1;
-      }
     }
     if (server.argName(i) == "devbranch")
     {
@@ -341,17 +304,26 @@ void handleSetMisc()
         wait_on_Sensor_error_induction = constrain(tmpVal, 1, 600) * 1000;
       }
     }
+    if (server.argName(i) == "ntp")
+    {
+      server.arg(i).toCharArray(ntpServer, maxHostSign);
+      checkChars(ntpServer);
+    }
     if (server.argName(i) == "spi")
     {
       startSPI = checkBool(server.arg(i));
-      // {
-      //   if (server.arg(i).equals("PT100"))
-      //     startSPI = 1;
-      //   else if (server.arg(i).equals("PT1000"))
-      //     startSPI = 2;
-      //   else
-      //     startSPI = 0; // Aus
-      // }
+    }
+    if (server.argName(i) == "lang")
+    {
+      int8_t temp = -1;
+      if (isValidDigit(server.arg(i)))
+      {
+        temp = server.arg(i).toInt();
+      }
+      if (temp != selLang && temp >= 0)
+      {
+        selLang = temp;
+      }
     }
     yield();
   }
@@ -362,34 +334,6 @@ void handleSetMisc()
 }
 
 // Some helper functions WebIf
-void rebootDevice()
-{
-  server.sendHeader("Location", "/", true);
-  server.send(205, FPSTR("text/plain"), "reboot");
-  EM_REBOOT();
-}
-
-void handleRequestPages()
-{
-  int8_t id = server.arg(0).toInt();
-  const String page_names[NUMBEROFPAGES] = {"BrewPage", "KettlePage", "InductionPage"};
-  String message;
-  message += F("<option>");
-  message += page_names[startPage];
-  message += F("</option><option disabled>──────────</option>");
-
-  for (uint8_t i = 0; i < NUMBEROFPAGES; i++)
-  {
-    if (i != startPage)
-    {
-      message += F("<option>");
-      message += page_names[i];
-      message += F("</option>");
-    }
-  }
-  server.send(200, FPSTR("text/plain"), message.c_str());
-}
-
 void handleRestore()
 {
   HTTPUpload &upload = server.upload();
@@ -398,7 +342,6 @@ void handleRestore()
     String filename = "config.txt"; // upload.filename;
     if (!filename.startsWith("/"))
       filename = "/" + filename;
-    DEBUG_MSG("WEB restore config file: %s\n", filename.c_str());
     fsUploadFile = LittleFS.open(filename, "w"); // Open the file for writing in LittleFS (create if it doesn't exist)
     filename = String();
   }
@@ -412,10 +355,17 @@ void handleRestore()
     if (fsUploadFile)
     {                       // If the file was successfully created
       fsUploadFile.close(); // Close the file again
-      DEBUG_MSG("WEB restore configuration Size: %d\n", upload.totalSize);
-      server.sendHeader("Location", "/index.html"); // Redirect the client to the success page
-      server.send(303);
-      EM_REBOOT();
+      server.sendHeader("Location", "/", true);
+      server.send(302, FPSTR("text/plain"), "Restore config");
+      LittleFS.end(); // unmount LittleFS
+      ESP.restart();
     }
   }
+}
+
+void handleGetLanguage()
+{
+  String response = "";
+  response += selLang;
+  server.send_P(200, "text/plain", response.c_str());
 }

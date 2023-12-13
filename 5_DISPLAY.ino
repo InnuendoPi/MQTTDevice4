@@ -2,7 +2,7 @@ void initDisplay()
 {
   // BrewPage:    max 4 Kettels mit Temepratur und Ziel
   // KettlePage:  Kessel an Sensor ID 0 (IDS2 MaischeSud)
-  
+
   // register callback functions
   p0ForButton.touch(pageCallback1);         // BrewPage forward to KettlePage
   p0BackButton.touch(pageCallback2);        // BrewPage backward to InductionPage
@@ -48,7 +48,7 @@ void dispPublishmqtt()
   }
 }
 
-void BrewPage()
+void BrewPage() // Seite 1
 {
   currentStepName_text.attribute("txt", currentStepName);
   currentStepRemain_text.attribute("txt", currentStepRemain);
@@ -98,7 +98,7 @@ void BrewPage()
   notification.attribute("txt", notify);
 }
 
-void KettlePage()
+void KettlePage() // Seite 2
 {
   if (strlen(structKettles[0].sensor) != 0)
   {
@@ -135,7 +135,7 @@ void KettlePage()
 
 void InductionPage()
 {
-  // DEBUG_MSG("Disp: InductionPage activeBrew: %d kettleID0: %s\n", activeBrew, structKettles[0].id);
+  // log_e("Disp: InductionPage activeBrew: %d kettleID0: %s", activeBrew, structKettles[0].id);
   // p2uhrzeit_text
   // p2slider
   // p2temp_text
@@ -156,7 +156,9 @@ void cbpi4kettle_subscribe()
 {
   if (pubsubClient.connected())
   {
-    DEBUG_MSG("Disp: Subscribing to %s\n", cbpi4kettle_topic);
+#ifdef ESP32
+    log_e("Disp: Subscribing to %s", cbpi4kettle_topic);
+#endif
     pubsubClient.subscribe(cbpi4kettle_topic);
     pubsubClient.loop();
   }
@@ -166,7 +168,9 @@ void cbpi4kettle_unsubscribe()
 {
   if (pubsubClient.connected())
   {
-    DEBUG_MSG("Disp: Unsubscribing from %s\n", cbpi4kettle_topic);
+#ifdef ESP32
+    log_e("Disp: Unsubscribing from %s", cbpi4kettle_topic);
+#endif
     pubsubClient.unsubscribe(cbpi4steps_topic);
   }
 }
@@ -175,7 +179,9 @@ void cbpi4steps_subscribe()
 {
   if (pubsubClient.connected())
   {
-    DEBUG_MSG("Disp: Subscribing to %s\n", cbpi4steps_topic);
+#ifdef ESP32
+    log_e("Disp: Subscribing to %s", cbpi4steps_topic);
+#endif
     pubsubClient.subscribe(cbpi4steps_topic);
     pubsubClient.loop();
   }
@@ -185,7 +191,9 @@ void cbpi4steps_unsubscribe()
 {
   if (pubsubClient.connected())
   {
-    DEBUG_MSG("Disp: Unsubscribing from %s\n", cbpi4steps_topic);
+#ifdef ESP32
+    log_e("Disp: Unsubscribing from %s", cbpi4steps_topic);
+#endif
     pubsubClient.unsubscribe(cbpi4steps_topic);
   }
 }
@@ -194,7 +202,9 @@ void cbpi4notification_subscribe()
 {
   if (pubsubClient.connected())
   {
-    DEBUG_MSG("Disp: Subscribing to %s\n", cbpi4notification_topic);
+#ifdef ESP32
+    log_e("Disp: Subscribing to %s", cbpi4notification_topic);
+#endif
     pubsubClient.subscribe(cbpi4notification_topic);
     pubsubClient.loop();
   }
@@ -203,7 +213,9 @@ void cbpi4notification_unsubscribe()
 {
   if (pubsubClient.connected())
   {
-    DEBUG_MSG("Disp: Unsubscribing from %s\n", cbpi4notification_topic);
+#ifdef ESP32
+    log_e("Disp: Unsubscribing from %s", cbpi4notification_topic);
+#endif
     pubsubClient.unsubscribe(cbpi4notification_topic);
   }
 }
@@ -215,7 +227,9 @@ void cbpi4kettle_handlemqtt(char *payload)
   if (error)
   {
     int32_t memoryUsed = doc.memoryUsage();
-    DEBUG_MSG("Disp: handlemqtt notification deserialize Json error %s MemoryUsage %d\n", error.c_str(), memoryUsed);
+#ifdef ESP32
+    log_e("Disp: handlemqtt notification deserialize Json error %s MemoryUsage %d", error.c_str(), memoryUsed);
+#endif
     return;
   }
   for (uint8_t i = 0; i < maxKettles; i++)
@@ -283,7 +297,9 @@ void cbpi4sensor_handlemqtt(char *payload)
   if (error)
   {
     int32_t memoryUsed = doc.memoryUsage();
-    DEBUG_MSG("Disp: handlemqtt notification deserialize Json error %s MemoryUsage %d\n", error.c_str(), memoryUsed);
+#ifdef ESP32
+    log_e("Disp: handlemqtt notification deserialize Json error %s MemoryUsage %d", error.c_str(), memoryUsed);
+#endif
 
     return;
   }
@@ -325,8 +341,9 @@ void cbpi4steps_handlemqtt(char *payload)
   if (error)
   {
     int32_t memoryUsed = doc.memoryUsage();
-    DEBUG_MSG("Disp: handlemqtt notification deserialize Json error %s MemoryUsage %d\n", error.c_str(), memoryUsed);
-
+#ifdef ESP32
+    log_e("Disp: handlemqtt notification deserialize Json error %s MemoryUsage %d", error.c_str(), memoryUsed);
+#endif
     return;
   }
   if (doc["status"] == "D") // ignore solved steps
@@ -509,7 +526,9 @@ void cbpi4notification_handlemqtt(char *payload)
   if (error)
   {
     int32_t memoryUsed = doc.memoryUsage();
-    DEBUG_MSG("Disp: handlemqtt notification deserialize Json error %s MemoryUsage %d\n", error.c_str(), memoryUsed);
+#ifdef ESP32
+    log_e("Disp: handlemqtt notification deserialize Json error %s MemoryUsage %d", error.c_str(), memoryUsed);
+#endif
     return;
   }
 

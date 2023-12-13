@@ -1,17 +1,23 @@
 void setup()
 {
   Serial.begin(115200);
-  // Serial.begin(9600);
-  // Debug Ausgaben prüfen
-#ifdef DEBUG_ESP_PORT
-  Serial.setDebugOutput(true);
-#endif
+  // Serial.begin(9600); // Debug Nextion SoftwareSerial
 
+#ifdef ESP32
+  snprintf(mqtt_clientid, maxHostSign, "ESP32-%llX", ESP.getEfuseMac());
+  Serial.printf("\n*** SYSINFO: MQTTDevice32 ID: %X\n", mqtt_clientid);
+  // WLAN Events
+  WiFi.onEvent(WiFiEvent);
+  WiFiEventId_t eventID = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
+                                       { log_e("WiFiStationDisconnected reason: %d", info.wifi_sta_disconnected.reason); },
+                                       WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+#elif ESP8266
   snprintf(mqtt_clientid, maxHostSign, "ESP8266-%08X", ESP.getChipId());
   Serial.printf("\n*** SYSINFO: start up MQTTDevice - device ID: %s\n", mqtt_clientid);
   // WLAN Events
   wifiConnectHandler = WiFi.onStationModeGotIP(EM_WIFICONNECT);
   wifiDisconnectHandler = WiFi.onStationModeDisconnected(EM_WIFIDISCONNECT);
+#endif
 
   wifiManager.setDebugOutput(false);
   wifiManager.setMinimumSignalQuality(10);
@@ -21,8 +27,13 @@ void setup()
   WiFiManagerParameter p_hint("<small>*Connect your MQTTDevice to WLAN. When connected open http://mqttdevice.local in your brower</small>");
   wifiManager.addParameter(&p_hint);
   wifiManager.autoConnect(mqtt_clientid);
-  WiFi.setSleepMode(WIFI_NONE_SLEEP);
+  wifiManager.setWiFiAutoReconnect(true);
   WiFi.mode(WIFI_STA);
+#ifdef ESP32
+  WiFi.setSleep(false);
+#elif ESP8266
+  WiFi.setSleepMode(WIFI_NONE_SLEEP);
+#endif
   WiFi.persistent(true);
   WiFi.setAutoConnect(true);
   WiFi.setAutoReconnect(true);
@@ -35,6 +46,8 @@ void setup()
     // Starte NTP
     timeClient.begin();
     timeClient.forceUpdate();
+    if (!timeClient.isTimeSet())
+      timeClient.setPoolServerName(NTP_ADDRESS); // Fallback default ntp.org
     checkSummerTime();
 
     // Prüfe WebUpdate
@@ -48,6 +61,11 @@ void setup()
 
     // Erstelle Ticker Objekte
     setTicker();
+
+// ISR
+#ifdef ESP32
+    gpio_install_isr_service(0);
+#endif
 
     // Starte Sensoren
     DS18B20.begin();
@@ -88,26 +106,25 @@ void setupServer()
   server.on("/reqActors", handleRequestActors);   // Liste der Aktoren ausgeben
   server.on("/reqInduction", handleRequestInduction);
   server.on("/reqSearchSensorAdresses", handleRequestSensorAddresses);
-  server.on("/handleRequestSensorType", handleRequestSensorType);
-  server.on("/reqSenPins", handlereqSenPins);
   server.on("/reqPins", handlereqPins);               // GPIO Pins actors
-  server.on("/reqPages", handleRequestPages);         // Display page
+  // server.on("/reqPages", handleRequestPages);         // Display page
   server.on("/reqIndu", handleRequestIndu);           // Induction für WebConfig
   server.on("/setSensor", handleSetSensor);           // Sensor ändern
   server.on("/setActor", handleSetActor);             // Aktor ändern
   server.on("/setIndu", handleSetIndu);               // Indu ändern
   server.on("/delSensor", handleDelSensor);           // Sensor löschen
   server.on("/delActor", handleDelActor);             // Aktor löschen
-  server.on("/reboot", rebootDevice);                 // reboots the whole Device
+  server.on("/reboot", EM_REBOOT);                 // reboots the whole Device
   server.on("/reqMisc", handleRequestMisc);           // Misc Infos für WebConfig
   server.on("/reqMisc2", handleRequestMisc2);         // Misc Infos für WebConfig
-  server.on("/reqMiscAlert", handleRequestMiscAlert); // Misc Alert WebUpdate
+  server.on("/reqMiscAlert", handleRequestMiscAlert); // Misc Infos für WebConfig
   server.on("/reqFirm", handleRequestFirm);           // Firmware version
   server.on("/setMisc", handleSetMisc);               // Misc ändern
   server.on("/startHTTPUpdate", startHTTPUpdate);     // Firmware WebUpdate
   server.on("/channel", handleChannel);               // Server Sent Events will be handled from this URI
   server.on("/startSSE", startSSE);                   // Server Sent Events will be handled from this URI
   server.on("/checkAliveSSE", checkAliveSSE);         // Server Sent Events check IP on channel
+  server.on("/language", handleGetLanguage);
   // FSBrowser initialisieren
   server.on("/edit", HTTP_GET, handleGetEdit);
   server.on("/status", HTTP_GET, handleStatus);
@@ -120,10 +137,14 @@ void setupServer()
       handleFileUpload);
   server.on(
       "/restore", HTTP_POST, []()
-      { server.send(200, "text/plain", ""); },
+      { server.send(200, FPSTR("text/plain"), "ok"); },
       handleRestore);
+
   server.onNotFound(handleAll);
-  // server.onNotFound(handleWebRequests);
+#ifdef ESP32
+  httpUpdateServer.setup(&server); // DateiUpdate
+#elif ESP8266
   httpUpdate.setup(&server);
+#endif
   server.begin();
 }

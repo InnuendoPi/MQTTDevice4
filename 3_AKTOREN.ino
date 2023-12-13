@@ -3,7 +3,7 @@ class Actor
   unsigned long powerLast; // Zeitmessung für High oder Low
   unsigned char OFF;
   unsigned char ON;
-  int8_t pin_actor = 9; // the number of the LED pin
+  int8_t pin_actor = -100; // the number of the LED pin
   String argument_actor;
   String name_actor;
   uint8_t power_actor;
@@ -22,6 +22,8 @@ public:
 
   void Update()
   {
+    if (pin_actor == -100)
+      return;
     if (isPin(pin_actor))
     {
       if (isOn && power_actor > 0)
@@ -97,7 +99,9 @@ public:
     {
       char subscribemsg[50];
       argument_actor.toCharArray(subscribemsg, 50);
-      DEBUG_MSG("Act: Subscribing to %s\n", subscribemsg);
+#ifdef ESP32
+      log_e("Act: Subscribing to %s", subscribemsg);
+#endif
       pubsubClient.subscribe(subscribemsg);
     }
   }
@@ -108,7 +112,9 @@ public:
     {
       char subscribemsg[50];
       argument_actor.toCharArray(subscribemsg, 50);
-      DEBUG_MSG("Act: Unsubscribing from %s\n", subscribemsg);
+#ifdef ESP32
+      log_e("Act: Unsubscribing from %s", subscribemsg);
+#endif
       pubsubClient.unsubscribe(subscribemsg);
     }
   }
@@ -119,7 +125,9 @@ public:
     DeserializationError error = deserializeJson(doc, (const char *)payload);
     if (error)
     {
-      DEBUG_MSG("Act: handlemqtt deserialize Json error %s\n", error.c_str());
+#ifdef ESP32
+      log_e("Act: handlemqtt deserialize Json error %s", error.c_str());
+#endif
       return;
     }
     if (doc["state"] == "off")
@@ -194,19 +202,38 @@ public:
   }
 };
 
+#ifdef ESP32
+// Initialisierung des Arrays max 15
+Actor actors[NUMBEROFACTORSMAX] = {
+    Actor(-100, "", "", false, false),
+    Actor(-100, "", "", false, false),
+    Actor(-100, "", "", false, false),
+    Actor(-100, "", "", false, false),
+    Actor(-100, "", "", false, false),
+    Actor(-100, "", "", false, false),
+    Actor(-100, "", "", false, false),
+    Actor(-100, "", "", false, false),
+    Actor(-100, "", "", false, false),
+    Actor(-100, "", "", false, false),
+    Actor(-100, "", "", false, false),
+    Actor(-100, "", "", false, false),
+    Actor(-100, "", "", false, false),
+    Actor(-100, "", "", false, false),
+    Actor(-100, "", "", false, false)};
+#elif ESP8266
 // Initialisierung des Arrays max 10
 Actor actors[NUMBEROFACTORSMAX] = {
-    Actor(9, "", "", false, false),
-    Actor(9, "", "", false, false),
-    Actor(9, "", "", false, false),
-    Actor(9, "", "", false, false),
-    Actor(9, "", "", false, false),
-    Actor(9, "", "", false, false),
-    Actor(9, "", "", false, false),
-    Actor(9, "", "", false, false),
-    Actor(9, "", "", false, false),
-    Actor(9, "", "", false, false)};
-
+    Actor(-100, "", "", false, false),
+    Actor(-100, "", "", false, false),
+    Actor(-100, "", "", false, false),
+    Actor(-100, "", "", false, false),
+    Actor(-100, "", "", false, false),
+    Actor(-100, "", "", false, false),
+    Actor(-100, "", "", false, false),
+    Actor(-100, "", "", false, false),
+    Actor(-100, "", "", false, false),
+    Actor(-100, "", "", false, false)};
+#endif
 // Funktionen für Loop im Timer Objekt
 void handleActors(bool checkAct)
 {
@@ -237,6 +264,7 @@ void handleActors(bool checkAct)
   {
     String jsonValue = "";
     serializeJson(ssedoc, jsonValue);
+    // if (measureJson(ssedoc) > 5)
     SSEBroadcastJson(jsonValue.c_str(), 1);
   }
 }
@@ -285,7 +313,7 @@ void handleSetActor()
   {
     id = numberOfActors;
     numberOfActors++;
-    if (numberOfActors > NUMBEROFACTORSMAX)
+    if (numberOfActors >= NUMBEROFACTORSMAX)
       return;
   }
 
@@ -299,7 +327,7 @@ void handleSetActor()
   {
     if (server.argName(i) == "name")
     {
-      ac_name = server.arg(i);
+      ac_name = checkName(server.arg(i), 15, false);
     }
     if (server.argName(i) == "pin")
     {
@@ -307,7 +335,7 @@ void handleSetActor()
     }
     if (server.argName(i) == "script")
     {
-      ac_argument = server.arg(i);
+      ac_argument = checkName(server.arg(i), 20, true);
     }
     if (server.argName(i) == "inv")
     {
@@ -340,7 +368,7 @@ void handleDelActor()
   {
     if (i == (NUMBEROFACTORSMAX - 1)) // 5 - Array von 0 bis (NUMBEROFACTORSMAX-1)
     {
-      actors[i].change(9, "", "", false, false);
+      actors[i].change(-100, "", "", false, false);
     }
     else
     {
@@ -360,8 +388,7 @@ void handleDelActor()
 
 void handlereqPins()
 {
-  const String pin_names[NUMBEROFPINS] = {"D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8"};
-  int8_t id = server.arg(0).toInt();
+  int id = server.arg(0).toInt();
   String message;
 
   if (id != -1)
@@ -370,7 +397,7 @@ void handlereqPins()
     message += PinToString(actors[id].getPinActor());
     message += F("</option><option disabled>──────────</option>");
   }
-  for (uint8_t i = 0; i < NUMBEROFPINS; i++)
+  for (int i = 0; i < NUMBEROFPINS; i++)
   {
     if (pins_used[pins[i]] == false)
     {
@@ -380,47 +407,42 @@ void handlereqPins()
     }
     yield();
   }
-  server.send(200, FPSTR("text/plain"), message.c_str());
+  server.send_P(200, "text/plain", message.c_str());
 }
 
 int8_t StringToPin(String pinstring)
 {
-  const String pin_names[NUMBEROFPINS] = {"D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8"};
   for (uint8_t i = 0; i < NUMBEROFPINS; i++)
   {
     if (pin_names[i] == pinstring)
-    {
       return pins[i];
-    }
   }
-  return 9;
+  return -100;
 }
 
 String PinToString(int8_t pinbyte)
 {
-  const String pin_names[NUMBEROFPINS] = {"D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8"};
-  for (uint8_t i = 0; i < NUMBEROFPINS; i++)
+  for (int i = 0; i < NUMBEROFPINS; i++)
   {
     if (pins[i] == pinbyte)
-    {
       return pin_names[i];
-    }
   }
-  return "NaN";
+  return "-100";
 }
 
 bool isPin(int8_t pinbyte)
 {
-  bool returnValue = false;
+  if (pinbyte == -100)
+    return false;
+
   for (uint8_t i = 0; i < NUMBEROFPINS; i++)
   {
     if (pins[i] == pinbyte)
     {
-      returnValue = true;
-      break;
+      return true;
     }
   }
-  return returnValue;
+  return false;
 }
 
 void actERR()
@@ -433,7 +455,9 @@ void actERR()
       actors[i].setIsOn(false);
       actors[i].setActorState(false);
       actors[i].Update();
-      DEBUG_MSG("ACT MQTT event handling - actor: %s state: %d isOnBeforeError: %d\n", actors[i].getActorName().c_str(), actors[i].getActorState(), actors[i].getIsOnBeforeError());
+#ifdef ESP32
+      log_e("ACT MQTT event handling - actor: %s state: %d isOnBeforeError: %d", actors[i].getActorName().c_str(), actors[i].getActorState(), actors[i].getIsOnBeforeError());
+#endif
     }
     yield();
   }

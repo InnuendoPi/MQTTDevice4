@@ -96,6 +96,43 @@ void checkChars(char *input)
   return;
 }
 
+String checkName(String tmpName, int laenge, bool leer)
+{
+  // max Länge im Display 20 Zeichen
+  tmpName = convertUmlaute(tmpName, leer);
+  if (tmpName.length() > laenge)
+    tmpName = tmpName.substring(0, laenge);
+  tmpName.trim();
+  return tmpName;
+}
+
+String convertUmlaute(String val, bool space)
+{
+  if (space)
+    val.replace(" ", "_");
+  val.replace("ü", "ue");
+  val.replace("ä", "ae");
+  val.replace("ö", "oe");
+  val.replace("Ü", "Ue");
+  val.replace("Ä", "Ae");
+  val.replace("Ö", "Oe");
+  val.replace("ß", "ss");
+  return val;
+  // "Ö" "\326" // ASCII 214
+  // "ö" "\366" // ASCII 246
+  // "Ä" "\304" // ASCII 196
+  // "ä" "\344" // ASCII 228
+  // "Ü" "\334" // ASCII 220
+  // "ü" "\365" // ASCII 252
+  // ä	\u00e4
+  // Ä	\u00c4
+  // ö	\u00f6
+  // Ö	\u00d6
+  // ü	\u00fc
+  // Ü	\u00dc
+  // ß	\u00df
+}
+
 void setTicker()
 {
   // Ticker Objekte
@@ -157,6 +194,17 @@ String decToHex(unsigned char decValue, unsigned char desiredStringLength)
     hexString = "0" + hexString;
 
   return "0x" + hexString;
+}
+
+String IPtoString(IPAddress ip)
+{
+  String res = "";
+  for (uint8_t i = 0; i < 3; i++)
+  {
+    res += String((ip >> (8 * i)) & 0xFF) + ".";
+  }
+  res += String(((ip >> 8 * 3)) & 0xFF);
+  return res;
 }
 
 unsigned char convertCharToHex(char ch)
@@ -284,17 +332,14 @@ void EM_LOG()
     bool check = LittleFS.remove(LOGUPDATESYS);
     if (LittleFS.exists(DEVBRANCH)) // WebUpdate Firmware
     {
-      Serial.printf("*** SYSINFO: Update development firmware retries count %d\n", anzahlSys);
+      Serial.printf("*** SYSINFO: Firmware Update development Anzahl Versuche: %d\n", anzahlSys);
       check = LittleFS.remove(DEVBRANCH);
     }
     else
     {
-      Serial.printf("*** SYSINFO: Update firmware retries count %d\n", anzahlSys);
+      Serial.printf("*** SYSINFO: Firmware Update Anzahl Versuche: %d\n", anzahlSys);
     }
-    if (anzahlSys > MAXVERSUCHE)
-      alertState = 2;
-    else
-      alertState = 1;
+    alertState = true;
   }
 
   if (LittleFS.exists(LOGUPDATETOOLS)) // WebUpdate Firmware
@@ -310,27 +355,28 @@ void EM_LOG()
     bool check = LittleFS.remove(LOGUPDATETOOLS);
     if (LittleFS.exists(DEVBRANCH)) // WebUpdate Firmware
     {
-      Serial.printf("*** SYSINFO: Update development tools retries count %d\n", anzahlTools);
+      Serial.printf("*** SYSINFO: Framework Update development Anzahl der Versuche: %d\n", anzahlTools);
       check = LittleFS.remove(DEVBRANCH);
     }
     else
     {
-      Serial.printf("*** SYSINFO: Update tools retries count %d\n", anzahlTools);
+      Serial.printf("*** SYSINFO: Framework Update Anzahl der Versuche: %d\n", anzahlTools);
     }
-    if (anzahlTools > MAXVERSUCHE)
-      alertState = 2;
+    alertState = true;
   }
 }
 
 void EM_MDNSET() // MDNS setup
 {
-  if (startMDNS)
+  if (mdns.begin(nameMDNS))
   {
-    if (mdns.begin(nameMDNS))
-      Serial.printf("*** SYSINFO: mDNS started as %s.local connected to %s Time: %s RSSI: %d\n", nameMDNS, WiFi.localIP().toString().c_str(), timeClient.getFormattedTime().c_str(), WiFi.RSSI());
-    else
-      Serial.printf("*** SYSINFO: error start mDNS! IP Adresse: %s Time: %s RSSI: %d\n", WiFi.localIP().toString().c_str(), timeClient.getFormattedTime().c_str(), WiFi.RSSI());
+    Serial.printf("*** SYSINFO: mDNS started as %s.local connected to %s Time: %s RSSI: %d\n", nameMDNS, WiFi.localIP().toString().c_str(), timeClient.getFormattedTime().c_str(), WiFi.RSSI());
+#ifdef ESP32
+    MDNS.addService("http", "tcp", PORT);
+#endif
   }
+  else
+    Serial.printf("*** SYSINFO: error start mDNS! IP Adresse: %s Time: %s RSSI: %d\n", WiFi.localIP().toString().c_str(), timeClient.getFormattedTime().c_str(), WiFi.RSSI());
 }
 
 void EM_REBOOT() // Reboot ESP
@@ -342,14 +388,11 @@ void EM_REBOOT() // Reboot ESP
     {
       actors[i].setIsOn(false);
       actors[i].Update();
-      DEBUG_MSG("EM ACTER: Aktor: %s  switched off\n", actors[i].getActorName().c_str());
     }
-    yield();
   }
   // Stop induction
   if (inductionCooker.getisInduon())
   {
-    DEBUG_MSG("%s\n", "EM INDOFF: induction switched off");
     inductionCooker.setNewPower(0);
     inductionCooker.setisInduon(false);
     inductionCooker.Update();
@@ -357,22 +400,6 @@ void EM_REBOOT() // Reboot ESP
   server.send(205, FPSTR("text/plain"), "reboot");
   LittleFS.end(); // unmount LittleFS
   ESP.restart();
-}
-
-void EM_WIFICONNECT(const WiFiEventStationModeGotIP &event)
-{
-  if (wlanStatus > 0)
-  {
-    wifiManager.setConnectTimeout(30); // 30sek Timeout für WIFI_STA Modus. Anschließend AP Mode
-    wlanStatus = 0;
-  }
-}
-
-void EM_WIFIDISCONNECT(const WiFiEventStationModeDisconnected &event)
-{
-  if (wlanStatus == 0)
-    wifiManager.setConnectTimeout(300); // 30sek Timeout für WIFI_STA Modus. Anschließend AP Mode
-  wlanStatus++;
 }
 
 void EM_MQTTCONNECT() // MQTT connect
@@ -383,7 +410,9 @@ void EM_MQTTCONNECT() // MQTT connect
     pubsubClient.setServer(mqtthost, mqttport);
     pubsubClient.setCallback(mqttcallback);
     pubsubClient.connect(mqtt_clientid, mqttuser, mqttpass);
-    DEBUG_MSG("Connecting MQTT broker %s with client-id: %s user: %s pass: %s\n", mqtthost, mqtt_clientid, mqttuser, mqttpass);
+#ifdef ESP32
+    log_e("Connecting MQTT broker %s with client-id: %s user: %s pass: %s", mqtthost, mqtt_clientid, mqttuser, mqttpass);
+#endif
   }
 }
 
@@ -391,7 +420,9 @@ void EM_MQTTSUBSCRIBE() // MQTT subscribe
 {
   if (pubsubClient.connected())
   {
-    DEBUG_MSG("%s\n", "MQTT connected! Subscribing...");
+#ifdef ESP32
+    log_e("%s", "MQTT connected! Subscribing...");
+#endif
     mqtt_state = true; // MQTT state ok
     for (int i = 0; i < numberOfActors; i++)
     {
@@ -414,32 +445,6 @@ void EM_MQTTSUBSCRIBE() // MQTT subscribe
   }
 }
 
-// void EM_MQTTUPDATE()
-// {
-//   if (pubsubClient.connected())
-//   {
-//     mqtt_state = true;
-//     pubsubClient.loop();
-//     if (TickerMQTT.state() == RUNNING)
-//       TickerMQTT.stop();
-
-//     return;
-//   }
-//   else
-//   {
-//     if (TickerMQTT.state() != RUNNING)
-//     {
-//       DEBUG_MSG("%s\n", "MQTT not connected - TickerMQTT started");
-//       DEBUG_MSG("pubdubClient error rc=%d \n", pubsubClient.state());
-//       // mqtt_state = false;
-//       TickerMQTT.start();
-//       mqttconnectlasttry = millis();
-//       miscSSE();
-//     }
-//     TickerMQTT.update();
-//   }
-// }
-
 void EM_MQTTRESTORE() // restore saved values after reconnect MQTT
 {
   if (pubsubClient.connected())
@@ -449,7 +454,9 @@ void EM_MQTTRESTORE() // restore saved values after reconnect MQTT
     {
       if (actors[i].getActorSwitch() && !actors[i].getActorState())
       {
-        DEBUG_MSG("EM MQTTRES: %s isOnBeforeError: %d Powerlevel: %d\n", actors[i].getActorName().c_str(), actors[i].getIsOnBeforeError(), actors[i].getActorPower());
+#ifdef ESP32
+        log_e("EM MQTTRES: %s isOnBeforeError: %d Powerlevel: %d", actors[i].getActorName().c_str(), actors[i].getIsOnBeforeError(), actors[i].getActorPower());
+#endif
         actors[i].setIsOn(actors[i].getIsOnBeforeError());
         actors[i].setActorState(true);
         actors[i].Update();
@@ -458,12 +465,16 @@ void EM_MQTTRESTORE() // restore saved values after reconnect MQTT
     }
     if (!inductionCooker.getInductionState())
     {
-      DEBUG_MSG("EM MQTTRES: Induction power: %d powerLevelOnError: %d powerLevelBeforeError: %d\n", inductionCooker.getPower(), inductionCooker.getPowerLevelOnError(), inductionCooker.getPowerLevelBeforeError());
+#ifdef ESP32
+      log_e("EM MQTTRES: Induction power: %d powerLevelOnError: %d powerLevelBeforeError: %d", inductionCooker.getPower(), inductionCooker.getPowerLevelOnError(), inductionCooker.getPowerLevelBeforeError());
+#endif
       inductionCooker.setNewPower(inductionCooker.getPowerLevelBeforeError());
       inductionCooker.setisInduon(true);
       inductionCooker.setInductionState(true);
       inductionCooker.Update();
-      DEBUG_MSG("EM MQTTRES: Induction restore old value: %d\n", inductionCooker.getNewPower());
+#ifdef ESP32
+      log_e("EM MQTTRES: Induction restore old value: %d", inductionCooker.getNewPower());
+#endif
     }
   }
 }
@@ -472,7 +483,9 @@ void EM_MQTTERROR() // MQTT Error -> handling
 {
   if (pubsubClient.connect(mqtt_clientid, mqttuser, mqttpass))
   {
-    DEBUG_MSG("%s", "MQTT auto reconnect successful. Subscribing..\n");
+#ifdef ESP32
+    log_e("%s", "MQTT auto reconnect successful. Subscribing..");
+#endif
     EM_MQTTSUBSCRIBE();
     EM_MQTTRESTORE();
     miscSSE();
@@ -480,27 +493,148 @@ void EM_MQTTERROR() // MQTT Error -> handling
   }
   if (millis() - mqttconnectlasttry >= wait_on_error_mqtt)
   {
-    if (StopOnMQTTError && mqtt_state)
+    // if (StopOnMQTTError && mqtt_state)
+    if (StopOnMQTTError)
     {
       mqtt_state = false; // MQTT in error state
       if (startBuzzer)
         sendAlarm(ALARM_ERROR);
-      DEBUG_MSG("EM MQTTER: MQTT Broker %s not availible! StopOnMQTTError: %d mqtt_state: %d\n", mqtthost, StopOnMQTTError, mqtt_state);
+#ifdef ESP32
+      log_e("EM MQTTERROR: MQTT Broker %s not availible! StopOnMQTTError: %d mqtt_state: %d", mqtthost, StopOnMQTTError, mqtt_state);
+#endif
       actERR();
       inductionCooker.indERR();
+      // miscSSE();
     }
   }
 }
 
 void debugLog(String valFile, String valText)
 {
-    File debLog = LittleFS.open(valFile, "a");
-    if (debLog)
-    {
-        debLog.print(timeClient.getFormattedTime().c_str());
-        debLog.print("\t");
-        debLog.print(valText);
-        debLog.print("\n");
-        debLog.close();
-    }
+  File debLog = LittleFS.open(valFile, "a");
+  if (debLog)
+  {
+    debLog.print(timeClient.getFormattedTime().c_str());
+    debLog.print("\t");
+    debLog.print(valText);
+    debLog.print("\n");
+    debLog.close();
+  }
 }
+
+#ifdef ESP8266
+void EM_WIFICONNECT(const WiFiEventStationModeGotIP &event)
+{
+  if (wlanStatus > 0)
+  {
+    wifiManager.setConnectTimeout(30); // 30sek Timeout für WIFI_STA Modus. Anschließend AP Mode
+    wlanStatus = 0;
+  }
+}
+#endif
+#ifdef ESP8266
+void EM_WIFIDISCONNECT(const WiFiEventStationModeDisconnected &event)
+{
+  if (wlanStatus == 0)
+    wifiManager.setConnectTimeout(300); // 30sek Timeout für WIFI_STA Modus. Anschließend AP Mode
+  wlanStatus++;
+}
+#endif
+
+#ifdef ESP32
+void WiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info)
+{
+  switch (event)
+  {
+  case ARDUINO_EVENT_WIFI_READY:
+    log_e("WiFi interface ready");
+    break;
+  case ARDUINO_EVENT_WIFI_SCAN_DONE:
+    log_e("Completed scan for access points");
+    break;
+  case ARDUINO_EVENT_WIFI_STA_START:
+    log_e("WiFi client started");
+    break;
+  case ARDUINO_EVENT_WIFI_STA_STOP:
+    log_e("WiFi clients stopped");
+    break;
+  case ARDUINO_EVENT_WIFI_STA_CONNECTED:
+    log_e("Connected to access point");
+    // wifiManager.setConnectTimeout(30);
+    break;
+  case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
+    WiFi.reconnect();
+    break;
+  case ARDUINO_EVENT_WIFI_STA_AUTHMODE_CHANGE:
+    log_e("Authentication mode of access point has changed");
+    break;
+  case ARDUINO_EVENT_WIFI_STA_GOT_IP:
+    // wifiManager.setConnectTimeout(30);
+    log_e("WiFiStationGotIP %s", WiFi.localIP().toString().c_str());
+    break;
+  case ARDUINO_EVENT_WIFI_STA_LOST_IP:
+    // wifiManager.setConnectTimeout(300);
+    log_e("Lost IP address and IP address is reset to 0. Reconnect Timeout: 300s");
+    WiFi.reconnect();
+    break;
+  case ARDUINO_EVENT_WPS_ER_SUCCESS:
+    log_e("WiFi Protected Setup (WPS): succeeded in enrollee mode");
+    break;
+  case ARDUINO_EVENT_WPS_ER_FAILED:
+    log_e("WiFi Protected Setup (WPS): failed in enrollee mode");
+    break;
+  case ARDUINO_EVENT_WPS_ER_TIMEOUT:
+    log_e("WiFi Protected Setup (WPS): timeout in enrollee mode");
+    break;
+  case ARDUINO_EVENT_WPS_ER_PIN:
+    log_e("WiFi Protected Setup (WPS): pin code in enrollee mode");
+    break;
+  case ARDUINO_EVENT_WIFI_AP_START:
+    // wifiManager.setConnectTimeout(300);
+    log_e("WiFi access point started");
+    break;
+  case ARDUINO_EVENT_WIFI_AP_STOP:
+    log_e("WiFi access point  stopped");
+    // EM_REBOOT();
+    break;
+  case ARDUINO_EVENT_WIFI_AP_STACONNECTED:
+    log_e("Client connected");
+    break;
+  case ARDUINO_EVENT_WIFI_AP_STADISCONNECTED:
+    log_e("Client disconnected");
+    break;
+  case ARDUINO_EVENT_WIFI_AP_STAIPASSIGNED:
+    log_e("Assigned IP address to client");
+    break;
+  case ARDUINO_EVENT_WIFI_AP_PROBEREQRECVED:
+    log_e("Received probe request");
+    break;
+  case ARDUINO_EVENT_WIFI_AP_GOT_IP6:
+    log_e("AP IPv6 is preferred");
+    break;
+  case ARDUINO_EVENT_WIFI_STA_GOT_IP6:
+    log_e("STA IPv6 is preferred");
+    break;
+  case ARDUINO_EVENT_ETH_GOT_IP6:
+    log_e("Ethernet IPv6 is preferred");
+    break;
+  case ARDUINO_EVENT_ETH_START:
+    log_e("Ethernet started");
+    break;
+  case ARDUINO_EVENT_ETH_STOP:
+    log_e("Ethernet stopped");
+    break;
+  case ARDUINO_EVENT_ETH_CONNECTED:
+    log_e("Ethernet connected");
+    break;
+  case ARDUINO_EVENT_ETH_DISCONNECTED:
+    log_e("Ethernet disconnected");
+    break;
+  case ARDUINO_EVENT_ETH_GOT_IP:
+    log_e("Obtained IP address");
+    break;
+  default:
+    break;
+  }
+}
+#endif
