@@ -368,15 +368,16 @@ void EM_LOG()
 
 void EM_MDNSET() // MDNS setup
 {
+#ifdef ESP32
+    MDNS.addService("http", "tcp", PORT);
+#elif ESP8266
   if (mdns.begin(nameMDNS))
   {
     Serial.printf("*** SYSINFO: mDNS started as %s.local connected to %s Time: %s RSSI: %d\n", nameMDNS, WiFi.localIP().toString().c_str(), timeClient.getFormattedTime().c_str(), WiFi.RSSI());
-#ifdef ESP32
-    MDNS.addService("http", "tcp", PORT);
-#endif
   }
   else
     Serial.printf("*** SYSINFO: error start mDNS! IP Adresse: %s Time: %s RSSI: %d\n", WiFi.localIP().toString().c_str(), timeClient.getFormattedTime().c_str(), WiFi.RSSI());
+#endif
 }
 
 void EM_REBOOT() // Reboot ESP
