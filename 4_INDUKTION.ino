@@ -1,8 +1,8 @@
 class induction
 {
-  int8_t PIN_WHITE = 13;     // D7 Relay white
-  int8_t PIN_YELLOW = 12;    // D6 Command channel yellow AUSGABE AN PLATTE
-  int8_t PIN_INTERRUPT = 14; // D5 Back channel blue EINGABE VON PLATTE
+  int8_t PIN_WHITE = D7;     // D7 Relay white
+  int8_t PIN_YELLOW = D6;    // D6 Command channel yellow AUSGABE AN PLATTE
+  int8_t PIN_INTERRUPT = D5; // D5 Back channel blue EINGABE VON PLATTE
   uint8_t power = 0;
   uint8_t newPower = 0;
   uint8_t oldPower = 0;
@@ -73,9 +73,8 @@ public:
       if (isPin(PIN_INTERRUPT))
       {
         // Interrupt deaktivert
-        // detachInterrupt(PIN_INTERRUPT);
+        detachInterrupt(PIN_INTERRUPT);
         pinMode(PIN_INTERRUPT, OUTPUT);
-
         // digitalWrite(PIN_INTERRUPT, HIGH);
         pins_used[PIN_INTERRUPT] = false;
       }
@@ -83,19 +82,17 @@ public:
     }
 
     // Neue Variablen Speichern
-    PIN_WHITE = pinwhite;
-    PIN_YELLOW = pinyellow;
-    PIN_INTERRUPT = pinblue;
-
     mqtttopic = topic;
     powerLevelOnError = powerLevel;
     induction_state = true;
     isEnabled = is_enabled;
+    inductionStatus = isEnabled;
     if (isEnabled)
     {
       // neue PINS aktiveren
       if (isPin(PIN_WHITE))
       {
+        PIN_WHITE = pinwhite;
         pinMode(PIN_WHITE, OUTPUT);
         digitalWrite(PIN_WHITE, HIGH);
         pins_used[PIN_WHITE] = true;
@@ -103,16 +100,17 @@ public:
 
       if (isPin(PIN_YELLOW))
       {
+        PIN_YELLOW = pinyellow;
         pinMode(PIN_YELLOW, OUTPUT);
         digitalWrite(PIN_YELLOW, HIGH);
         pins_used[PIN_YELLOW] = true;
       }
-
+      PIN_INTERRUPT = pinblue;  // off possible
       if (isPin(PIN_INTERRUPT)) // D7
       {
         // Interrupt deaktivert
-        // attachInterrupt(digitalPinToInterrupt(PIN_INTERRUPT), readInputWrap, CHANGE);
         pinMode(PIN_INTERRUPT, INPUT_PULLUP);
+        attachInterrupt(digitalPinToInterrupt(PIN_INTERRUPT), readInputWrap, CHANGE);
         pins_used[PIN_INTERRUPT] = true;
       }
       mqtt_subscribe();
@@ -127,7 +125,9 @@ public:
       {
         char subscribemsg[50];
         mqtttopic.toCharArray(subscribemsg, 50);
-        DEBUG_MSG("Ind: Subscribing to %s\n", subscribemsg);
+#ifdef ESP32
+        log_e("Ind: Subscribing to %s", subscribemsg);
+#endif
         pubsubClient.subscribe(subscribemsg);
       }
     }
@@ -139,7 +139,9 @@ public:
     {
       char subscribemsg[50];
       mqtttopic.toCharArray(subscribemsg, 50);
-      DEBUG_MSG("Ind: Unsubscribing from %s\n", subscribemsg);
+#ifdef ESP32
+      log_e("Ind: Unsubscribing from %s", subscribemsg);
+#endif
       pubsubClient.unsubscribe(subscribemsg);
     }
   }
@@ -150,7 +152,9 @@ public:
     DeserializationError error = deserializeJson(doc, (const char *)payload);
     if (error)
     {
-      DEBUG_MSG("Ind: handlemqtt deserialize Json error %s\n", error.c_str());
+#ifdef ESP32
+      log_e("Ind: handlemqtt deserialize Json error %s", error.c_str());
+#endif
       return;
     }
     if (doc["state"] == "off")
@@ -158,12 +162,6 @@ public:
     else
       newPower = doc["power"];
   }
-
-  // Interrupt deaktivert
-  // unsigned char getPinInterrupt()
-  // {
-  //   return PIN_INTERRUPT;
-  // }
 
   void setupCommands()
   {
@@ -288,67 +286,72 @@ public:
     }
   }
 
-  // Interrupt deaktivert
-  /*
-    void readInput()
+  void readInput()
+  {
+    if (PIN_INTERRUPT == -100)
+      return;
+    // Variablen sichern
+    bool ishigh = digitalRead(PIN_INTERRUPT);
+    unsigned long newInterrupt = micros();
+    long signalTime = newInterrupt - lastInterrupt;
+
+    // Glitch rausfiltern
+    if (signalTime > 10)
     {
-      // Variablen sichern
-      bool ishigh = digitalRead(PIN_INTERRUPT);
-      unsigned long newInterrupt = micros();
-      long signalTime = newInterrupt - lastInterrupt;
-
-      // Glitch rausfiltern
-      if (signalTime > 10)
+      if (ishigh) // PIN ist auf Rising, Bit senden hat gestartet :)
       {
-        if (ishigh)
+        lastInterrupt = newInterrupt;
+      }
+      else // Bit ist auf Falling, Bit Übertragung fertig. Auswerten.
+      {
+        if (!inputStarted) // suche noch nach StartBit.
         {
-          lastInterrupt = newInterrupt; // PIN ist auf Rising, Bit senden hat gestartet :)
+          if (signalTime < 35000L && signalTime > 15000L)
+          {
+            inputStarted = true;
+            inputCurrent = 0;
+          }
         }
-        else
-        { // Bit ist auf Falling, Bit Übertragung fertig. Auswerten.
+        else // Start Bit gefunden. Aufnahme
+        {
+          if (inputCurrent < 34) // nur bis 33 aufnehmen.
+          {
 
-          if (!inputStarted)
-          { // suche noch nach StartBit.
-            if (signalTime < 35000L && signalTime > 15000L)
+            if (signalTime < (SIGNAL_HIGH + SIGNAL_HIGH_TOL) && signalTime > (SIGNAL_HIGH - SIGNAL_HIGH_TOL))
             {
-              inputStarted = true;
-              inputCurrent = 0;
+              // HIGH BIT erkannt
+              inputBuffer[inputCurrent] = 1;
+              inputCurrent += 1;
+            }
+            if (signalTime < (SIGNAL_LOW + SIGNAL_LOW_TOL) && signalTime > (SIGNAL_LOW - SIGNAL_LOW_TOL))
+            {
+              // LOW BIT erkannt
+              inputBuffer[inputCurrent] = 0;
+              inputCurrent += 1;
             }
           }
-          else
-          { // Hat Begonnen. Nehme auf.
-            if (inputCurrent < 34)
-            { // nur bis 33 aufnehmen.
-              if (signalTime < (SIGNAL_HIGH + SIGNAL_HIGH_TOL) && signalTime > (SIGNAL_HIGH - SIGNAL_HIGH_TOL))
-              {
-                // HIGH BIT erkannt
-                inputBuffer[inputCurrent] = 1;
-                inputCurrent += 1;
-              }
-              if (signalTime < (SIGNAL_LOW + SIGNAL_LOW_TOL) && signalTime > (SIGNAL_LOW - SIGNAL_LOW_TOL))
-              {
-                // LOW BIT erkannt
-                inputBuffer[inputCurrent] = 0;
-                inputCurrent += 1;
-              }
-            }
-            else
-            { // Aufnahme vorbei.
-              inputCurrent = 0;
-              inputStarted = false;
-            }
+          else // Aufnahme beendet
+          {
+            uint8_t errorIDS = inputBuffer[13] * 8 + inputBuffer[14] * 4 + inputBuffer[15] * 2 + inputBuffer[16] * 1;
+            if (newError != errorIDS)
+              newError = errorIDS;
+
+            inputCurrent = 0;
+            inputStarted = false;
           }
         }
       }
     }
-  */
+  }
 
   void indERR()
   {
     if (isInduon && powerLevelOnError < 100 && induction_state) // powerlevelonerror == 100 -> kein event handling
     {
       powerLevelBeforeError = power;
-      DEBUG_MSG("IND MQTT event handling induction - power level: %d event power level: %d\n", power, powerLevelOnError);
+#ifdef ESP32
+      log_e("IND MQTT event handling induction - power level: %d event power level: %d", power, powerLevelOnError);
+#endif
       if (powerLevelOnError == 0)
         isInduon = false;
       else
@@ -443,11 +446,11 @@ public:
   {
     return isPower;
   }
-  uint8_t getIsEnabled()
+  bool getIsEnabled()
   {
     return isEnabled;
   }
-  void setIsEnabled(uint8_t val)
+  void setIsEnabled(bool val)
   {
     isEnabled = val;
   }
@@ -471,12 +474,18 @@ public:
 
 induction inductionCooker = induction();
 
+#ifdef ESP32
 // Interrupt deaktivert
-// ICACHE_RAM_ATTR void readInputWrap()
-// {
-//   inductionCooker.readInput();
-// }
-
+void ARDUINO_ISR_ATTR readInputWrap()
+{
+  inductionCooker.readInput();
+}
+#elif ESP8266
+ICACHE_RAM_ATTR void readInputWrap()
+{
+  inductionCooker.readInput();
+}
+#endif
 void handleInduction()
 {
   inductionCooker.Update();
@@ -518,16 +527,20 @@ void handleRequestIndu()
   {
     int8_t id = server.arg(1).toInt();
     int8_t pinswitched;
+    uint8_t tempNUMBEROFPINS = NUMBEROFPINS;
     switch (id)
     {
     case 0:
       pinswitched = inductionCooker.getPinWhite();
+      tempNUMBEROFPINS = NUMBEROFPINS - 1; // without off
       break;
     case 1:
       pinswitched = inductionCooker.getPinYellow();
+      tempNUMBEROFPINS = NUMBEROFPINS - 1; // without off
       break;
     case 2:
       pinswitched = inductionCooker.getPinInterrupt();
+      tempNUMBEROFPINS = NUMBEROFPINS; // with off
       break;
     }
     if (isPin(pinswitched))
@@ -536,8 +549,7 @@ void handleRequestIndu()
       message += PinToString(pinswitched);
       message += F("</option><option disabled>──────────</option>");
     }
-    const String pin_names[NUMBEROFPINS] = {"D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8"};
-    for (uint8_t i = 0; i < NUMBEROFPINS; i++)
+    for (int i = 0; i < tempNUMBEROFPINS; i++)
     {
       if (pins_used[pins[i]] == false)
       {
@@ -548,7 +560,7 @@ void handleRequestIndu()
       yield();
     }
   }
-  server.send(200, FPSTR("text/plain"), message.c_str());
+  server.send_P(200, "text/plain", message.c_str());
 }
 
 void handleSetIndu()
@@ -568,7 +580,7 @@ void handleSetIndu()
     }
     if (server.argName(i) == "topic")
     {
-      topic = server.arg(i);
+      topic = checkName(server.arg(i), 20, true);
     }
     if (server.argName(i) == "pinwhite")
     {
@@ -596,4 +608,67 @@ void handleSetIndu()
   saveConfig();
   server.send(200, FPSTR("text/plain"), "ok");
   inductionSSE(true);
+}
+
+void checkIDSstate()
+{
+  // uint8_t errorIDS = inputBuffer[13] * 8 + inputBuffer[14] * 4 + inputBuffer[15] * 2 + inputBuffer[16] * 1;
+  // 2^3 + 2^2 + 2^1 + 2^0
+  // 8     4     2     1
+  // portENTER_CRITICAL(&errCode);
+  if (newError > 0 && oldError != newError)
+  {
+    oldError = newError;
+    if (inductionCooker.getIsEnabled())
+    {
+#ifdef ESP32
+      switch (newError)
+      {
+      case 0:
+        break;
+      case 1:
+      case 2: // E0
+        log_e("GGM IDS Fehler E0: %d kein/leerer Kessel", newError);
+        break;
+      case 3: // E1
+        log_e("GGM IDS Fehler E1: %d Stromkreisfehler", newError);
+        break;
+      case 4: // E2
+              // E2 unbelegt
+              // break;
+      case 5: // E3
+        log_e("GGM IDS Fehler E3: %d Überhitzung", newError);
+        break;
+      case 6: // E4
+        log_e("GGM IDS Fehler E4: %d Temperatursensor", newError);
+        break;
+      case 7: // E5
+              // E5 unbelegt
+              // break;
+      case 8: // E6
+              // E5 unbelegt
+              // break;
+      case 9: // E7
+        log_e("GGM IDS Fehler E7: %d Niederspannungsschutz", newError);
+        break;
+      case 10: // E8
+        log_e("GGM IDS Fehler E8: %d Überspannungsschutz", newError);
+        break;
+      case 11: // E9
+               // E9 unbelegt
+               // break;
+      case 12: // EA
+               // EA unbelagt
+               // break;
+      case 13: // EB
+               // EB unbelegt
+               // break;
+      case 14: // EC
+        log_e("GGM IDS Fehler EC: %d Bedienfeld", newError);
+        break;
+      }
+#endif
+    }
+  } // if (newError > 0 && oldError != newError)
+  // portEXIT_CRITICAL(&errCode);
 }

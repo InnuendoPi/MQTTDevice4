@@ -1,7 +1,19 @@
 # Changelog
 
-Version 4.57a
+Version 4.58
 
+- Fix:        close modal windows after config restore and reboot
+- Changed:    reboot function
+- Changed:    Merged source ESP8266 in ESP32 using compiler directives
+- Changed:    Rebuild WebIf
+- Changed:    Restore config file
+- Optimzed:   reduce amount of data transfered to connected clients
+- New:        language switch (en, de)
+- New:        Mouseover tooltips
+- Changed:    select handle sensor type and sensor pins
+- Changed:    IDS Pin Interrupt
+- Fix:        long sensor/actor names
+- Fix:        long mqtt topics
 - Fix:        HMI display mDNS name
 - Changed:    Added ".local" to mDNS hints, views and docs
 - New:        Added Max31865 Amplififer SPI support (PT100/PT1000 support) MOSI: D0 MISO: D1 SCLK: D2 CS: D4/D5/D6

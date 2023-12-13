@@ -1,19 +1,25 @@
 bool loadConfig()
 {
-  DEBUG_MSG("%s\n", "------ loadConfig started ------");
+#ifdef ESP32
+  log_e("%s", "------ loadConfig started ------");
+#endif
   File configFile = LittleFS.open(CONFIG, "r");
   if (!configFile)
   {
-    DEBUG_MSG("%s\n", "Failed to open config file\n");
-    DEBUG_MSG("%s\n", "------ loadConfig aborted ------\n");
+#ifdef ESP32
+    log_e("%s", "Failed to open config file");
+    log_e("%s", "------ loadConfig aborted ------");
+#endif
     return false;
   }
 
   size_t size = configFile.size();
   if (size > 2048)
   {
-    DEBUG_MSG("%s\n", "Config file size is too large");
-    DEBUG_MSG("%s\n", "------ loadConfig aborted ------");
+#ifdef ESP32
+    log_e("%s", "Config file size is too large");
+    log_e("%s", "------ loadConfig aborted ------");
+#endif
     return false;
   }
 
@@ -21,7 +27,9 @@ bool loadConfig()
   DeserializationError error = deserializeJson(doc, configFile);
   if (error)
   {
-    DEBUG_MSG("Conf: Error Json %s\n", error.c_str());
+#ifdef ESP32
+    log_e("Conf: Error Json %s", error.c_str());
+#endif
     return false;
   }
 
@@ -31,39 +39,40 @@ bool loadConfig()
 
   wait_on_Sensor_error_actor = miscObj["del_sen_act"] | 120000;
   wait_on_Sensor_error_induction = miscObj["del_sen_ind"] | 120000;
-  DEBUG_MSG("Wait on sensor error actors: %d sec\n", wait_on_Sensor_error_actor / 1000);
-  DEBUG_MSG("Wait on sensor error induction: %d sec\n", wait_on_Sensor_error_induction / 1000);
 
   StopOnMQTTError = miscObj["enable_mqtt"] | 0;
   wait_on_error_mqtt = miscObj["delay_mqtt"] | 120000;
-
-  DEBUG_MSG("Switch off actors on MQTT error: %d after %d sec\n", StopOnMQTTError, (wait_on_error_mqtt / 1000));
 
   startBuzzer = miscObj["buzzer"] | 0;
   if (startBuzzer)
     mqttBuzzer = miscObj["mqbuz"] | 0;
   else
     mqttBuzzer = false;
-  DEBUG_MSG("Buzzer: %d mqttBuzzer: %d\n", startBuzzer, mqttBuzzer);
 
   senRes = miscObj["res"] | 0;
   useDisplay = miscObj["display"] | 0;
   startPage = miscObj["page"] | 0;
   devBranch = miscObj["devbranch"] | 0;
 
-  DEBUG_MSG("Display: %d startPage: %d\n", useDisplay, startPage);
-
   strlcpy(nameMDNS, miscObj["mdns_name"] | "", maxHostSign);
   startMDNS = miscObj["mdns"] | 0;
-  DEBUG_MSG("mDNS: %d name: %s\n", startMDNS, nameMDNS);
   strlcpy(mqtthost, miscObj["MQTTHOST"] | "", maxHostSign);
   strlcpy(mqttuser, miscObj["MQTTUSER"] | "", maxUserSign);
   strlcpy(mqttpass, miscObj["MQTTPASS"] | "", maxPassSign);
   mqttport = miscObj["MQTTPORT"] | 1883;
+  strlcpy(ntpServer, miscObj["ntp"] | NTP_ADDRESS, maxHostSign);
   startSPI = miscObj["spi"] | 0;
-  DEBUG_MSG("MQTT server IP: %s Port: %d User: %s Pass: %s\n", mqtthost, mqttport, mqttuser, mqttpass);
-  DEBUG_MSG("%s\n", "--------------------");
-
+  selLang = miscObj["lang"] | 0;
+#ifdef ESP32
+  log_e("Wait on sensor error actors: %d sec", wait_on_Sensor_error_actor / 1000);
+  log_e("Wait on sensor error induction: %d sec", wait_on_Sensor_error_induction / 1000);
+  log_e("Switch off actors on MQTT error: %d after %d sec", StopOnMQTTError, (wait_on_error_mqtt / 1000));
+  log_e("Buzzer: %d mqttBuzzer: %d", startBuzzer, mqttBuzzer);
+  log_e("Display: %d startPage: %d", useDisplay, startPage);
+  log_e("mDNS: %d name: %s", startMDNS, nameMDNS);
+  log_e("MQTT server IP: %s Port: %d User: %s Pass: %s", mqtthost, mqttport, mqttuser, mqttpass);
+  log_e("%s", "--------------------");
+#endif
   // read actors
   JsonArray actorsArray = doc["actors"];
   numberOfActors = actorsArray.size();
@@ -75,17 +84,22 @@ bool loadConfig()
     if (i < numberOfActors)
     {
       actors[i].change(StringToPin(actorObj["PIN"]), actorObj["SCRIPT"], actorObj["NAME"], actorObj["INV"], actorObj["SW"]);
-      DEBUG_MSG("Actor #: %d Name: %s MQTT: %s PIN: %s INV: %d SW: %d\n", (i + 1), actorObj["NAME"].as<const char *>(), actorObj["SCRIPT"].as<const char *>(), actorObj["PIN"].as<const char *>(), actorObj["INV"].as<int>(), actorObj["SW"].as<int>());
+#ifdef ESP32
+      log_e("Actor #: %d Name: %s MQTT: %s PIN: %s INV: %d SW: %d", (i + 1), actorObj["NAME"].as<const char *>(), actorObj["SCRIPT"].as<const char *>(), actorObj["PIN"].as<const char *>(), actorObj["INV"].as<int>(), actorObj["SW"].as<int>());
+#endif
       i++;
     }
   }
 
   if (numberOfActors == 0)
   {
-    DEBUG_MSG("Actors: %d\n", numberOfActors);
+#ifdef ESP32
+    log_e("Actors: %d", numberOfActors);
+#endif
   }
-  DEBUG_MSG("%s\n", "--------------------");
-
+#ifdef ESP32
+  log_e("%s", "--------------------");
+#endif
   // read sensors
   JsonArray sensorsArray = doc["sensors"];
   numberOfSensors = sensorsArray.size();
@@ -98,37 +112,49 @@ bool loadConfig()
     if (i < numberOfSensors)
     {
       sensors[i].change(sensorsObj["ADDRESS"], sensorsObj["SCRIPT"], sensorsObj["NAME"], sensorsObj["CBPIID"], sensorsObj["OFFSET1"], sensorsObj["OFFSET2"], sensorsObj["SW"], sensorsObj["TYPE"], sensorsObj["PIN"]);
-      DEBUG_MSG("Sensor #: %d Name: %s Address: %s MQTT: %s CBPi-ID: %s Offset1: %.02f Offset2: %.02f SW: %d Type: %d Pin: %d\n", (i + 1), sensorsObj["NAME"].as<const char *>(), sensorsObj["ADDRESS"].as<const char *>(), sensorsObj["SCRIPT"].as<const char *>(), sensorsObj["CBPIID"].as<const char *>(), sensorsObj["OFFSET1"].as<float>(), sensorsObj["OFFSET2"].as<float>(), sensorsObj["SW"].as<int>(), sensorsObj["TYPE"].as<int>(), sensorsObj["PIN"].as<int>());
+#ifdef ESP32
+      log_e("Sensor #: %d Name: %s Address: %s MQTT: %s CBPi-ID: %s Offset1: %.02f Offset2: %.02f SW: %d Type: %d Pin: %d", (i + 1), sensorsObj["NAME"].as<const char *>(), sensorsObj["ADDRESS"].as<const char *>(), sensorsObj["SCRIPT"].as<const char *>(), sensorsObj["CBPIID"].as<const char *>(), sensorsObj["OFFSET1"].as<float>(), sensorsObj["OFFSET2"].as<float>(), sensorsObj["SW"].as<int>(), sensorsObj["TYPE"].as<int>(), sensorsObj["PIN"].as<int>());
+#endif
       i++;
     }
     else
       sensors[i].change("", "", "", "", 0.0, 0.0, false, 0, 0);
   }
-  // if (startSPI && (sensorsObj["TYPE"] == 1 || sensorsObj["TYPE"] == 2)) // Max31865 aktiviert und Sensortyp PT100x
   if (startSPI)
     setupPT();
-  DEBUG_MSG("%s\n", "--------------------");
-
+#ifdef ESP32
+  log_e("%s", "--------------------");
+#endif
   // read induction
   JsonArray indArray = doc["induction"];
   JsonObject indObj = indArray[0];
-  inductionCooker.setIsEnabled(indObj["ENABLED"] | 0); // 0: Aus 1: IDS1 2: IDS2
-  inductionStatus = inductionCooker.getIsEnabled();
+  inductionCooker.change(StringToPin(indObj["PINWHITE"]), StringToPin(indObj["PINYELLOW"]), StringToPin(indObj["PINBLUE"]), indObj["TOPIC"], indObj["ENABLED"], indObj["PL"]);
+  /*
+  inductionStatus = indObj["ENABLED"] | 0;
+  // inductionCooker.setIsEnabled(inductionStatus);
+  
   if (inductionStatus)
   {
     inductionCooker.change(StringToPin(indObj["PINWHITE"]), StringToPin(indObj["PINYELLOW"]), StringToPin(indObj["PINBLUE"]), indObj["TOPIC"], true, indObj["PL"]);
-    DEBUG_MSG("Induction: %d MQTT: %s Relais (WHITE): %s, Command channel (YELLOW): %s, Backchannel (BLUE): %s, PlOnErr: %d\n", inductionStatus, indObj["TOPIC"].as<const char *>(), indObj["PINWHITE"].as<const char *>(), indObj["PINYELLOW"].as<const char *>(), indObj["PINBLUE"].as<const char *>(), indObj["PL"].as<int>());
+#ifdef ESP32
+    log_e("Induction: %d MQTT: %s Relais (WHITE): %s, Command channel (YELLOW): %s, Backchannel (BLUE): %s, PlOnErr: %d", inductionStatus, indObj["TOPIC"].as<const char *>(), indObj["PINWHITE"].as<const char *>(), indObj["PINYELLOW"].as<const char *>(), indObj["PINBLUE"].as<const char *>(), indObj["PL"].as<int>());
+#endif
   }
   else
   {
     inductionStatus = 0;
-    DEBUG_MSG("Induction: %d\n", inductionStatus);
   }
-  DEBUG_MSG("%s\n", "--------------------");
-
-  DEBUG_MSG("%s\n", "------ loadConfig finished ------");
-
+  */
+#ifdef ESP32
+  log_e("%s", "--------------------");
+  log_e("%s", "------ loadConfig finished ------");
+#endif
   configFile.close();
+
+  // Setze NTP Server
+  if (ntpServer[0] != '\0') // leeres char array
+    timeClient.setPoolServerName(ntpServer);
+
   if (numberOfSensors > 0) // Ticker Sensors
     TickerSen.start();
 
@@ -143,21 +169,23 @@ bool loadConfig()
   else
   {
     softSerial.begin(9600, SWSERIAL_8N1, D1, D2, false);
-    DEBUG_MSG("SoftwareSerial init %d\n", int(softSerial));
+#ifdef ESP32
+    log_e("SoftwareSerial init %d", int(softSerial));
+#endif
     pins_used[D1] = true;
     pins_used[D2] = true;
     nextion.begin(softSerial);
     initDisplay();
     TickerDisp.start();
   }
-
-  DEBUG_MSG("Config file size %d\n", size);
   size_t len = measureJson(doc);
-  DEBUG_MSG("JSON config length: %d\n", len);
   int memoryUsed = doc.memoryUsage();
-  DEBUG_MSG("JSON memory usage: %d\n", memoryUsed);
-  DEBUG_MSG("%s\n", "--------------------");
-
+#ifdef ESP32
+  log_e("Config file size %d", size);
+  log_e("JSON config length: %d", len);
+  log_e("JSON memory usage: %d", memoryUsed);
+  log_e("%s", "--------------------");
+#endif
   if (startBuzzer)
   {
     pins_used[PIN_BUZZER] = true;
@@ -181,7 +209,9 @@ void saveConfigCallback()
 
 bool saveConfig()
 {
-  DEBUG_MSG("%s\n", "------ saveConfig started ------");
+#ifdef ESP32
+  log_e("%s", "------ saveConfig started ------");
+#endif
   DynamicJsonDocument doc(2500);
 
   // Write Actors
@@ -194,18 +224,14 @@ bool saveConfig()
     actorsObj["SCRIPT"] = actors[i].getActorTopic();
     actorsObj["INV"] = (int)actors[i].getInverted();
     actorsObj["SW"] = (int)actors[i].getActorSwitch();
-    DEBUG_MSG("Actor #: %d Name: %s MQTT: %s PIN: %s INV: %d SW: %d\n", (i + 1), actors[i].getActorName().c_str(), actors[i].getActorTopic().c_str(), PinToString(actors[i].getPinActor()), actors[i].getInverted(), actors[i].getActorSwitch());
+#ifdef ESP32
+    log_e("Actor #: %d Name: %s MQTT: %s PIN: %s INV: %d SW: %d", (i + 1), actors[i].getActorName().c_str(), actors[i].getActorTopic().c_str(), PinToString(actors[i].getPinActor()), actors[i].getInverted(), actors[i].getActorSwitch());
+#endif
   }
-  if (numberOfActors == 0)
-  {
-    DEBUG_MSG("Actors: %d\n", numberOfActors);
-  }
-  DEBUG_MSG("%s\n", "--------------------");
-
+#ifdef ESP32
+  log_e("%s", "--------------------");
+#endif
   // Write Sensors
-  // reset PT-Sensor IDs
-  activePT_0 = false, activePT_1 = false, activePT_2 = false;
-
   JsonArray sensorsArray = doc.createNestedArray("sensors");
   for (int i = 0; i < numberOfSensors; i++)
   {
@@ -219,47 +245,42 @@ bool saveConfig()
     sensorsObj["SW"] = (int)sensors[i].getSensorSwitch();
     sensorsObj["TYPE"] = sensors[i].getSensType();
     sensorsObj["PIN"] = sensors[i].getSensPin();
-    DEBUG_MSG("Sensor #: %d Name: %s Address: %s MQTT: %s CBPi-ID: %s Offset1: %.02f Offset2: %.02f SW: %d Typ: %d Pin: %d\n", (i + 1), sensors[i].getSensorName().c_str(), sensors[i].getSens_adress_string().c_str(), sensors[i].getSensorTopic().c_str(), sensors[i].getId().c_str(), sensors[i].getOffset1(), sensors[i].getOffset2(), sensors[i].getSensorSwitch(), sensors[i].getSensType(), , sensors[i].getSensPin());
+#ifdef ESP32
+    log_e("Sensor #: %d Name: %s Address: %s MQTT: %s CBPi-ID: %s Offset1: %.02f Offset2: %.02f SW: %d Typ: %d Pin: %d", (i + 1), sensors[i].getSensorName().c_str(), sensors[i].getSens_adress_string().c_str(), sensors[i].getSensorTopic().c_str(), sensors[i].getId().c_str(), sensors[i].getOffset1(), sensors[i].getOffset2(), sensors[i].getSensorSwitch(), sensors[i].getSensType(), , sensors[i].getSensPin());
+#endif
   }
-  if (startSPI) // Max31865 aktiviert und Sensortyp PT100x
-      setupPT();
-
-  DEBUG_MSG("%s\n", "--------------------");
+#ifdef ESP32
+  log_e("%s", "--------------------");
+#endif
 
   // Write Induction
+  // inductionStatus = 0;
   JsonArray indArray = doc.createNestedArray("induction");
   if (inductionCooker.getIsEnabled())
   {
-    inductionStatus = 1;
+    // inductionStatus = 1;
     JsonObject indObj = indArray.createNestedObject();
     indObj["PINWHITE"] = PinToString(inductionCooker.getPinWhite());
     indObj["PINYELLOW"] = PinToString(inductionCooker.getPinYellow());
     indObj["PINBLUE"] = PinToString(inductionCooker.getPinInterrupt());
-    indObj["ENABLED"] = inductionCooker.getIsEnabled();
+    indObj["ENABLED"] = (int)inductionCooker.getIsEnabled();
     indObj["TOPIC"] = inductionCooker.getTopic();
     indObj["PL"] = inductionCooker.getPowerLevelOnError();
-    DEBUG_MSG("Induction: %d MQTT: %s Relais (WHITE): %s, Command channel (YELLOW): %s, Backchannel (BLUE): %s, PlOnErr: %d\n", inductionCooker.getIsEnabled(), inductionCooker.getTopic().c_str(), PinToString(inductionCooker.getPinWhite()).c_str(), PinToString(inductionCooker.getPinYellow()).c_str(), PinToString(inductionCooker.getPinInterrupt()).c_str(), inductionCooker.getPowerLevelOnError());
+#ifdef ESP32
+    log_e("Induction: %d MQTT: %s Relais (WHITE): %s, Command channel (YELLOW): %s, Backchannel (BLUE): %s, PlOnErr: %d", inductionCooker.getIsEnabled(), inductionCooker.getTopic().c_str(), PinToString(inductionCooker.getPinWhite()).c_str(), PinToString(inductionCooker.getPinYellow()).c_str(), PinToString(inductionCooker.getPinInterrupt()).c_str(), inductionCooker.getPowerLevelOnError());
+#endif
   }
-  else
-  {
-    inductionStatus = 0;
-    DEBUG_MSG("Induction: %d\n", inductionCooker.getIsEnabled());
-  }
-
-  DEBUG_MSG("%s\n", "--------------------");
+#ifdef ESP32
+  log_e("%s", "--------------------");
+#endif
   // Write Misc Stuff
   JsonArray miscArray = doc.createNestedArray("misc");
   JsonObject miscObj = miscArray.createNestedObject();
 
   miscObj["del_sen_act"] = wait_on_Sensor_error_actor;
   miscObj["del_sen_ind"] = wait_on_Sensor_error_induction;
-  DEBUG_MSG("Wait on sensor error actors: %d sec\n", wait_on_Sensor_error_actor / 1000);
-  DEBUG_MSG("Wait on sensor error induction: %d sec\n", wait_on_Sensor_error_induction / 1000);
-
   miscObj["delay_mqtt"] = wait_on_error_mqtt;
   miscObj["enable_mqtt"] = (int)StopOnMQTTError;
-  DEBUG_MSG("Switch off actors on error enabled after %d sec\n", (wait_on_error_mqtt / 1000));
-
   miscObj["buzzer"] = (int)startBuzzer;
   if (startBuzzer)
     miscObj["mqbuz"] = (int)mqttBuzzer;
@@ -270,27 +291,34 @@ bool saveConfig()
   miscObj["display"] = (int)useDisplay;
   miscObj["page"] = startPage;
   miscObj["devbranch"] = (int)devBranch;
-  DEBUG_MSG("Display: %d startPage: %d\n", useDisplay, startPage);
-  DEBUG_MSG("DevBranch: %d\n", devBranch);
-
   miscObj["mdns_name"] = nameMDNS;
   miscObj["mdns"] = (int)startMDNS;
   miscObj["MQTTHOST"] = mqtthost;
   miscObj["MQTTPORT"] = mqttport;
   miscObj["MQTTUSER"] = mqttuser;
   miscObj["MQTTPASS"] = mqttpass;
+  miscObj["ntp"] = ntpServer;
   miscObj["spi"] = (int)startSPI;
+  miscObj["lang"] = selLang;
   miscObj["VER"] = Version;
 
-  DEBUG_MSG("MQTT broker IP: %s Port: %d User: %s Pass: %s\n", mqtthost, mqttport, mqttuser, mqttpass);
-  DEBUG_MSG("%s\n", "--------------------");
-
+#ifdef ESP32
+  log_e("Wait on sensor error actors: %d sec", wait_on_Sensor_error_actor / 1000);
+  log_e("Wait on sensor error induction: %d sec", wait_on_Sensor_error_induction / 1000);
+  log_e("Switch off actors on error enabled after %d sec", (wait_on_error_mqtt / 1000));
+  log_e("Display: %d startPage: %d", useDisplay, startPage);
+  log_e("DevBranch: %d", devBranch);
+  log_e("MQTT broker IP: %s Port: %d User: %s Pass: %s", mqtthost, mqttport, mqttuser, mqttpass);
+  log_e("%s", "--------------------");
+#endif
   if (measureJson(doc) > 2048 || doc.memoryUsage() > 2500)
   {
-    DEBUG_MSG("JSON config length: %d\n", measureJson(doc));
-    DEBUG_MSG("JSON memory usage: %d\n", doc.memoryUsage());
-    DEBUG_MSG("%s\n", "Failed to write config file - config too large");
-    DEBUG_MSG("%s\n", "------ saveConfig aborted ------");
+#ifdef ESP32
+    log_e("JSON config length: %d", measureJson(doc));
+    log_e("JSON memory usage: %d", doc.memoryUsage());
+    log_e("%s", "Failed to write config file - config too large");
+    log_e("%s", "------ saveConfig aborted ------");
+#endif
     if (startBuzzer)
       sendAlarm(ALARM_ERROR);
     return false;
@@ -299,22 +327,24 @@ bool saveConfig()
   File configFile = LittleFS.open(CONFIG, "w");
   if (!configFile)
   {
-    DEBUG_MSG("%s\n", "Failed to open config file for writing");
-    DEBUG_MSG("%s\n", "------ saveConfig aborted ------");
+#ifdef ESP32
+    log_e("%s", "Failed to open config file for writing");
+    log_e("%s", "------ saveConfig aborted ------");
+#endif
     if (startBuzzer)
       sendAlarm(ALARM_ERROR);
     return false;
   }
   serializeJson(doc, configFile);
   configFile.close();
-
-  DEBUG_MSG("Config file size %d\n", configFile.size());
-  DEBUG_MSG("JSON config length: %d\n", measureJson(doc));
-  DEBUG_MSG("JSON memory usage: %d\n", doc.memoryUsage());
-  DEBUG_MSG("%s\n", "------ saveConfig finished ------");
-  DEBUG_MSG("Maximum number of pins: %d\n", NUMBEROFPINS);
-  DEBUG_MSG("Free heap memory: %d\n", ESP.getFreeHeap());
-
+#ifdef ESP32
+  log_e("Config file size %d", configFile.size());
+  log_e("JSON config length: %d", measureJson(doc));
+  log_e("JSON memory usage: %d", doc.memoryUsage());
+  log_e("%s", "------ saveConfig finished ------");
+  log_e("Maximum number of pins: %d", NUMBEROFPINS);
+  log_e("Free heap memory: %d", ESP.getFreeHeap());
+#endif
   if (numberOfSensors > 0) // Ticker Sensors
     TickerSen.start();
   else
@@ -330,22 +360,19 @@ bool saveConfig()
   else
     TickerInd.stop();
 
-  if (!useDisplay) // Ticker Display
-    TickerDisp.stop();
-  else
+  if (useDisplay) // Ticker Display
   {
     softSerial.begin(9600, SWSERIAL_8N1, D1, D2, false);
-    DEBUG_MSG("SoftwareSerial init %d\n", int(softSerial));
     pins_used[D1] = true;
     pins_used[D2] = true;
     nextion.begin(softSerial);
     initDisplay();
     TickerDisp.start();
   }
+  else
+    TickerDisp.stop();
 
   String Network = WiFi.SSID();
-  DEBUG_MSG("ESP8266 device IP Address: %s\n", WiFi.localIP().toString().c_str());
-  DEBUG_MSG("Configured WLAN SSID: %s\n", Network.c_str());
 
   if (startBuzzer)
   {
@@ -354,6 +381,10 @@ bool saveConfig()
     digitalWrite(PIN_BUZZER, LOW);
     sendAlarm(ALARM_ON);
   }
-  DEBUG_MSG("%s\n", "---------------------------------");
+#ifdef ESP32
+  log_e("ESP8266 device IP Address: %s", WiFi.localIP().toString().c_str());
+  log_e("Configured WLAN SSID: %s", Network.c_str());
+  log_e("%s", "---------------------------------");
+#endif
   return true;
 }
