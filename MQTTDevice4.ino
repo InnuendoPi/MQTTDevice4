@@ -51,7 +51,7 @@
 #include "MQTTDevice.h"
 
 // Version
-#define Version "4.58a"
+#define Version "4.58b"
 
 // Sensoren
 OneWire oneWire(ONE_WIRE_BUS);

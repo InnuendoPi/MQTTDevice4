@@ -1,7 +1,9 @@
 # Changelog
 
-Version 4.58a
+Version 4.58b
 
+- Changed:    Default WLAN name in AP Mode changed to MQTTDevice
+- Changed:    Reset to factory default (clear config and WLAN settings enabled)
 - Fix:        max number of sensors allowed
 - Fix:        dyn. increase sensor update intervall fitting number of configured sensors
 - Fix:        Reload WebIf after reboot failed

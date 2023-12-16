@@ -265,6 +265,21 @@ void handleSetMisc()
         ESP.restart();
       }
     }
+    if (server.argName(i) == "all")
+    {
+
+      int8_t val = 0;
+      if (isValidDigit(server.arg(i)))
+        val = server.arg(i).toInt();
+      if (val == 1)
+      {
+        LittleFS.remove(CONFIG);
+        WiFi.disconnect();
+        wifiManager.resetSettings();
+        delay(PAUSE1SEC);
+        EM_REBOOT();
+      }
+    }
     if (server.argName(i) == "mqtthost")
     {
       server.arg(i).toCharArray(mqtthost, maxHostSign);

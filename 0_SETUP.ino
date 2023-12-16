@@ -26,7 +26,7 @@ void setup()
   wifiManager.setSaveConfigCallback(saveConfigCallback);
   WiFiManagerParameter p_hint("<small>*Connect your MQTTDevice to WLAN. When connected open http://mqttdevice.local in your brower</small>");
   wifiManager.addParameter(&p_hint);
-  wifiManager.autoConnect(mqtt_clientid);
+  wifiManager.autoConnect(nameMDNS);
   wifiManager.setWiFiAutoReconnect(true);
   WiFi.mode(WIFI_STA);
 #ifdef ESP32
