@@ -53,7 +53,6 @@ bool loadConfig()
   useDisplay = miscObj["display"] | 0;
   startPage = miscObj["page"] | 0;
   devBranch = miscObj["devbranch"] | 0;
-
   strlcpy(nameMDNS, miscObj["mdns_name"] | "", maxHostSign);
   startMDNS = miscObj["mdns"] | 0;
   strlcpy(mqtthost, miscObj["MQTTHOST"] | "", maxHostSign);

@@ -136,7 +136,13 @@ String convertUmlaute(String val, bool space)
 void setTicker()
 {
   // Ticker Objekte
-  TickerSen.config(tickerSenCallback, SEN_UPDATE, 0);
+  uint8_t senFaktor = 1; // dyn update intervall sensors
+  if (numberOfSensors >= 2)
+    senFaktor = 2;
+  else if (numberOfSensors >= 4)
+    senFaktor = 3;
+
+  TickerSen.config(tickerSenCallback, (senFaktor * SEN_UPDATE), 0);
   TickerAct.config(tickerActCallback, ACT_UPDATE, 0);
   TickerInd.config(tickerIndCallback, IND_UPDATE, 0);
   TickerPUBSUB.config(tickerPUBSUBCallback, tickerPUSUB, 0);
@@ -369,15 +375,19 @@ void EM_LOG()
 void EM_MDNSET() // MDNS setup
 {
 #ifdef ESP32
+  if (MDNS.begin(nameMDNS))
+  {
     MDNS.addService("http", "tcp", PORT);
+    Serial.printf("*** SYSINFO: mDNS started as %s.local connected to %s Time: %s RSSI: %d\n", nameMDNS, WiFi.localIP().toString().c_str(), timeClient.getFormattedTime().c_str(), WiFi.RSSI());
+  }
 #elif ESP8266
   if (mdns.begin(nameMDNS))
   {
     Serial.printf("*** SYSINFO: mDNS started as %s.local connected to %s Time: %s RSSI: %d\n", nameMDNS, WiFi.localIP().toString().c_str(), timeClient.getFormattedTime().c_str(), WiFi.RSSI());
   }
+#endif
   else
     Serial.printf("*** SYSINFO: error start mDNS! IP Adresse: %s Time: %s RSSI: %d\n", WiFi.localIP().toString().c_str(), timeClient.getFormattedTime().c_str(), WiFi.RSSI());
-#endif
 }
 
 void EM_REBOOT() // Reboot ESP
@@ -398,6 +408,7 @@ void EM_REBOOT() // Reboot ESP
     inductionCooker.setisInduon(false);
     inductionCooker.Update();
   }
+  server.sendHeader("Location", "/", true);
   server.send(205, FPSTR("text/plain"), "reboot");
   LittleFS.end(); // unmount LittleFS
   ESP.restart();

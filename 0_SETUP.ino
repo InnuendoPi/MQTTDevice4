@@ -107,7 +107,6 @@ void setupServer()
   server.on("/reqInduction", handleRequestInduction);
   server.on("/reqSearchSensorAdresses", handleRequestSensorAddresses);
   server.on("/reqPins", handlereqPins);               // GPIO Pins actors
-  // server.on("/reqPages", handleRequestPages);         // Display page
   server.on("/reqIndu", handleRequestIndu);           // Induction für WebConfig
   server.on("/setSensor", handleSetSensor);           // Sensor ändern
   server.on("/setActor", handleSetActor);             // Aktor ändern
@@ -125,6 +124,8 @@ void setupServer()
   server.on("/startSSE", startSSE);                   // Server Sent Events will be handled from this URI
   server.on("/checkAliveSSE", checkAliveSSE);         // Server Sent Events check IP on channel
   server.on("/language", handleGetLanguage);
+  server.on("/title", handleGetTitle);
+  server.on("/reqSys", handleReqSys);
   // FSBrowser initialisieren
   server.on("/edit", HTTP_GET, handleGetEdit);
   server.on("/status", HTTP_GET, handleStatus);

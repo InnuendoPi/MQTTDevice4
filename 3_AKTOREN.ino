@@ -311,10 +311,13 @@ void handleSetActor()
 
   if (id == -1)
   {
+    if (numberOfActors >= NUMBEROFACTORSMAX) // maximale Anzahl Aktoren erreicht?
+    {
+      server.send(204, FPSTR("text/plain"), "err");
+      return;
+    }
     id = numberOfActors;
     numberOfActors++;
-    if (numberOfActors >= NUMBEROFACTORSMAX)
-      return;
   }
 
   int8_t ac_pin = actors[id].getPinActor();

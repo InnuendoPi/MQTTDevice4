@@ -200,6 +200,48 @@ void handleRequestFirm()
   server.send(200, FPSTR("text/plain"), message.c_str());
 }
 
+void handleGetTitle()
+{
+#ifdef ESP32
+  server.send(200, FPSTR("text/plain"), "MQTTDevice32");
+#elif ESP8266
+  server.send(200, FPSTR("text/plain"), "MQTTDevice4");
+#endif
+}
+
+void handleReqSys()
+{
+  DynamicJsonDocument doc(256);
+  String message;
+  if (startMDNS)
+  {
+    message = nameMDNS;
+    message += F(" V");
+  }
+  else
+  {
+#ifdef ESP32
+    message = F("MQTTDevice32 V ");
+#elif ESP8266
+    message = F("MQTTDevice4 V ");
+#endif
+  }
+  message += Version;
+  if (devBranch == 1)
+    message += F(" dev");
+
+  doc["firm"] = message;
+#ifdef ESP32
+  doc["title"] = "MQTTDevice32";
+#elif ESP8266
+  doc["title"] = "MQTTDevice4";
+#endif
+  doc["lang"] = selLang;
+  String response;
+  serializeJson(doc, response);
+  server.send(200, FPSTR("application/json"), response.c_str());
+}
+
 void handleSetMisc()
 {
   for (uint8_t i = 0; i < server.args(); i++)
@@ -355,10 +397,11 @@ void handleRestore()
     if (fsUploadFile)
     {                       // If the file was successfully created
       fsUploadFile.close(); // Close the file again
-      server.sendHeader("Location", "/", true);
-      server.send(302, FPSTR("text/plain"), "Restore config");
-      LittleFS.end(); // unmount LittleFS
-      ESP.restart();
+      EM_REBOOT();
+      // server.sendHeader("Location", "/", true);
+      // server.send(302, FPSTR("text/plain"), "Restore config");
+      // LittleFS.end(); // unmount LittleFS
+      // ESP.restart();
     }
   }
 }

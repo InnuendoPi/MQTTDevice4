@@ -1,7 +1,11 @@
 # Changelog
 
-Version 4.58
+Version 4.58a
 
+- Fix:        max number of sensors allowed
+- Fix:        dyn. increase sensor update intervall fitting number of configured sensors
+- Fix:        Reload WebIf after reboot failed
+- Fix:        ESP32 mDNS webservice
 - Fix:        close modal windows after config restore and reboot
 - Changed:    reboot function
 - Changed:    Merged source ESP8266 in ESP32 using compiler directives

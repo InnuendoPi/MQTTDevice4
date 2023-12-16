@@ -394,10 +394,13 @@ void handleSetSensor()
 
   if (id == -1)
   {
+    if (numberOfSensors >= NUMBEROFSENSORSMAX) // maximale Anzahl Aktoren erreicht?
+    {
+      server.send(204, FPSTR("text/plain"), "err");
+      return;
+    }
     id = numberOfSensors;
     numberOfSensors++;
-    if (numberOfSensors >= NUMBEROFSENSORSMAX)
-      return;
   }
 
   String new_mqtttopic = sensors[id].getSensorTopic();
@@ -511,7 +514,6 @@ void handleRequestSensors()
 {
   int8_t id = server.arg(0).toInt();
   DynamicJsonDocument doc(1024);
-
   if (id == -1) // fetch all sensors
   {
     JsonArray sensorsArray = doc.to<JsonArray>();
