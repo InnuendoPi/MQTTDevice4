@@ -1,6 +1,6 @@
 # MQTTDevice4
 
-[![de](https://img.shields.io/badge/lang-de-yellow.svg)](https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/main/README.md)
+[![de](https://img.shields.io/badge/lang-de-yellow.svg)](https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/blob/main/README.md)
 [![ESP32](https://img.shields.io/static/v1?label=Arduino&message=ESP32%20&#8594;&logo=arduino&logoColor=white&color=blue)](https://github.com/InnuendoPi/MQTTDevice32)
 
 MQTTDevice4 enables sensors, actors and an induction hob to be connected via WLAN to [CraftBeerPi V4](https://github.com/avollkopf/craftbeerpi4).
