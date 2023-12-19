@@ -3,16 +3,62 @@
 [![de](https://img.shields.io/badge/lang-de-yellow.svg)](https://github.com/InnuendoPi/MQTTDevice4/blob/main/README.md)
 [![ESP32](https://img.shields.io/static/v1?label=Arduino&message=ESP32%20&#8594;&logo=arduino&logoColor=white&color=blue)](https://github.com/InnuendoPi/MQTTDevice32)
 
-MQTTDevice4 enables sensors, actors and an induction hob to be connected via WLAN to [CraftBeerPi V4](https://github.com/avollkopf/craftbeerpi4).
+MQTTDevice4 is an Arduino sketch for the ESP8266 Wemos D1 mini modules. MQTTDevice4 enables sensors, actors and an induction hob GGM IDS2 to be communicate via WLAN and MQTT with [CraftBeerPi V4](https://github.com/avollkopf/craftbeerpi4).
 
-MQTTDevice4 is an Arduino sketch for the ESP8266 Wemos D1 mini modules. This makes it possible to establish communication between the MQTT broker (eg mosquitto) and an ESP8266 in order to control sensors and actors with CraftBeerPi V4.
+![Web Interface](docs/img/startseite.jpg)
 
-![Startseite](docs/img/startseite.jpg)
+## ✅ Features
+
+* Web Interface (WebIf) for easy configuration, backup and restore
+* Server Sent Events (SSE) for WebClients
+* Temperature sensors (max 3)
+  * Dallas DS18B20 Sensors
+    * Search for connected sensors based on OneWire addresses
+  * PT100 and PT1000 sensors
+    * MAX31865 Amplifyer
+* Actors (max 10)
+  * GPIO selection
+  * used GPIOs are hidden
+  * Inverted GPIO
+  * Power Percentage: values ​​between 0 and 100% are sent. MQTTDevice "pulses" with a cycle of 1000ms
+* Induction hob
+  * induction hob GGM IDS2 can be controlled directly
+* Nextion HMI Touchdisplay support (optional)
+* WebUpdate firmware
+* mDNS support
+* Event handling
+* File explorer
+* support for different languages
+
+## 💻 Installation
+
+* Download [Firmeware.zip](https://github.com/InnuendoPi/MQTTDevice4/blob/main/tools/Firmware.zip)
+* unzip Firmware.zip
+* edit Flashen.cmd:
+* change "COM3" in line 6 und line 8 "esptool.exe -p COM3" as you need
+* open command line (cmd.exe) and change into firmware.zip directory
+* start script "flashen.cmd"
+
+Script flashen.cmd use [esptool](https://github.com/espressif/esptool).
 
 ## 📚 Documentation
 
-A detailed documentation is available on github pages: <https://innuendopi.github.io/MQTTDevice4/>
-A detailed documentation CraftbeerPi4 is available on github pages:: <https://openbrewing.gitbook.io/craftbeerpi4_support/>
+A detailed MQTTDevice documentation is available on gitbook: [documentation](https://innuendopi.gitbook.io/mqttdevice32/)\
+CraftBeerPi V4 documenation and support: [CraftBeerPi](https://openbrewing.gitbook.io/craftbeerpi4_support/)
+
+## 💠 Pin-Belegung
+
+| Name |   GPIO   |  Input  |  Output  | Description |
+| ---------- | -------- | ------- | -------- | ------------ |
+|     D0     |  GPIO026 |   ok    |   ok     | MAX31865 MOSI (High at boot, no int, no PWM) |
+|     D1     |  GPIO022 |   ok    |   ok     | SCL Display, MAX31865 MISO  |
+|     D2     |  GPIO021 |   ok    |   ok     | SDA Display, MAX31865 CLK  |
+|     D3     |  GPIO017 |   ok    |   ok     | DS18B20 sensors |
+|     D4     |  GPIO016 |         |   ok     | MAX31865 CS0 (High at boot, onboard LED)|
+|     D5     |  GPIO018 |   ok    |   ok     | IDS2 blau SCLK, MAX31865 CS1   |
+|     D6     |  GPIO019 |   ok    |   ok     | IDS2 gelb, MAX31865 CS2 |
+|     D7     |  GPIO023 |   ok    |   ok     | IDS2 weiß |
+|     D8     |  GPIO005 |         |   ok     | Buzzer       |
 
 ## 📰 Sketch Information
 
@@ -20,7 +66,7 @@ Libraries: Version 4.58, 12.2023
 
 * ESP8266 3.1.2
 * Arduino IDE 1.8.19
-* VSCode 1.85 Arduino-CLI ESP8266FS Plugin (LittleFS)
+* VSCode 1.85 Arduino-CLI ESP8266FS Plugin (modified LittleFS)
 * OneWire
 * DallasTemperature
 * PubSubClient
