@@ -45,8 +45,13 @@ Das Script flashen.cmd verwendet [esptool](https://github.com/espressif/esptool)
 
 ## 📚 Anleitung und Dokumentation
 
-Beschreibung & Anleitung: [Anleitung](https://innuendopi.gitbook.io/mqttdevice32/)\
-CraftBeerPi V4 Dokumentation und Support: [CraftBeerPi](https://openbrewing.gitbook.io/craftbeerpi4_support/)
+Beschreibung & Anleitung: [Anleitung](https://innuendopi.gitbook.io/mqttdevice32/)
+
+## 🗺️ Multilingual
+
+Das MQTTDevice unterstützt nahezu beliebig viele Sprachen. Jede Sprache hat eine eigene Sprachdatei. Die Sprachdateien im JSON Format sind im Ordner data/language hinterlegt.
+
+_Unterstützte das Projekt und übersetze das MQTTDevice32 in eine neue Sprache bzw. korrigiere vorhandene Sprachdateien!_
 
 ## 💠 Pin-Belegung
 

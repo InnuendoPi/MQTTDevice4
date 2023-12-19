@@ -43,8 +43,13 @@ Script flashen.cmd use [esptool](https://github.com/espressif/esptool).
 
 ## 📚 Documentation
 
-A detailed MQTTDevice documentation is available on gitbook: [documentation](https://innuendopi.gitbook.io/mqttdevice32/)\
-CraftBeerPi V4 documenation and support: [CraftBeerPi](https://openbrewing.gitbook.io/craftbeerpi4_support/)
+A detailed MQTTDevice documentation is available on gitbook: [documentation](https://innuendopi.gitbook.io/mqttdevice32/)
+
+## 🗺️ Multilingual
+
+MQTTDevice supports different languages. Each language has its own language file. The language files in JSON format are stored in the folder data/language.
+
+_Supported the project and translate Brautomat into a new language or corrected existing language files!_
 
 ## 💠 Pin-Belegung
 
