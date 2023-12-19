@@ -55,9 +55,9 @@ CraftBeerPi V4 documenation and support: [CraftBeerPi](https://openbrewing.gitbo
 |     D2     |  GPIO021 |   ok    |   ok     | SDA Display, MAX31865 CLK  |
 |     D3     |  GPIO017 |   ok    |   ok     | DS18B20 sensors |
 |     D4     |  GPIO016 |         |   ok     | MAX31865 CS0 (High at boot, onboard LED)|
-|     D5     |  GPIO018 |   ok    |   ok     | IDS2 blau SCLK, MAX31865 CS1   |
-|     D6     |  GPIO019 |   ok    |   ok     | IDS2 gelb, MAX31865 CS2 |
-|     D7     |  GPIO023 |   ok    |   ok     | IDS2 weiß |
+|     D5     |  GPIO018 |   ok    |   ok     | IDS2 blue, MAX31865 CS1   |
+|     D6     |  GPIO019 |   ok    |   ok     | IDS2 yellow, MAX31865 CS2 |
+|     D7     |  GPIO023 |   ok    |   ok     | IDS2 white |
 |     D8     |  GPIO005 |         |   ok     | Buzzer       |
 
 ## 📰 Sketch Information
