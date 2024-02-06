@@ -43,8 +43,9 @@ bool loadConfig()
   StopOnMQTTError = miscObj["enable_mqtt"] | 0;
   wait_on_error_mqtt = miscObj["delay_mqtt"] | 120000;
 
-  startBuzzer = miscObj["buzzer"] | 0;
-  if (startBuzzer)
+  // startBuzzer = miscObj["buzzer"] | -100;
+  PIN_BUZZER = StringToPin(miscObj["buz"]);
+  if (PIN_BUZZER != -100)
     mqttBuzzer = miscObj["mqbuz"] | 0;
   else
     mqttBuzzer = false;
@@ -62,11 +63,13 @@ bool loadConfig()
   strlcpy(ntpServer, miscObj["ntp"] | NTP_ADDRESS, maxHostSign);
   startSPI = miscObj["spi"] | 0;
   selLang = miscObj["lang"] | 0;
+  DUTYCYLCE = miscObj["dutyCycle"] | 5000;
+  
 #ifdef ESP32
   log_e("Wait on sensor error actors: %d sec", wait_on_Sensor_error_actor / 1000);
   log_e("Wait on sensor error induction: %d sec", wait_on_Sensor_error_induction / 1000);
   log_e("Switch off actors on MQTT error: %d after %d sec", StopOnMQTTError, (wait_on_error_mqtt / 1000));
-  log_e("Buzzer: %d mqttBuzzer: %d", startBuzzer, mqttBuzzer);
+  log_e("Buzzer: %d mqttBuzzer: %d", PIN_BUZZER, mqttBuzzer);
   log_e("Display: %d startPage: %d", useDisplay, startPage);
   log_e("mDNS: %d name: %s", startMDNS, nameMDNS);
   log_e("MQTT server IP: %s Port: %d User: %s Pass: %s", mqtthost, mqttport, mqttuser, mqttpass);
@@ -185,8 +188,11 @@ bool loadConfig()
   log_e("JSON memory usage: %d", memoryUsed);
   log_e("%s", "--------------------");
 #endif
-  if (startBuzzer)
+  if (PIN_BUZZER != -100)
   {
+    // pins_used[PIN_BUZZER] = true;
+    // pinMode(PIN_BUZZER, OUTPUT);
+    // digitalWrite(PIN_BUZZER, LOW);
     pins_used[PIN_BUZZER] = true;
     pinMode(PIN_BUZZER, OUTPUT);
     digitalWrite(PIN_BUZZER, LOW);
@@ -280,8 +286,9 @@ bool saveConfig()
   miscObj["del_sen_ind"] = wait_on_Sensor_error_induction;
   miscObj["delay_mqtt"] = wait_on_error_mqtt;
   miscObj["enable_mqtt"] = (int)StopOnMQTTError;
-  miscObj["buzzer"] = (int)startBuzzer;
-  if (startBuzzer)
+  // miscObj["buzzer"] = (int)startBuzzer;
+  miscObj["buz"] = PinToString(PIN_BUZZER);
+  if (PIN_BUZZER != -100)
     miscObj["mqbuz"] = (int)mqttBuzzer;
   else
     miscObj["mqbuz"] = 0;
@@ -299,6 +306,7 @@ bool saveConfig()
   miscObj["ntp"] = ntpServer;
   miscObj["spi"] = (int)startSPI;
   miscObj["lang"] = selLang;
+  miscObj["dutyCycle"] = DUTYCYLCE;
   miscObj["VER"] = Version;
 
 #ifdef ESP32
@@ -318,7 +326,8 @@ bool saveConfig()
     log_e("%s", "Failed to write config file - config too large");
     log_e("%s", "------ saveConfig aborted ------");
 #endif
-    if (startBuzzer)
+    // if (startBuzzer)
+    if (PIN_BUZZER != -100)
       sendAlarm(ALARM_ERROR);
     return false;
   }
@@ -330,7 +339,8 @@ bool saveConfig()
     log_e("%s", "Failed to open config file for writing");
     log_e("%s", "------ saveConfig aborted ------");
 #endif
-    if (startBuzzer)
+    // if (startBuzzer)
+    if (PIN_BUZZER != -100)
       sendAlarm(ALARM_ERROR);
     return false;
   }
@@ -373,7 +383,8 @@ bool saveConfig()
 
   String Network = WiFi.SSID();
 
-  if (startBuzzer)
+  // if (startBuzzer)
+  if (PIN_BUZZER != -100)
   {
     pins_used[PIN_BUZZER] = true;
     pinMode(PIN_BUZZER, OUTPUT);

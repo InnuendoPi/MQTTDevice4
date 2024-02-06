@@ -151,14 +151,14 @@ void handleRequestMiscAlert()
 
 void handleRequestMisc()
 {
-  DynamicJsonDocument doc(1024);
+  DynamicJsonDocument doc(2048);
   doc["host"] = mqtthost;
   doc["port"] = mqttport;
   doc["user"] = mqttuser;
   doc["pass"] = mqttpass;
   doc["mdns_name"] = nameMDNS;
   doc["mdns"] = startMDNS;
-  doc["buzzer"] = startBuzzer;
+  // doc["buzzer"] = startBuzzer;
   doc["mqbuz"] = mqttBuzzer;
   doc["res"] = senRes;
   doc["display"] = useDisplay;
@@ -171,9 +171,36 @@ void handleRequestMisc()
   doc["s_mqtt"] = mqtt_state; // Anzeige MQTT Status -> mqtt_state verzögerter Status!
   doc["spi"] = startSPI;
   doc["ntp"] = ntpServer;
+  
+  String message = "";
+  if (isPin(PIN_BUZZER))
+  {
+    message += F("<option>");
+    message += PinToString(PIN_BUZZER);
+    message += F("</option><option disabled>──────────</option>");
+  }
+  else
+  {
+    message += F("<option>");
+    message += "-";
+    message += F("</option><option disabled>──────────</option>");
+  }
+
+  for (uint8_t i = 0; i < NUMBEROFPINS; i++)
+  {
+    if (pins_used[pins[i]] == false)
+    {
+      message += F("<option>");
+      message += pin_names[i];
+      message += F("</option>");
+    }
+  }
+  doc["buz"] = message;
+  
   String response;
   serializeJson(doc, response);
   server.send(200, FPSTR("application/json"), response.c_str());
+  // Serial.printf("JSON misc config length: %d", measureJson(doc));
 }
 
 void handleRequestFirm()
@@ -299,9 +326,15 @@ void handleSetMisc()
     {
       server.arg(i).toCharArray(mqttpass, maxPassSign);
     }
+    // if (server.argName(i) == "buzzer")
+    // {
+    //   startBuzzer = checkBool(server.arg(i));
+    // }
     if (server.argName(i) == "buzzer")
     {
-      startBuzzer = checkBool(server.arg(i));
+      pins_used[PIN_BUZZER] = false;
+      PIN_BUZZER = StringToPin(server.arg(i));
+      pins_used[PIN_BUZZER] = true;
     }
     if (server.argName(i) == "mqbuz")
     {

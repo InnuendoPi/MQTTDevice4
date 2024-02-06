@@ -97,7 +97,7 @@ uint8_t subscriptionCount = 0;
 #define NUMBEROFACTORSMAX 10 // Maximale Anzahl an Aktoren
 #endif
 
-#define DUTYCYLCE 5000       // Aktoren und HLT
+int64_t DUTYCYLCE = 5000; // Aktoren und HLT
 bool senRes = false;
 bool startSPI = false;
 uint8_t numberOfActors = 0;  // Gesamtzahl der Aktoren
@@ -155,7 +155,8 @@ int8_t sensorsStatus = 0;
 int8_t actorsStatus = 0;
 bool inductionStatus = false;
 
-bool startBuzzer = false; // Aktiviere Buzzer
+// bool startBuzzer = false; // Aktiviere Buzzer
+// int8_t startBuzzer = D8; // Aktiviere Buzzer
 bool mqttBuzzer = false;  // MQTTBuzzer für CBPi4
 
 int8_t selLang = 0;       // Sprache

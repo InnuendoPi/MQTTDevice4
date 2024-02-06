@@ -53,16 +53,16 @@
 bool pins_used[33]; // GPIO
 #define NUMBEROFPINS 21
 static const int8_t pins[NUMBEROFPINS] = {26, 22, 21, 17, 16, 18, 19, 23, 5, 27, 25, 32, 12, 4, 0, 2, 33, 14, 15, 13, -100};
-static const String pin_names[NUMBEROFPINS] = {"D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "D13", "D14", "D15", "D16", "D17", "D18", "D19", "Off"};
+static const String pin_names[NUMBEROFPINS] = {"D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "D13", "D14", "D15", "D16", "D17", "D18", "D19", "-"};
 #elif ESP8266
 #define NUMBEROFPINS 10
 bool pins_used[17]; // GPIO
 static const int8_t pins[NUMBEROFPINS] = {D0, D1, D2, D3, D4, D5, D6, D7, D8, -100};
-const String pin_names[NUMBEROFPINS] = {"D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "Off"};
+const String pin_names[NUMBEROFPINS] = {"D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "-"};
 #endif
 
 #define ONE_WIRE_BUS D3
-#define PIN_BUZZER D8
+int8_t PIN_BUZZER = D8;
 
 // Sensoren
 #define RREF1000 4300.0

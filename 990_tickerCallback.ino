@@ -1,6 +1,6 @@
 void pageCallback0()
 {
-  if (startBuzzer)
+  if (PIN_BUZZER != -100)
     sendAlarm(ALARM_INFO);
 
   tempPage = 0;
@@ -8,7 +8,7 @@ void pageCallback0()
 }
 void pageCallback1()
 {
-  if (startBuzzer)
+  if (PIN_BUZZER != -100)
     sendAlarm(ALARM_INFO);
 
   tempPage = 1;
@@ -16,7 +16,7 @@ void pageCallback1()
 }
 void pageCallback2()
 {
-  if (startBuzzer)
+  if (PIN_BUZZER != -100)
     sendAlarm(ALARM_INFO);
 
   tempPage = 2;

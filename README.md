@@ -12,19 +12,24 @@ MQTTDevice4 ist ein Arduino Sketch für Wemos ESP8266 D1 mini Module. Mit dem MQ
 * Web Interface (WebIf)
 * Backup und Restore der Konfiguration
 * Server Sent Events (SSE) für WebClients
-* Temperatursensoren (max 3)
+* Temperatursensoren
   * Dallas DS18B20 Sensoren
     * Suchfunktion für Dallas DS18B20 OneWire Sensoren
   * PT100 und PT1000 Sensoren
     * MAX31865 Amplifyer
-* Aktoren (max 10)
+  * MQTTDevice32 unterstützt bis zu 6 Sensoren
+  * MQTTDevice4 supports unterstützt bis zu 3 Sensoren
+* Aktoren
   * GPIO Auswahl
   * belegte GPIOs werden in der Auswahl ausgeblendet
   * GPIO invertieren
   * Einfaches PWM: Aktoren können auf 0 bis 100% Leistung eingestellt werden. Das MQTTDevice takten im Zyklus von 1000ms
+  * MQTTDevice32 unterstützt bis zu 15 Aktoren
+  * MQTTDevice4 unterstützt bis zu 10 Aktoren
 * Induktionskochfeld
   * Induktionskochfeld GGM IDS2 wird direkt gesteuert
-* Nextion HMI Touchdisplay Unterstützunh (optional)
+* Nextion HMI Touchdisplay Unterstützung
+* Akkustische Signale
 * WebUpdate Firmware
 * DateiUpdate Firmware
 * mDNS Support
@@ -49,9 +54,9 @@ Beschreibung & Anleitung: [Anleitung](https://innuendopi.gitbook.io/mqttdevice32
 
 ## 🗺️ Multilingual
 
-Das MQTTDevice unterstützt nahezu beliebig viele Sprachen. Jede Sprache hat eine eigene Sprachdatei. Die Sprachdateien im JSON Format sind im Ordner data/language hinterlegt.
+Das MQTTDevice unterstützt nahezu beliebig viele Sprachen. Jede Sprache hat eine eigene Sprachdatei. Die Sprachdateien im JSON Format sind im data Ordner gespeichert.
 
-_Unterstützte das Projekt und übersetze das MQTTDevice32 in eine neue Sprache bzw. korrigiere vorhandene Sprachdateien!_
+_Unterstützte das Projekt und übersetze das MQTTDevice in eine neue Sprache bzw. erweitere vorhandene Sprachdateien!_
 
 ## 💠 Pin-Belegung
 

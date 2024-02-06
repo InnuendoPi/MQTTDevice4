@@ -275,7 +275,7 @@ unsigned char convertCharToHex(char ch)
 
 void sendAlarm(const uint8_t &setAlarm)
 {
-  if (!startBuzzer)
+  if (PIN_BUZZER == -100)
     return;
   switch (setAlarm)
   {
@@ -509,7 +509,7 @@ void EM_MQTTERROR() // MQTT Error -> handling
     if (StopOnMQTTError)
     {
       mqtt_state = false; // MQTT in error state
-      if (startBuzzer)
+      if (PIN_BUZZER != -100)
         sendAlarm(ALARM_ERROR);
 #ifdef ESP32
       log_e("EM MQTTERROR: MQTT Broker %s not availible! StopOnMQTTError: %d mqtt_state: %d", mqtthost, StopOnMQTTError, mqtt_state);
