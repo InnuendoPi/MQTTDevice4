@@ -418,7 +418,12 @@ void EM_MQTTCONNECT() // MQTT connect
 {
   if (WiFi.status() == WL_CONNECTED) // kein wlan = kein mqtt
   {
-    pubsubClient.setBufferSize(512); // Display
+    // if (useFerm)
+    //   pubsubClient.setBufferSize(2048); // extra large Buffersize to receive fermenterupdate
+    // else
+    //   pubsubClient.setBufferSize(512);  // large buffersize to receive all CBPi4 MQTT payload
+
+    pubsubClient.setBufferSize(2048); // large buffersize to receive all CBPi4 MQTT payload
     pubsubClient.setServer(mqtthost, mqttport);
     pubsubClient.setCallback(mqttcallback);
     pubsubClient.connect(mqtt_clientid, mqttuser, mqttpass);
@@ -449,6 +454,11 @@ void EM_MQTTSUBSCRIBE() // MQTT subscribe
       cbpi4kettle_subscribe();
       cbpi4steps_subscribe();
       cbpi4notification_subscribe();
+      if (useFerm)
+      {
+        cbpi4fermenter_subscribe();
+        cbpi4fermentersteps_subscribe();
+      }
     }
     else if (mqttBuzzer) // mqttBuzzer only
       cbpi4notification_subscribe();

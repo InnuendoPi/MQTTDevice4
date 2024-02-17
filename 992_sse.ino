@@ -12,7 +12,7 @@ void inductionSSE(bool val)
     // val true: init
     // val false: only updates
 
-    DynamicJsonDocument doc(386);
+    JsonDocument doc;
     doc["enabled"] = (int)inductionCooker.getIsEnabled();
     doc["power"] = 0;
     if (inductionCooker.getIsEnabled())
@@ -64,7 +64,7 @@ void inductionSSE(bool val)
 
 void miscSSE()
 {
-    DynamicJsonDocument doc(256);
+    JsonDocument doc;
     doc["host"] = mqtthost;
     doc["port"] = mqttport;
     doc["s_mqtt"] = mqtt_state;

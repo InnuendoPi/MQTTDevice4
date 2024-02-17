@@ -175,6 +175,9 @@ NextionComponent p2gauge(nextion, 2, 4);
 #define cbpi4sensor_topic "cbpi/sensordata/"    // mKdeC6LjHZmz9Sa2mVf5SV
 #define cbpi4actor_topic "cbpi/actorupdate/+"
 #define cbpi4notification_topic "cbpi/notification"
+#define cbpi4fermenter_topic "cbpi/fermenterupdate/+"
+// #define cbpi4fermentersteps_topic "cbpi/fermenterstepupdate/YdceEBous3wSRUQsTx9ZLq/+"
+#define cbpi4fermentersteps_topic "cbpi/fermenterstepupdate/+/+"
 
 bool current_step = false;
 struct Kettles

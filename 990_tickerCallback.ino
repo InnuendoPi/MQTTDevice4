@@ -49,19 +49,16 @@ void tickerDispCallback()
   switch (activePage)
   {
   case 0:            // BrewPage
-    if (!activeBrew) // aktiver Step vorhanden?
-      strlcpy(currentStepName, "BrewPage", maxStepSign);
-
+    // if (!activeBrew) // aktiver Step vorhanden?
+    //   strlcpy(currentStepName, "Overview", maxStepSign);
     uhrzeit_text.attribute("txt", uhrzeit);
     mqttDevice.attribute("txt", ipMQTT);
 
     BrewPage();
     break;
   case 1:            // KettlePage
-    if (!activeBrew) // aktiver Step vorhanden?
-      strlcpy(currentStepName, sensors[0].getSensorName().c_str(), maxStepSign);
-
-    strlcpy(structKettles[0].current_temp, sensors[0].getTotalValueString(), maxTempSign);
+    if (strlen(structKettles[0].sensor) == 0)
+      strlcpy(structKettles[0].current_temp, sensors[0].getTotalValueString(), maxTempSign);
 
     p1mqttDevice.attribute("txt", ipMQTT);
     p1uhrzeit_text.attribute("txt", uhrzeit);
@@ -69,7 +66,6 @@ void tickerDispCallback()
     KettlePage();
     break;
   case 2: // Induction mode
-    // log_e("Ticker: dispCallback InductionPage activePage: %d", activePage);
     strlcpy(structKettles[0].current_temp, sensors[0].getTotalValueString(), maxTempSign);
     p2uhrzeit_text.attribute("txt", uhrzeit);
     InductionPage();

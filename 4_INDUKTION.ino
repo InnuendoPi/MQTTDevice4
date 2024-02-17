@@ -146,9 +146,15 @@ public:
     }
   }
 
-  void handlemqtt(char *payload)
+  void handlemqtt(unsigned char *payload, unsigned int length)
   {
-    DynamicJsonDocument doc(128);
+    // Serial.printf("Induction len: %d\n", length);
+    // for (unsigned int i = 0; i < length; i++)
+    // {
+    //   Serial.print((char)payload[i]);
+    // }
+    // Serial.println();
+    JsonDocument doc;
     DeserializationError error = deserializeJson(doc, (const char *)payload);
     if (error)
     {
@@ -493,7 +499,7 @@ void handleInduction()
 
 void handleRequestInduction()
 {
-  DynamicJsonDocument doc(386);
+  JsonDocument doc;
   doc["enabled"] = inductionCooker.getIsEnabled();
   doc["power"] = 0;
   if (inductionCooker.getIsEnabled())

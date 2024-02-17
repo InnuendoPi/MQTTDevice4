@@ -51,7 +51,7 @@
 #include "MQTTDevice.h"
 
 // Version
-#define Version "4.58b"
+#define Version "4.59a"
 
 // Sensoren
 OneWire oneWire(ONE_WIRE_BUS);
@@ -156,7 +156,6 @@ int8_t actorsStatus = 0;
 bool inductionStatus = false;
 
 // bool startBuzzer = false; // Aktiviere Buzzer
-// int8_t startBuzzer = D8; // Aktiviere Buzzer
 bool mqttBuzzer = false;  // MQTTBuzzer für CBPi4
 
 int8_t selLang = 0;       // Sprache
@@ -164,6 +163,7 @@ int8_t selLang = 0;       // Sprache
 // Display Nextion
 #define NUMBEROFPAGES 3
 bool useDisplay = false;
+bool useFerm = false;
 int startPage = 0;  // Startseite: BrewPage = 0 Kettlepage = 1 InductionPage = 2
 int activePage = 0; // die aktuell angezeigte Seite
 int tempPage = -1;  // die aktuell angezeigte Seite

@@ -13,7 +13,7 @@ bool upTools(String url, String fname, WiFiClientSecure &clientup)
                 uint8_t buff[128] = {0};
                 WiFiClient *stream = https.getStreamPtr(); // get tcp stream
                 bool check = LittleFS.remove("/" + fname);
-                fsUploadFile = LittleFS.open("/" + fname + ".new", "w");
+                fsUploadFile = LittleFS.open("/" + fname, "w");
                 int32_t len = https.getSize();
                 int32_t startlen = len;
                 while (https.connected() && (len > 0 || len == -1))
@@ -31,22 +31,25 @@ bool upTools(String url, String fname, WiFiClientSecure &clientup)
                     delay(1);
                 }
 
+                fsUploadFile.close();
+                fsUploadFile = LittleFS.open("/" + fname, "r");
                 if (fsUploadFile.size() == startlen)
                 {
                     sprintf(line, "Framwork/Tools update %s getSize: %d fileSize: %d", fname.c_str(), startlen, fsUploadFile.size());
                     debugLog(UPDATELOG, line);
-                    fsUploadFile.close();
-                    bool check = LittleFS.remove("/" + fname);
-                    check = LittleFS.rename("/" + fname + ".new", "/" + fname);
+#ifdef ESP32
+                    log_e("%s", line);
+#endif
                 }
                 else
                 {
-                    sprintf(line, "Framwork/Tools update error %s getSize: %d fileSize: %d", fname.c_str(), startlen, fsUploadFile.size());
+                    sprintf(line, "Framwork/Tools update Fehler %s getSize: %d fileSize: %d", fname.c_str(), startlen, fsUploadFile.size());
                     debugLog(UPDATELOG, line);
-                    Serial.printf("*** SYSINFO: %s update finished with error startLen: %d file size: %d\n", fname.c_str(), startlen, fsUploadFile.size());
-                    fsUploadFile.close();
+#ifdef ESP32
+                    log_e("%s", line);
+#endif
                 }
-
+                fsUploadFile.close();
                 https.end();
                 return true;
             }
@@ -55,7 +58,7 @@ bool upTools(String url, String fname, WiFiClientSecure &clientup)
         }
         else
         {
-            sprintf(line, "Framwork/Tools update error %s %s", fname.c_str(), https.errorToString(httpCode).c_str());
+            sprintf(line, "Framwork/Tools2 update Fehler %s %s", fname.c_str(), https.errorToString(httpCode).c_str());
             debugLog(UPDATELOG, line);
 #ifdef ESP32
             log_e("%s", line);
@@ -66,7 +69,7 @@ bool upTools(String url, String fname, WiFiClientSecure &clientup)
     }
     else
     {
-        sprintf(line, "Framwork/Tools update error https start %s", fname.c_str());
+        sprintf(line, "Framwork/Tools3 update Fehler https start %s", fname.c_str());
         debugLog(UPDATELOG, line);
 #ifdef ESP32
         log_e("%s", line);
@@ -77,7 +80,7 @@ bool upTools(String url, String fname, WiFiClientSecure &clientup)
 
 void upFirm()
 {
-
+    timeClient.update();
     WiFiClientSecure clientup;
     clientup.setInsecure();
     char line[120];

@@ -86,7 +86,9 @@ public:
         sens_state = false;
       }
       sens_err = sensorsStatus;
-      // Serial.printf("Sen Update value: %.03f type: %d id: %d\n", sens_value, sens_type, sens_ptid);
+#ifdef ESP32
+      log_e("Sen Update value: %.03f type: %d id: %d", sens_value, sens_type, sens_ptid);
+#endif
     } // if senstyp pt100
     else if (sens_type == 2)
     {
@@ -112,7 +114,9 @@ public:
         sens_state = false;
       }
       sens_err = sensorsStatus;
-      // Serial.printf("Sen Update value: %.03f type: %d id: %d\n", sens_value, sens_type, sens_ptid);
+#ifdef ESP32
+      log_e("Sen Update value: %.03f type: %d id: %d", sens_value, sens_type, sens_ptid);
+#endif
     } // if senstyp pt1000
     if (TickerPUBSUB.state() == RUNNING && TickerMQTT.state() != RUNNING)
       publishmqtt();
@@ -164,8 +168,8 @@ public:
   {
     if (pubsubClient.connected())
     {
-      DynamicJsonDocument doc(256);
-      JsonObject sensorsObj = doc.createNestedObject("Sensor");
+      JsonDocument doc;
+      JsonObject sensorsObj = doc["Sensor"].to<JsonObject>();
       sensorsObj["Name"] = sens_name;
       if (sensorsStatus == 0)
       {
@@ -318,7 +322,7 @@ void handleSensors(bool checkSen)
   // checkSen true: init
   // checkSen false: only updates
 
-  DynamicJsonDocument ssedoc(512);
+  JsonDocument ssedoc;
   JsonArray sseArray = ssedoc.to<JsonArray>();
   int8_t max_status = 0;
   for (uint8_t i = 0; i < numberOfSensors; i++)
@@ -333,7 +337,7 @@ void handleSensors(bool checkSen)
       sensors[i].setOldValue();
       checkSen = true;
     }
-    JsonObject sseObj = ssedoc.createNestedObject();
+    JsonObject sseObj = ssedoc.add<JsonObject>();
     sseObj["name"] = sensors[i].getSensorName();
     sseObj["typ"] = sensors[i].getSensType();
     if (sensors[i].getErr() == EM_OK)
@@ -513,13 +517,14 @@ void handleRequestSensorAddresses()
 void handleRequestSensors()
 {
   int8_t id = server.arg(0).toInt();
-  DynamicJsonDocument doc(1024);
+  JsonDocument doc;
   if (id == -1) // fetch all sensors
   {
     JsonArray sensorsArray = doc.to<JsonArray>();
     for (uint8_t i = 0; i < numberOfSensors; i++)
     {
-      JsonObject sensorsObj = doc.createNestedObject();
+      // JsonObject sensorsObj = doc.createNestedObject();
+      JsonObject sensorsObj = doc.add<JsonObject>();
       sensorsObj["name"] = sensors[i].getSensorName();
       sensorsObj["type"] = sensors[id].getSensType();
       String str = sensors[i].getSensorName();
@@ -570,8 +575,10 @@ void setupPT()
   // startSPI false := Aus, true := starte Max31865
   // sens_type 0 := DS18B20, 1 := PT100, 2 := PT1000
   // sens_pin 0 := 2-Leiter, 1 := 3-Leiter, 2 := 4-Leiter
-  // Serial.printf("MOSI: %d/%s MISO: %d/%s CLK: %d/%s\n", SPI_MOSI, PinToString(SPI_MOSI).c_str(), SPI_MISO, PinToString(SPI_MISO).c_str(), SPI_CLK, PinToString(SPI_CLK).c_str());
-  // Serial.printf("MOSI: %d MISO: %d CLK: %d SS: %d\n", MOSI, MISO, SCK, SS);
+  // #ifdef ESP32
+  // log_e("MOSI: %d/%s MISO: %d/%s CLK: %d/%s", SPI_MOSI, PinToString(SPI_MOSI).c_str(), SPI_MISO, PinToString(SPI_MISO).c_str(), SPI_CLK, PinToString(SPI_CLK).c_str());
+  // log_e("MOSI: %d MISO: %d CLK: %d SS: %d", MOSI, MISO, SCK, SS);
+  // #endif
 
   pins_used[SPI_MOSI] = true; // MAX31865
   pins_used[SPI_MISO] = true; // MAX31865
@@ -585,7 +592,9 @@ void setupPT()
       switch (sensors[i].getSensPin())
       {
       case 0: // 2-cable
-        // Serial.printf("Pin 0: 2-cable Sensor: %d %s type: %d\n", i, sensors[i].getSensorName().c_str(), sensors[i].getSensType());
+        // #ifdef ESP32
+        // log_e("Pin 0: 2-cable Sensor: %d %s type: %d", i, sensors[i].getSensorName().c_str(), sensors[i].getSensType());
+        // #endif
         if (!activePT_0)
         {
           activePT_0 = pt_0.begin(MAX31865_2WIRE);
@@ -620,7 +629,9 @@ void setupPT()
 #endif
         break;
       case 1: // 3-cable
-        // Serial.printf("Pin 1: 3-cable Sensor: %d %s type: %d\n", i, sensors[i].getSensorName().c_str(), sensors[i].getSensType());
+        // #ifdef ESP32
+        // log_e("Pin 1: 3-cable Sensor: %d %s type: %d", i, sensors[i].getSensorName().c_str(), sensors[i].getSensType());
+        // #endif
         if (!activePT_0)
         {
           activePT_0 = pt_0.begin(MAX31865_3WIRE);
@@ -655,7 +666,9 @@ void setupPT()
 #endif
         break;
       case 2: // 4-cable
-        // Serial.printf("Pin 2: 4-cable Sensor: %d %s type: %d\n", i, sensors[i].getSensorName().c_str(), sensors[i].getSensType());
+        // #ifdef ESP32
+        // log_e("Pin 2: 4-cable Sensor: %d %s type: %d", i, sensors[i].getSensorName().c_str(), sensors[i].getSensType());
+        // #endif
         if (!activePT_0)
         {
           activePT_0 = pt_0.begin(MAX31865_4WIRE);
@@ -691,8 +704,10 @@ void setupPT()
         break;
       }
     }
+    // #ifdef ESP32
     // else
-    // Serial.printf("Dallas Sensor: %d %s type: %d\n", i, sensors[i].getSensorName().c_str(), sensors[i].getSensType());
+    // log_e("Dallas Sensor: %d %s type: %d", i, sensors[i].getSensorName().c_str(), sensors[i].getSensType());
+    // #endif
 
     pins_used[CS0] = activePT_0;
     pins_used[CS1] = activePT_1;
@@ -701,7 +716,7 @@ void setupPT()
     pins_used[CS3] = activePT_3;
     pins_used[CS3] = activePT_4;
     pins_used[CS5] = activePT_5;
+    // log_e("active PT100x Sensors: 0:%d 1:%d 2:%d", activePT_0, activePT_1, activePT_2);
 #endif
-    // Serial.printf("active PT100x Sensors: 0:%d 1:%d 2:%d\n", activePT_0, activePT_1, activePT_2);
   }
 }

@@ -119,9 +119,16 @@ public:
     }
   }
 
-  void handlemqtt(char *payload)
+  // void handlemqtt(unsigned char *payload, unsigned int length)
+  void handlemqtt(unsigned char *payload)
   {
-    DynamicJsonDocument doc(256);
+    // Serial.printf("Actors len: %d\n", length);
+    // for (unsigned int i = 0; i < length; i++)
+    // {
+    //   Serial.print((char)payload[i]);
+    // }
+    // Serial.println();
+    JsonDocument doc;
     DeserializationError error = deserializeJson(doc, (const char *)payload);
     if (error)
     {
@@ -240,7 +247,7 @@ void handleActors(bool checkAct)
   // checkAct true: init
   // checkAct false: only updates
 
-  DynamicJsonDocument ssedoc(768);
+  JsonDocument ssedoc;
   JsonArray sseArray = ssedoc.to<JsonArray>();
   for (uint8_t i = 0; i < numberOfActors; i++)
   {
@@ -250,7 +257,7 @@ void handleActors(bool checkAct)
       actors[i].setOldIsOn();
       checkAct = true;
     }
-    JsonObject sseObj = ssedoc.createNestedObject();
+    JsonObject sseObj = ssedoc.add<JsonObject>();
     sseObj["name"] = actors[i].getActorName();
     sseObj["ison"] = actors[i].getIsOn();
     sseObj["power"] = actors[i].getActorPower();
@@ -273,15 +280,14 @@ void handleActors(bool checkAct)
 void handleRequestActors()
 {
   int8_t id = server.arg(0).toInt();
-  DynamicJsonDocument doc(1024);
+  JsonDocument doc;
   if (id == -1) // fetch all sensors
   {
     JsonArray actorsArray = doc.to<JsonArray>();
 
     for (uint8_t i = 0; i < numberOfActors; i++)
     {
-      JsonObject actorsObj = doc.createNestedObject();
-
+      JsonObject actorsObj = doc.add<JsonObject>();
       actorsObj["name"] = actors[i].getActorName();
       actorsObj["ison"] = actors[i].getIsOn();
       actorsObj["power"] = actors[i].getActorPower();

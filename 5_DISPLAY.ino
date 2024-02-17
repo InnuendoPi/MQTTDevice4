@@ -38,13 +38,14 @@ void dispPublishmqtt()
 {
   if (pubsubClient.connected())
   {
-    DynamicJsonDocument doc(128);
-    char jsonMessage[48];
+    JsonDocument doc;
+    char jsonMessage[32];
     serializeJson(doc, jsonMessage);
+    if (useFerm)
+      pubsubClient.publish("cbpi/updatefermenter", jsonMessage);
     pubsubClient.publish("cbpi/updatekettle", jsonMessage);
     pubsubClient.publish("cbpi/updateactor", jsonMessage);
     pubsubClient.publish("cbpi/updatesensor", jsonMessage);
-    // pubsubClient.publish("cbpi/updatefermenter", jsonMessage);
   }
 }
 
@@ -102,24 +103,28 @@ void KettlePage() // Seite 2
 {
   if (strlen(structKettles[0].sensor) != 0)
   {
-    if (sensors[0].getId() != "")
-    {
-      for (uint8_t i = 0; i < maxKettles; i++)
-      {
-        if (strcmp(structKettles[i].sensor, sensors[0].getId().c_str()) == 0)
-        {
-          p1temp_text.attribute("txt", structKettles[i].current_temp);
-          p1target_text.attribute("txt", structKettles[i].target_temp);
+    p1temp_text.attribute("txt", structKettles[0].current_temp);
+    p1target_text.attribute("txt", structKettles[0].target_temp);
 
-          break;
-        }
-      }
-    }
-    else
-    {
-      p1temp_text.attribute("txt", structKettles[0].current_temp);
-      p1target_text.attribute("txt", "na");
-    }
+    // Serial.printf("KettlePage sensor %s current temp: %s\n", structKettles[0].sensor, structKettles[0].current_temp);
+
+    // if (sensors[0].getId() != "")
+    // {
+    //   for (uint8_t i = 0; i < maxKettles; i++)
+    //   {
+    //     if (strcmp(structKettles[i].sensor, sensors[0].getId().c_str()) == 0)
+    //     {
+    //       p1temp_text.attribute("txt", structKettles[i].current_temp);
+    //       p1target_text.attribute("txt", structKettles[i].target_temp);
+    //       break;
+    //     }
+    //   }
+    // }
+    // else
+    // {
+    //   p1temp_text.attribute("txt", structKettles[0].current_temp);
+    //   p1target_text.attribute("txt", "na");
+    // }
   }
   else
   {
@@ -220,9 +225,54 @@ void cbpi4notification_unsubscribe()
   }
 }
 
-void cbpi4kettle_handlemqtt(char *payload)
+void cbpi4fermenter_subscribe()
 {
-  DynamicJsonDocument doc(1024);
+  if (pubsubClient.connected())
+  {
+#ifdef ESP32
+    log_e("Disp: Subscribing to %s", cbpi4fermenter_topic);
+#endif
+    pubsubClient.subscribe(cbpi4fermenter_topic);
+    pubsubClient.loop();
+  }
+}
+void cbpi4fermenter_unsubscribe()
+{
+  if (pubsubClient.connected())
+  {
+#ifdef ESP32
+    log_e("Disp: Unsubscribing from %s", cbpi4fermenter_topic);
+#endif
+    pubsubClient.unsubscribe(cbpi4fermenter_topic);
+  }
+}
+
+void cbpi4fermentersteps_subscribe()
+{
+  if (pubsubClient.connected())
+  {
+#ifdef ESP32
+    log_e("Disp: Subscribing to %s", cbpi4fermentersteps_topic);
+#endif
+    pubsubClient.subscribe(cbpi4fermentersteps_topic);
+    pubsubClient.loop();
+  }
+}
+
+void cbpi4fermentersteps_unsubscribe()
+{
+  if (pubsubClient.connected())
+  {
+#ifdef ESP32
+    log_e("Disp: Unsubscribing from %s", cbpi4fermentersteps_topic);
+#endif
+    pubsubClient.unsubscribe(cbpi4fermentersteps_topic);
+  }
+}
+
+void cbpi4kettle_handlemqtt(unsigned char *payload)
+{
+  JsonDocument doc;
   DeserializationError error = deserializeJson(doc, (const char *)payload);
   if (error)
   {
@@ -266,7 +316,7 @@ void cbpi4kettle_handlemqtt(char *payload)
     }
     else // structKettle belegt
     {
-      if (structKettles[i].id == doc["id"])
+      if (strcmp(structKettles[i].id, doc["id"]) == 0)
       {
         dtostrf(doc["target_temp"], -1, 1, structKettles[i].target_temp);
         switch (i)
@@ -290,9 +340,9 @@ void cbpi4kettle_handlemqtt(char *payload)
   }
 }
 
-void cbpi4sensor_handlemqtt(char *payload)
+void cbpi4sensor_handlemqtt(unsigned char *payload)
 {
-  DynamicJsonDocument doc(256);
+  JsonDocument doc;
   DeserializationError error = deserializeJson(doc, (const char *)payload);
   if (error)
   {
@@ -305,38 +355,17 @@ void cbpi4sensor_handlemqtt(char *payload)
   }
   for (uint8_t i = 0; i < maxKettles; i++)
   {
-    if (structKettles[i].sensor == doc["id"])
+    if (strcmp(structKettles[i].sensor, doc["id"]) == 0)
     {
-      if (activePage == 0)
-      {
-        dtostrf(doc["value"], -1, 1, structKettles[i].current_temp);
-        switch (i)
-        {
-        case 0:
-          kettleIst1_text.attribute("txt", structKettles[i].current_temp);
-          break;
-        case 1:
-          kettleIst2_text.attribute("txt", structKettles[i].current_temp);
-          break;
-        case 2:
-          kettleIst3_text.attribute("txt", structKettles[i].current_temp);
-          break;
-        case 3:
-          kettleIst4_text.attribute("txt", structKettles[i].current_temp);
-          break;
-        }
-      }
-      if (activePage == 1)
-        p1temp_text.attribute("txt", structKettles[0].current_temp);
+      dtostrf(doc["value"], -1, 1, structKettles[i].current_temp);
       break;
     }
   }
-  return;
 }
 
-void cbpi4steps_handlemqtt(char *payload)
+void cbpi4steps_handlemqtt(unsigned char *payload)
 {
-  DynamicJsonDocument doc(1024);
+  JsonDocument doc;
   DeserializationError error = deserializeJson(doc, (const char *)payload);
   if (error)
   {
@@ -354,7 +383,8 @@ void cbpi4steps_handlemqtt(char *payload)
 
   for (uint8_t i = 0; i < stepsCounter; i++)
   {
-    if (structSteps[i].id == doc["id"])
+    // if (structSteps[i].id == doc["id"])
+    if (strcmp(structSteps[i].id, doc["id"]) == 0)
     {
       int minutes = props["Timer"].as<int>() | 0;
       sprintf(structSteps[i].timer, "%02d:%02d", minutes, 0);
@@ -388,7 +418,8 @@ void cbpi4steps_handlemqtt(char *payload)
       current_step = true;
       for (uint8_t i = 0; i < stepsCounter; i++)
       {
-        if (structSteps[i].name == doc["name"])
+        // if (structSteps[i].name == doc["name"])
+        if (strcmp(structSteps[i].name, doc["name"]) == 0)
         {
           if (stepsCounter >= i + 1)
           {
@@ -519,9 +550,9 @@ void cbpi4steps_handlemqtt(char *payload)
   }
 }
 
-void cbpi4notification_handlemqtt(char *payload)
+void cbpi4notification_handlemqtt(unsigned char *payload)
 {
-  DynamicJsonDocument doc(384);
+  JsonDocument doc;
   DeserializationError error = deserializeJson(doc, (const char *)payload);
   if (error)
   {
@@ -566,7 +597,7 @@ void cbpi4notification_handlemqtt(char *payload)
     }
     if (activePage == 1)
     {
-      strlcpy(currentStepName, sensors[0].getSensorName().c_str(), maxStepSign);
+      strlcpy(currentStepName, sensors[0].getSensorName().c_str(), maxStepSign); // xxx
     }
     strlcpy(notify, "", maxNotifySign);
     return;
@@ -581,4 +612,128 @@ void cbpi4notification_handlemqtt(char *payload)
     activeBrew = true;
 
   strlcpy(notify, doc["message"] | "", maxNotifySign);
+}
+
+// void cbpi4fermenter_handlemqtt(unsigned char *payload, unsigned int length)
+void cbpi4fermenter_handlemqtt(unsigned char *payload)
+{
+  // {"id" : "nXicQeWX9WMivML3TgxALn", "name" : "Speidel", "state" : true, "sensor" : "HnjSD3w9ruxVFwjWDaF2XH",
+  //"pressure_sensor" : "", "heater" : "emsjNfBD2ymjLXybYByzZX", "cooler" : "dqFYgo8meWXQvYUyLAh9cr", "valve" : "",
+  // "brewname" : "K\u00f6lsch", "description" : null,
+  //"props" : {"AutoStart" : "Yes", "CoolerMaxPower" : "100", "CoolerOffsetOff" : "0", "CoolerOffsetOn" : "0.2", "HeaterMaxPower" : "100", "HeaterOffsetOff" : "0", "HeaterOffsetOn" : "0.2", "Pause" : 3, "SpundingOffsetOpen" : "10", "ValveRelease" : 1, "sensor2" : "HCccHupjwDd7bgPk4ZZoWT"},
+  // "target_temp" : 18.0, "target_pressure" : 0.0, "type" : "Fermenter Hysteresis",
+  // "steps" : [ {"id" : "apo587SqSwpiKXtZ7rWVfi", "name" : "Cooldown", "state_text" : "", "type" : "FermenterTargetTempStep", "status" : "D", "endtime" : 0, "props" : {"AutoMode" : "Yes", "Notification" : "Please Pitch Yeast", "Sensor" : "HnjSD3w9ruxVFwjWDaF2XH", "Temp" : "15"}},
+  // Serial.printf("Display ferm len: %d\n", length);
+  // for (unsigned int i = 0; i < length; i++)
+  // {
+  //   Serial.print((char)payload[i]);
+  // }
+  // Serial.println();
+
+  JsonDocument doc;
+  JsonDocument filter;
+  filter["id"] = true;
+  filter["name"] = true;
+  filter["sensor"] = true;
+  filter["target_temp"] = true;
+  // filter["steps"]["name"] = true;
+  DeserializationError error = deserializeJson(doc, (const char *)payload, DeserializationOption::Filter(filter));
+  // DeserializationError error = deserializeJson(doc, (const char *)payload);
+  if (error)
+  {
+    int32_t memoryUsed = doc.memoryUsage();
+#ifdef ESP32
+    log_e("Disp: handlemqtt fermenter deserialize Json error %s MemoryUsage %d", error.c_str(), memoryUsed);
+#endif
+    return;
+  }
+
+  for (uint8_t i = 0; i < maxKettles; i++)
+  {
+    if (strlen(structKettles[i].id) == 0) // structKettle unbelegt
+    {
+      strlcpy(structKettles[i].id, doc["id"].as<const char *>(), maxIdSign);
+      strlcpy(structKettles[i].name, doc["name"].as<const char *>(), maxKettleSign);
+      dtostrf(doc["target_temp"], -1, 1, structKettles[i].target_temp);
+      strlcpy(structKettles[i].sensor, doc["sensor"].as<const char *>(), maxSensorSign);
+      char sensorupdate[45];
+      sprintf(sensorupdate, "%s%s", cbpi4sensor_topic, structKettles[i].sensor);
+      pubsubClient.subscribe(sensorupdate);
+
+      // Serial.printf("#%d new kettle name %s kettle-id: %s sensor-id: %s target: %s update: %s\n", i, structKettles[i].name, structKettles[i].id, structKettles[i].sensor, structKettles[i].target_temp, sensorupdate);
+
+      switch (i)
+      {
+      case 0:
+        kettleName1_text.attribute("txt", structKettles[i].name);
+        kettleSoll1_text.attribute("txt", structKettles[i].target_temp);
+        break;
+      case 1:
+        kettleName2_text.attribute("txt", structKettles[i].name);
+        kettleSoll2_text.attribute("txt", structKettles[i].target_temp);
+        break;
+      case 2:
+        kettleName3_text.attribute("txt", structKettles[i].name);
+        kettleSoll3_text.attribute("txt", structKettles[i].target_temp);
+        break;
+      case 3:
+        kettleName4_text.attribute("txt", structKettles[i].name);
+        kettleSoll4_text.attribute("txt", structKettles[i].target_temp);
+        break;
+      }
+      break;
+    }
+    else // structKettle belegt
+    {
+      if (strcmp(structKettles[i].id, doc["id"]) == 0)
+      {
+      // Serial.printf("#%d old kettle name %s kettle-id: %s sensor-id: %s target: %s update: %s\n", i, structKettles[i].name, structKettles[i].id, structKettles[i].sensor, structKettles[i].target_temp, sensorupdate);
+        dtostrf(doc["target_temp"], -1, 1, structKettles[i].target_temp);
+        switch (i)
+        {
+        case 0:
+          kettleSoll1_text.attribute("txt", structKettles[i].target_temp);
+          break;
+        case 1:
+          kettleSoll2_text.attribute("txt", structKettles[i].target_temp);
+          break;
+        case 2:
+          kettleSoll3_text.attribute("txt", structKettles[i].target_temp);
+          break;
+        case 3:
+          kettleSoll4_text.attribute("txt", structKettles[i].target_temp);
+          break;
+        }
+        break;
+      }
+    }
+  }
+}
+
+void cbpi4fermentersteps_handlemqtt(unsigned char *payload, unsigned int length)
+{
+  JsonDocument doc;
+  DeserializationError error = deserializeJson(doc, (const char *)payload);
+
+  // JsonDocument filter;
+  // filter["status"] = true;
+  // filter["name"] = true;
+  // filter["Sensor"] = true;
+  // filter["Temp"] = true;
+  // filter["props"]["Temp"] = true;
+  // filter["props"]["Sensor"] = true;
+  // DeserializationError error = deserializeJson(doc, (const char *)payload, DeserializationOption::Filter(filter));
+  if (error)
+  {
+    int32_t memoryUsed = doc.memoryUsage();
+#ifdef ESP32
+    log_e("Disp: handlemqtt notification deserialize Json error %s MemoryUsage %d", error.c_str(), memoryUsed);
+#endif
+    return;
+  }
+  strlcpy(currentStepName, doc["name"], maxStepSign);
+
+  // if (doc["status"] == "A")
+  // {
+  // }
 }

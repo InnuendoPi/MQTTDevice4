@@ -44,21 +44,18 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
   // Uncomment for debug output received MQTT payloads
   // log_e("Web: Received MQTT Topic with char payload: %s\n", topic);
   // Serial.print("Web: Payload: ");
-  // for (int i = 0; i < length; i++)
+  // for (unsigned int i = 0; i < length; i++)
   // {
   // Serial.print((char)payload[i]);
   // }
   // Serial.println(" ");
 
-  char payload_msg[length];
-  for (int16_t i = 0; i < length; i++)
-  {
-    payload_msg[i] = payload[i];
-  }
+  // char payload_msg[length];
 
   if (inductionCooker.getTopic() == topic)
   {
-    inductionCooker.handlemqtt(payload_msg);
+    // inductionCooker.handlemqtt(payload_msg);
+    inductionCooker.handlemqtt(payload, length);
     return;
   }
 
@@ -68,7 +65,8 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
     {
       if (actors[i].getActorTopic() == topic)
       {
-        actors[i].handlemqtt(payload_msg);
+        // actors[i].handlemqtt(payload_msg);
+        actors[i].handlemqtt(payload);
         return;
       }
     }
@@ -81,29 +79,44 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
     const char *stepupdate = "cbpi/stepupdate/";
     const char *sensorupdate = "cbpi/sensordata/";
     const char *notificationupdate = "cbpi/notification";
+    const char *fermenterupdate = "cbpi/fermenterupdate/";
+    const char *fermenterstepupdate = "cbpi/fermenterstepupdate/";
 
     p = strstr(topic, kettleupdate);
     if (p)
     {
-      cbpi4kettle_handlemqtt(payload_msg);
+      cbpi4kettle_handlemqtt(payload);
       return;
     }
     p = strstr(topic, stepupdate);
     if (p)
     {
-      cbpi4steps_handlemqtt(payload_msg);
+      cbpi4steps_handlemqtt(payload);
       return;
     }
     p = strstr(topic, notificationupdate);
     if (p)
     {
-      cbpi4notification_handlemqtt(payload_msg);
+      cbpi4notification_handlemqtt(payload);
       return;
     }
     p = strstr(topic, sensorupdate);
     if (p)
     {
-      cbpi4sensor_handlemqtt(payload_msg);
+      cbpi4sensor_handlemqtt(payload);
+      return;
+    }
+    p = strstr(topic, fermenterupdate);
+    if (p)
+    {
+      // cbpi4fermenter_handlemqtt(payload, length);
+      cbpi4fermenter_handlemqtt(payload);
+      return;
+    }
+    p = strstr(topic, fermenterstepupdate);
+    if (p)
+    {
+      cbpi4fermentersteps_handlemqtt(payload, length);
       return;
     }
   }
@@ -114,7 +127,7 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
     p = strstr(topic, notificationupdate);
     if (p)
     {
-      cbpi4notification_handlemqtt(payload_msg);
+      cbpi4notification_handlemqtt(payload);
       return;
     }
   }
@@ -122,7 +135,7 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
 
 void handleRequestMisc2()
 {
-  DynamicJsonDocument doc(256);
+  JsonDocument doc;
   doc["host"] = mqtthost;
   doc["port"] = mqttport;
   doc["s_mqtt"] = mqtt_state;
@@ -139,7 +152,7 @@ void handleRequestMisc2()
 
 void handleRequestMiscAlert()
 {
-  DynamicJsonDocument doc(32);
+  JsonDocument doc;
   doc["alert"] = alertState;
   if (alertState > 0)
     alertState = 0;
@@ -151,7 +164,7 @@ void handleRequestMiscAlert()
 
 void handleRequestMisc()
 {
-  DynamicJsonDocument doc(2048);
+  JsonDocument doc;
   doc["host"] = mqtthost;
   doc["port"] = mqttport;
   doc["user"] = mqttuser;
@@ -162,6 +175,7 @@ void handleRequestMisc()
   doc["mqbuz"] = mqttBuzzer;
   doc["res"] = senRes;
   doc["display"] = useDisplay;
+  doc["ferm"] = useFerm;
   doc["page"] = startPage;
   doc["dev"] = devBranch;
   doc["e_mqtt"] = StopOnMQTTError;
@@ -171,7 +185,7 @@ void handleRequestMisc()
   doc["s_mqtt"] = mqtt_state; // Anzeige MQTT Status -> mqtt_state verzögerter Status!
   doc["spi"] = startSPI;
   doc["ntp"] = ntpServer;
-  
+  doc["duty"] = DUTYCYLCE;
   String message = "";
   if (isPin(PIN_BUZZER))
   {
@@ -196,11 +210,9 @@ void handleRequestMisc()
     }
   }
   doc["buz"] = message;
-  
   String response;
   serializeJson(doc, response);
   server.send(200, FPSTR("application/json"), response.c_str());
-  // Serial.printf("JSON misc config length: %d", measureJson(doc));
 }
 
 void handleRequestFirm()
@@ -238,7 +250,7 @@ void handleGetTitle()
 
 void handleReqSys()
 {
-  DynamicJsonDocument doc(256);
+  JsonDocument doc;
   String message;
   if (startMDNS)
   {
@@ -355,6 +367,10 @@ void handleSetMisc()
       else
         startPage = 1;
     }
+    if (server.argName(i) == "ferm")
+    {
+      useFerm = checkBool(server.arg(i));
+    }
     if (server.argName(i) == "devbranch")
     {
       devBranch = checkBool(server.arg(i));
@@ -413,6 +429,13 @@ void handleSetMisc()
       if (temp != selLang && temp >= 0)
       {
         selLang = temp;
+      }
+    }
+    if (server.argName(i) == "duty")
+    {
+      if (isValidInt(server.arg(i)))
+      {
+        DUTYCYLCE = server.arg(i).toInt();
       }
     }
     yield();

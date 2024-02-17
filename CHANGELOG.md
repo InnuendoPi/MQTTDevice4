@@ -1,5 +1,16 @@
 # Changelog
 
+Version 4.59a
+
+- Update:     ArduinoJSON API 7
+- Reworked:   JSON handling: removed all nested objects and arrays (API 7)
+- New:        Parameter Display CBPi4 Fermenter
+- Changed:    MQTT Callback
+- Changed:    subscribe to fermenter topics if enabled
+- New:        Parameter dutycycle
+- Fix:        Free memory for _currentArgs after request has been handled in WebServer. (#9077)
+- Fix:        ESP8266WebServer - fix possible memory leak in request argument handling (#9076)
+
 Version 4.58b
 
 - Changed:    Default WLAN name in AP Mode changed to MQTTDevice
