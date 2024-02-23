@@ -115,7 +115,7 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
     p = strstr(topic, fermenterstepupdate);
     if (p)
     {
-      cbpi4fermentersteps_handlemqtt(payload, length);
+      cbpi4fermentersteps_handlemqtt(payload);
       return;
     }
   }

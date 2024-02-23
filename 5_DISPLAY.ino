@@ -707,17 +707,12 @@ void cbpi4fermenter_handlemqtt(unsigned char *payload)
   }
 }
 
-void cbpi4fermentersteps_handlemqtt(unsigned char *payload, unsigned int length)
+void cbpi4fermentersteps_handlemqtt(unsigned char *payload)
 {
   JsonDocument doc;
   JsonDocument filter;
   filter["name"] = true;
-  // filter["state_text"] = true;
-  // filter["props"][0]["Temp"] = true;
   filter["props"]["Sensor"] = true;
-  // filter["props"]["TimerD"] = true;
-  // filter["props"]["TimerH"] = true;
-  // filter["props"]["TimerM"] = true;
   DeserializationError error = deserializeJson(doc, (const char *)payload, DeserializationOption::Filter(filter));
   if (error)
   {
