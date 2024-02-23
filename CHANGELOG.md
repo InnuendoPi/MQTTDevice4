@@ -1,9 +1,8 @@
 # Changelog
 
-Version 4.59b
+Version 4.59
 
-- Changed:    Fermenter topics. CraftBeerPi 4.3.2.a10 and above
-
+- Changed:    Fermenter topics. CraftBeerPi 4.3.2 or newer required
 - Update:     ArduinoJSON API 7
 - Reworked:   JSON handling: removed all nested objects and arrays (API 7)
 - New:        Parameter Display CBPi4 Fermenter
