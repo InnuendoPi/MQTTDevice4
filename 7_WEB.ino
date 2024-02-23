@@ -71,7 +71,7 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
       }
     }
   }
-
+  
   if (useDisplay)
   {
     char *p;
@@ -109,7 +109,6 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
     p = strstr(topic, fermenterupdate);
     if (p)
     {
-      // cbpi4fermenter_handlemqtt(payload, length);
       cbpi4fermenter_handlemqtt(payload);
       return;
     }

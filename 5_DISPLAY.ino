@@ -617,12 +617,6 @@ void cbpi4notification_handlemqtt(unsigned char *payload)
 // void cbpi4fermenter_handlemqtt(unsigned char *payload, unsigned int length)
 void cbpi4fermenter_handlemqtt(unsigned char *payload)
 {
-  // {"id" : "nXicQeWX9WMivML3TgxALn", "name" : "Speidel", "state" : true, "sensor" : "HnjSD3w9ruxVFwjWDaF2XH",
-  //"pressure_sensor" : "", "heater" : "emsjNfBD2ymjLXybYByzZX", "cooler" : "dqFYgo8meWXQvYUyLAh9cr", "valve" : "",
-  // "brewname" : "K\u00f6lsch", "description" : null,
-  //"props" : {"AutoStart" : "Yes", "CoolerMaxPower" : "100", "CoolerOffsetOff" : "0", "CoolerOffsetOn" : "0.2", "HeaterMaxPower" : "100", "HeaterOffsetOff" : "0", "HeaterOffsetOn" : "0.2", "Pause" : 3, "SpundingOffsetOpen" : "10", "ValveRelease" : 1, "sensor2" : "HCccHupjwDd7bgPk4ZZoWT"},
-  // "target_temp" : 18.0, "target_pressure" : 0.0, "type" : "Fermenter Hysteresis",
-  // "steps" : [ {"id" : "apo587SqSwpiKXtZ7rWVfi", "name" : "Cooldown", "state_text" : "", "type" : "FermenterTargetTempStep", "status" : "D", "endtime" : 0, "props" : {"AutoMode" : "Yes", "Notification" : "Please Pitch Yeast", "Sensor" : "HnjSD3w9ruxVFwjWDaF2XH", "Temp" : "15"}},
   // Serial.printf("Display ferm len: %d\n", length);
   // for (unsigned int i = 0; i < length; i++)
   // {
@@ -633,6 +627,7 @@ void cbpi4fermenter_handlemqtt(unsigned char *payload)
   JsonDocument doc;
   JsonDocument filter;
   filter["id"] = true;
+  filter["state"] = true;
   filter["name"] = true;
   filter["sensor"] = true;
   filter["target_temp"] = true;
@@ -647,6 +642,8 @@ void cbpi4fermenter_handlemqtt(unsigned char *payload)
 #endif
     return;
   }
+  
+  fermenterStatus = doc["state"] | false;
 
   for (uint8_t i = 0; i < maxKettles; i++)
   {
@@ -713,16 +710,15 @@ void cbpi4fermenter_handlemqtt(unsigned char *payload)
 void cbpi4fermentersteps_handlemqtt(unsigned char *payload, unsigned int length)
 {
   JsonDocument doc;
-  DeserializationError error = deserializeJson(doc, (const char *)payload);
-
-  // JsonDocument filter;
-  // filter["status"] = true;
-  // filter["name"] = true;
-  // filter["Sensor"] = true;
-  // filter["Temp"] = true;
-  // filter["props"]["Temp"] = true;
-  // filter["props"]["Sensor"] = true;
-  // DeserializationError error = deserializeJson(doc, (const char *)payload, DeserializationOption::Filter(filter));
+  JsonDocument filter;
+  filter["name"] = true;
+  // filter["state_text"] = true;
+  // filter["props"][0]["Temp"] = true;
+  filter["props"]["Sensor"] = true;
+  // filter["props"]["TimerD"] = true;
+  // filter["props"]["TimerH"] = true;
+  // filter["props"]["TimerM"] = true;
+  DeserializationError error = deserializeJson(doc, (const char *)payload, DeserializationOption::Filter(filter));
   if (error)
   {
     int32_t memoryUsed = doc.memoryUsage();
@@ -731,9 +727,16 @@ void cbpi4fermentersteps_handlemqtt(unsigned char *payload, unsigned int length)
 #endif
     return;
   }
-  strlcpy(currentStepName, doc["name"], maxStepSign);
-
-  // if (doc["status"] == "A")
-  // {
-  // }
+  
+  if (fermenterStatus)
+  {
+    strlcpy(currentStepName, doc["name"] | "", maxStepSign);
+    sprintf(currentStepRemain, "%s", "");
+    // sprintf(currentStepRemain, "%02d:%02d:%02d", doc["props"]["TimerD"].as<int>(), doc["props"]["TimerH"].as<int>(), doc["props"]["TimerM"].as<int>());
+  }
+  else
+  {
+    sprintf(currentStepName, "%s", "");
+    sprintf(currentStepRemain, "%s", "");
+  }
 }

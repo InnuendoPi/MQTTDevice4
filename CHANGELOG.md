@@ -1,6 +1,8 @@
 # Changelog
 
-Version 4.59a
+Version 4.59b
+
+- Changed:    Fermenter topics. CraftBeerPi 4.3.2.a10 and above
 
 - Update:     ArduinoJSON API 7
 - Reworked:   JSON handling: removed all nested objects and arrays (API 7)

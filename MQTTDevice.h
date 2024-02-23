@@ -1,3 +1,6 @@
+// Version
+#define Version "4.59b"
+
 // Definiere Pausen
 #define PAUSE1SEC 1000
 #define PAUSE2SEC 2000
@@ -177,7 +180,8 @@ NextionComponent p2gauge(nextion, 2, 4);
 #define cbpi4notification_topic "cbpi/notification"
 #define cbpi4fermenter_topic "cbpi/fermenterupdate/+"
 // #define cbpi4fermentersteps_topic "cbpi/fermenterstepupdate/YdceEBous3wSRUQsTx9ZLq/+"
-#define cbpi4fermentersteps_topic "cbpi/fermenterstepupdate/+/+"
+// #define cbpi4fermentersteps_topic "cbpi/fermenterstepupdate/+/+"
+#define cbpi4fermentersteps_topic "cbpi/fermenterstepupdate/+"
 
 bool current_step = false;
 struct Kettles

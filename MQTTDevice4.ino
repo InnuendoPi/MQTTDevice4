@@ -50,9 +50,6 @@
 #include "edit_htm.h"
 #include "MQTTDevice.h"
 
-// Version
-#define Version "4.59a"
-
 // Sensoren
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature DS18B20(&oneWire);
@@ -154,6 +151,7 @@ unsigned long lastSenInd = 0;   // Timestamp induction on sensor error
 int8_t sensorsStatus = 0;
 int8_t actorsStatus = 0;
 bool inductionStatus = false;
+bool fermenterStatus = false;
 
 // bool startBuzzer = false; // Aktiviere Buzzer
 bool mqttBuzzer = false;  // MQTTBuzzer für CBPi4

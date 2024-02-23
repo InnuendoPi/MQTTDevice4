@@ -423,7 +423,7 @@ void EM_MQTTCONNECT() // MQTT connect
     // else
     //   pubsubClient.setBufferSize(512);  // large buffersize to receive all CBPi4 MQTT payload
 
-    pubsubClient.setBufferSize(2048); // large buffersize to receive all CBPi4 MQTT payload
+    pubsubClient.setBufferSize(3096); // large buffersize to receive all CBPi4 MQTT payload
     pubsubClient.setServer(mqtthost, mqttport);
     pubsubClient.setCallback(mqttcallback);
     pubsubClient.connect(mqtt_clientid, mqttuser, mqttpass);
