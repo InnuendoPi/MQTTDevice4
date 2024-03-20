@@ -95,6 +95,7 @@ uint8_t subscriptionCount = 0;
 #endif
 
 int64_t DUTYCYLCE = 5000; // Aktoren und HLT
+uint16_t SENCYLCE = 1; // Aktoren und HLT
 bool senRes = false;
 bool startSPI = false;
 uint8_t numberOfActors = 0;  // Gesamtzahl der Aktoren
@@ -158,7 +159,7 @@ bool mqttBuzzer = false;  // MQTTBuzzer für CBPi4
 
 int8_t selLang = 0;       // Sprache
 
-// Display Nextion
+// Display Next
 #define NUMBEROFPAGES 3
 bool useDisplay = false;
 bool useFerm = false;

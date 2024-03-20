@@ -1,5 +1,5 @@
 // Version
-#define Version "4.59"
+#define Version "4.60"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000

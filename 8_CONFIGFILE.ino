@@ -56,6 +56,7 @@ bool loadConfig()
   startSPI = miscObj["spi"] | 0;
   selLang = miscObj["lang"] | 0;
   DUTYCYLCE = miscObj["dutyCycle"] | 5000;
+  SENCYLCE = miscObj["senCycle"] | 1;
 #ifdef ESP32
   log_e("Wait on sensor error actors: %d sec", wait_on_Sensor_error_actor / 1000);
   log_e("Wait on sensor error induction: %d sec", wait_on_Sensor_error_induction / 1000);
@@ -131,10 +132,11 @@ bool loadConfig()
   // Setze NTP Server
   if (ntpServer[0] != '\0') // leeres char array
     timeClient.setPoolServerName(ntpServer);
-
   if (numberOfSensors > 0) // Ticker Sensors
+  {
+    TickerSen.config(tickerSenCallback, (SENCYLCE * SEN_UPDATE), 0);
     TickerSen.start();
-
+  }
   if (numberOfActors > 0) // Ticker Actors
     TickerAct.start();
 
@@ -281,6 +283,7 @@ bool saveConfig()
   miscObj["spi"] = (int)startSPI;
   miscObj["lang"] = selLang;
   miscObj["dutyCycle"] = DUTYCYLCE;
+  miscObj["senCycle"] = SENCYLCE;
   miscObj["VER"] = Version;
 
 #ifdef ESP32
@@ -316,7 +319,13 @@ bool saveConfig()
   log_e("Free heap memory: %d", ESP.getFreeHeap());
 #endif
   if (numberOfSensors > 0) // Ticker Sensors
+  {
+    if (TickerSen.state() == RUNNING)
+      TickerSen.stop();
+      
+    TickerSen.config(tickerSenCallback, (SENCYLCE * SEN_UPDATE), 0);
     TickerSen.start();
+  }
   else
     TickerSen.stop();
 

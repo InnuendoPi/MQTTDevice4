@@ -185,6 +185,7 @@ void handleRequestMisc()
   doc["spi"] = startSPI;
   doc["ntp"] = ntpServer;
   doc["duty"] = DUTYCYLCE;
+  doc["sen"] = SENCYLCE;
   String message = "";
   if (isPin(PIN_BUZZER))
   {
@@ -435,6 +436,13 @@ void handleSetMisc()
       if (isValidInt(server.arg(i)))
       {
         DUTYCYLCE = server.arg(i).toInt();
+      }
+    }
+    if (server.argName(i) == "sen")
+    {
+      if (isValidInt(server.arg(i)))
+      {
+        SENCYLCE = server.arg(i).toInt();
       }
     }
     yield();

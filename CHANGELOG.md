@@ -1,8 +1,13 @@
 # Changelog
 
+Version 4.60
+
+- New:        Parameter senCycle for CBPi4 fermenter mode (leave default 1 second)
+- Changed:    Fermenter topics. CraftBeerPi 4.3.2 or newer required
+- Update:     Lib ArduinoJSON 7.0.4
+
 Version 4.59
 
-- Changed:    Fermenter topics. CraftBeerPi 4.3.2 or newer required
 - Update:     ArduinoJSON API 7
 - Reworked:   JSON handling: removed all nested objects and arrays (API 7)
 - New:        Parameter Display CBPi4 Fermenter

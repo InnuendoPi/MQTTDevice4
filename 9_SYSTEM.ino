@@ -136,13 +136,14 @@ String convertUmlaute(String val, bool space)
 void setTicker()
 {
   // Ticker Objekte
-  uint8_t senFaktor = 1; // dyn update intervall sensors
-  if (numberOfSensors >= 2)
-    senFaktor = 2;
-  else if (numberOfSensors >= 4)
-    senFaktor = 3;
+  // uint8_t senFaktor = 1; // dyn update intervall sensors
+  // if (numberOfSensors >= 2 && numberOfSensors < 4)
+  //   senFaktor = 2;
+  // else if (numberOfSensors >= 4)
+  //   senFaktor = 3;
 
-  TickerSen.config(tickerSenCallback, (senFaktor * SEN_UPDATE), 0);
+  // TickerSen.config(tickerSenCallback, (SENCYLCE * senFaktor * SEN_UPDATE), 0);
+  TickerSen.config(tickerSenCallback, (SENCYLCE * SEN_UPDATE), 0);
   TickerAct.config(tickerActCallback, ACT_UPDATE, 0);
   TickerInd.config(tickerIndCallback, IND_UPDATE, 0);
   TickerPUBSUB.config(tickerPUBSUBCallback, tickerPUSUB, 0);
