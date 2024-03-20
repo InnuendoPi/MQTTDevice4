@@ -94,7 +94,7 @@
     "MISC_DEV_TEXT": "Testversion:",
     "MISC_DUTY": "Aktoren dutycycle [5000ms]",
     "MISC_SEN": "Sensoren senCycle [1s]",
-    "MISC_DUTY_TEXT": "Optionale Einstellungen für die CBPi4 Gärsteuerung",
+    "MISC_DUTY_TEXT": "Optionale Einstellungen für die CBPi4 Gärsteuerung *",
     "MISC_BUZ_TT": "Unterschiedliche Audiosignale unterstützen den Brauvorgang",
     "MISC_HIRES_TT": "Schaltet hohe Auflösung für alle DS18B20 Sensoren ein. Jede Messung mit 12bit dauert ca. 750ms",
     "MISC_SPI_TT": "Ein MAX31865 Amplifier wird für den Anschluss von analogen Sensoren PT100 und PT1000 benötigt",

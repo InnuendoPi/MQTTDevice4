@@ -93,7 +93,7 @@
     "MISC_DEV": "WebUpdate development version",
     "MISC_DUTY": "actors dutycycle [5000ms]",
     "MISC_SEN": "sensors senCycle [1s]",
-    "MISC_DUTY_TEXT": "optional settings (leave it at default!)",
+    "MISC_DUTY_TEXT": "optional settings for CBPi4 fermenter mode *",
     "MISC_DEV_TEXT": "development branch:",
     "MISC_BUZ_TT": "Different audio signals help while breewing ",
     "MISC_HIRES_TT": "Enable high resoution on all sensors. Measurement needs approx 750ms",
