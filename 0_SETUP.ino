@@ -141,6 +141,23 @@ void setupServer()
       { server.send(200, FPSTR("text/plain"), "ok"); },
       handleRestore);
 
+  server.on("/rest/events/0", handleAll);
+  server.on("/rest/events/1", handleAll);
+  server.on("/rest/events/2", handleAll);
+  server.on("/rest/events/3", handleAll);
+  server.on("/rest/events/4", handleAll);
+  server.on("/rest/events/5", handleAll);
+  server.on("/rest/events/6", handleAll);
+  server.on("/rest/events/7", handleAll);
+
+  server.serveStatic("/mqttdevice.min.css", LittleFS, "/mqttdevice.min.css", "public, max-age=86400");
+  server.serveStatic("/mqttdevice.min.js", LittleFS, "/mqttdevice.min.js", "public, max-age=86400");
+  server.serveStatic("/mqttfont.ttf", LittleFS, "/mqttfont.ttf", "public, max-age=86400");
+  server.serveStatic("/de.json", LittleFS, "/de.json", "public, max-age=86400");
+  server.serveStatic("/en.json", LittleFS, "/en.json", "public, max-age=86400");
+  server.serveStatic("/favicon.ico", LittleFS, "/favicon.ico", "public, max-age=86400");
+  server.serveStatic("/", LittleFS, "/", "no-cache, no-store, must-revalidate");
+
   server.onNotFound(handleAll);
 #ifdef ESP32
   httpUpdateServer.setup(&server); // DateiUpdate

@@ -1,5 +1,5 @@
 // Version
-#define Version "4.60"
+#define Version "4.62"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -12,8 +12,8 @@
 
 // Update Intervalle für Ticker Objekte
 #define SEN_UPDATE 1000  //  sensors update
-#define ACT_UPDATE 2000  //  actors update
-#define IND_UPDATE 2000  //  induction update
+#define ACT_UPDATE 1000  //  actors update
+#define IND_UPDATE 1000  //  induction update
 #define DISP_UPDATE 1000 //  display update
 // Event handling Zeitintervall für Reconnects WLAN und MQTT
 #define tickerMQTT 10000 // für Ticker Objekt MQTT in ms

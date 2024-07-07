@@ -148,14 +148,11 @@ public:
 
   void handlemqtt(unsigned char *payload, unsigned int length)
   {
-    // Serial.printf("Induction len: %d\n", length);
-    // for (unsigned int i = 0; i < length; i++)
-    // {
-    //   Serial.print((char)payload[i]);
-    // }
-    // Serial.println();
     JsonDocument doc;
-    DeserializationError error = deserializeJson(doc, (const char *)payload);
+    JsonDocument filter;
+    filter["state"] = true;
+    filter["power"] = true;
+    DeserializationError error = deserializeJson(doc, (const char *)payload, DeserializationOption::Filter(filter));
     if (error)
     {
 #ifdef ESP32

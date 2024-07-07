@@ -1,7 +1,21 @@
 # Changelog
 
+Version 4.62
+
+- Update:     Lib ArduinoJSON 7.1.0
+- Update:     VSCode 1.90
+- Changed:    Actors,IDS2 update intervall 1000ms
+
+Version 4.61a
+
+- Optimize:   Load WebIf ESP32
+- Update:     ESPtool 4.7.0
+- Update:     VSCode 1.88
+
 Version 4.60
 
+- Optimize:   Load WebIf ESP32
+- Changed:    WebIf set modal windows centered and scrollable
 - New:        Parameter senCycle for CBPi4 fermenter mode (leave default 1 second)
 - Changed:    Fermenter topics. CraftBeerPi 4.3.2 or newer required
 - Update:     Lib ArduinoJSON 7.0.4
