@@ -104,8 +104,8 @@ unsigned char addressesFound[NUMBEROFSENSORSMAX][8];
 #define DEF_DELAY_IND 120000 // Standard Nachlaufzeit nach dem Ausschalten Induktionskochfeld
 
 #define maxHostSign 20
-#define maxUserSign 10
-#define maxPassSign 10
+#define maxUserSign 35
+#define maxPassSign 35
 char mqtthost[maxHostSign]; // MQTT Server
 char mqttuser[maxUserSign];
 char mqttpass[maxPassSign];
