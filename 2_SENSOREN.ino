@@ -356,10 +356,9 @@ void handleSensors(bool checkSen)
 
   if (checkSen)
   {
-    String jsonValue = "";
-    serializeJson(ssedoc, jsonValue);
-    // if (measureJson(ssedoc) > 5)
-    SSEBroadcastJson(jsonValue.c_str(), 0);
+    char response[measureJson(ssedoc) + 1];
+    serializeJson(ssedoc, response, sizeof(response));
+    SSEBroadcastJson(response, 0);
   }
 }
 
@@ -468,6 +467,7 @@ void handleSetSensor()
   saveConfig();
   setupPT();
   handleSensors(true);
+  TickerSen.setLastTime(millis());
 }
 
 void handleDelSensor()
@@ -491,6 +491,7 @@ void handleDelSensor()
   saveConfig();
   server.send(200, FPSTR("text/plain"), "ok");
   handleSensors(true);
+  TickerSen.setLastTime(millis());
 }
 
 void handleRequestSensorAddresses()
@@ -500,15 +501,15 @@ void handleRequestSensorAddresses()
   String message;
   if (id != -1)
   {
-    message += F("<option>");
+    message += OPTIONSTART;
     message += sensors[id].getSens_adress_string();
-    message += F("</option><option disabled>──────────</option>");
+    message += OPTIONDISABLED;
   }
   for (uint8_t i = 0; i < numberOfSensorsFound; i++)
   {
-    message += F("<option>");
+    message += OPTIONSTART;
     message += SensorAddressToString(addressesFound[i]);
-    message += F("</option>");
+    message += OPTIONEND;
     yield();
   }
   server.send(200, FPSTR("text/html"), message.c_str());
@@ -523,7 +524,6 @@ void handleRequestSensors()
     JsonArray sensorsArray = doc.to<JsonArray>();
     for (uint8_t i = 0; i < numberOfSensors; i++)
     {
-      // JsonObject sensorsObj = doc.createNestedObject();
       JsonObject sensorsObj = doc.add<JsonObject>();
       sensorsObj["name"] = sensors[i].getSensorName();
       sensorsObj["type"] = sensors[id].getSensType();
@@ -565,9 +565,9 @@ void handleRequestSensors()
     doc["pin"] = sensors[id].getSensPin();
   }
 
-  String response;
-  serializeJson(doc, response);
-  server.send(200, FPSTR("application/json"), response.c_str());
+  char response[measureJson(doc) + 1];
+  serializeJson(doc, response, sizeof(response));
+  server.send(200, FPSTR("application/json"), response);
 }
 
 void setupPT()

@@ -516,9 +516,10 @@ void handleRequestInduction()
 
   doc["topic"] = inductionCooker.getTopic();
   doc["pl"] = inductionCooker.getPowerLevelOnError();
-  String response;
-  serializeJson(doc, response);
-  server.send(200, FPSTR("application/json"), response.c_str());
+
+  char response[measureJson(doc) + 1];
+  serializeJson(doc, response, sizeof(response));
+  server.send(200, FPSTR("application/json"), response);
 }
 
 void handleRequestIndu()
@@ -548,17 +549,17 @@ void handleRequestIndu()
     }
     if (isPin(pinswitched))
     {
-      message += F("<option>");
+      message += OPTIONSTART;
       message += PinToString(pinswitched);
-      message += F("</option><option disabled>──────────</option>");
+      message += OPTIONDISABLED;
     }
     for (int i = 0; i < tempNUMBEROFPINS; i++)
     {
       if (pins_used[pins[i]] == false)
       {
-        message += F("<option>");
+        message += OPTIONSTART;
         message += pin_names[i];
-        message += F("</option>");
+        message += OPTIONEND;
       }
       yield();
     }

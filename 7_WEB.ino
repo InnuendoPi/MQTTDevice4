@@ -143,10 +143,10 @@ void handleRequestMisc2()
     doc["mdns"] = nameMDNS;
   else
     doc["mdns"] = 0;
-  String response;
-
-  serializeJson(doc, response);
-  server.send(200, FPSTR("application/json"), response.c_str());
+  
+  char response[measureJson(doc) + 1];
+  serializeJson(doc, response, sizeof(response));
+  server.send(200, FPSTR("application/json"), response);
 }
 
 void handleRequestMiscAlert()
@@ -155,10 +155,10 @@ void handleRequestMiscAlert()
   doc["alert"] = alertState;
   if (alertState > 0)
     alertState = 0;
-  char response[33];
-  serializeJson(doc, response);
+
+  char response[measureJson(doc) + 1];
+  serializeJson(doc, response, sizeof(response));
   server.send(200, FPSTR("application/json"), response);
-  doc.clear();
 }
 
 void handleRequestMisc()
@@ -189,30 +189,31 @@ void handleRequestMisc()
   String message = "";
   if (isPin(PIN_BUZZER))
   {
-    message += F("<option>");
+    message += OPTIONSTART;
     message += PinToString(PIN_BUZZER);
-    message += F("</option><option disabled>──────────</option>");
+    message += OPTIONDISABLED;
   }
   else
   {
-    message += F("<option>");
+    message += OPTIONSTART;
     message += "-";
-    message += F("</option><option disabled>──────────</option>");
+    message += OPTIONDISABLED;
   }
 
   for (uint8_t i = 0; i < NUMBEROFPINS; i++)
   {
     if (pins_used[pins[i]] == false)
     {
-      message += F("<option>");
+      message += OPTIONSTART;
       message += pin_names[i];
-      message += F("</option>");
+      message += OPTIONEND;
     }
   }
   doc["buz"] = message;
-  String response;
-  serializeJson(doc, response);
-  server.send(200, FPSTR("application/json"), response.c_str());
+  
+  char response[measureJson(doc) + 1];
+  serializeJson(doc, response, sizeof(response));
+  server.send(200, FPSTR("application/json"), response);
 }
 
 void handleRequestFirm()
@@ -276,9 +277,10 @@ void handleReqSys()
   doc["title"] = "MQTTDevice4";
 #endif
   doc["lang"] = selLang;
-  String response;
-  serializeJson(doc, response);
-  server.send(200, FPSTR("application/json"), response.c_str());
+  
+  char response[measureJson(doc) + 1];
+  serializeJson(doc, response, sizeof(response));
+  server.send(200, FPSTR("application/json"), response);
 }
 
 void handleSetMisc()
@@ -476,17 +478,13 @@ void handleRestore()
     {                       // If the file was successfully created
       fsUploadFile.close(); // Close the file again
       EM_REBOOT();
-      // server.sendHeader("Location", "/", true);
-      // server.send(302, FPSTR("text/plain"), "Restore config");
-      // LittleFS.end(); // unmount LittleFS
-      // ESP.restart();
     }
   }
 }
 
 void handleGetLanguage()
 {
-  String response = "";
-  response += selLang;
-  server.send_P(200, "text/plain", response.c_str());
+  char response[5];
+  sprintf_P(response, PSTR("%d"), selLang);
+  server.send_P(200, "text/plain", response);
 }

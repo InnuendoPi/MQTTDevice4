@@ -73,7 +73,7 @@ WiFiManager wifiManager;
 WiFiClient espClient;
 PubSubClient pubsubClient(espClient);
 
-#define SSE_MAX_CHANNELS 8 // 8 SSE clients subscription erlaubt
+#define SSE_MAX_CHANNELS 6 // 6 SSE clients subscription erlaubt
 #define PORT 80
 struct SSESubscription
 {

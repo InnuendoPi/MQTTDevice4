@@ -1,5 +1,12 @@
 # Changelog
 
+Version 4.63
+
+- Fix:        missing LF (\n) in SSE broadcasts
+- Changed:    Avoid Strings in SSE and html response
+- Update:     Arduino CLI 1.0.4
+- Update:     InnuTicker 0.0.4
+
 Version 4.62
 
 - Update:     Lib ArduinoJSON 7.1.0

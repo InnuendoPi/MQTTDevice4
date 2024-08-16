@@ -1,5 +1,5 @@
 // Version
-#define Version "4.62"
+#define Version "4.63"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -221,3 +221,8 @@ char uhrzeit[6] = "00:00";
 #define ALARM_SUCCESS 4
 #define ALARM_WARNING 5
 #define ALARM_ERROR 6
+
+// Select
+#define OPTIONSTART "<option>"
+#define OPTIONEND "</option>"
+#define OPTIONDISABLED "</option><option disabled>──────────</option>"

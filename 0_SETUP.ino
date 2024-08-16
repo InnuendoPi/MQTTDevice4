@@ -140,7 +140,7 @@ void setupServer()
       "/restore", HTTP_POST, []()
       { server.send(200, FPSTR("text/plain"), "ok"); },
       handleRestore);
-
+  
   server.on("/rest/events/0", handleAll);
   server.on("/rest/events/1", handleAll);
   server.on("/rest/events/2", handleAll);
@@ -156,7 +156,8 @@ void setupServer()
   server.serveStatic("/de.json", LittleFS, "/de.json", "public, max-age=86400");
   server.serveStatic("/en.json", LittleFS, "/en.json", "public, max-age=86400");
   server.serveStatic("/favicon.ico", LittleFS, "/favicon.ico", "public, max-age=86400");
-  server.serveStatic("/", LittleFS, "/", "no-cache, no-store, must-revalidate");
+  server.serveStatic("/config.txt", LittleFS, "/config.txt", "no-cache, no-store, must-revalidate");
+  
 
   server.onNotFound(handleAll);
 #ifdef ESP32

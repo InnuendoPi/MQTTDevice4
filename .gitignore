@@ -27,7 +27,7 @@ tools/buildFirm.cmd
 test/
 web/
 Display/
-Backup/
+backup/
 board_settings.jpg
 *.hintrc
 *.alt

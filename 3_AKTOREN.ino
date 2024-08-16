@@ -119,17 +119,13 @@ public:
     }
   }
 
-  // void handlemqtt(unsigned char *payload, unsigned int length)
   void handlemqtt(unsigned char *payload)
   {
-    // Serial.printf("Actors len: %d\n", length);
-    // for (unsigned int i = 0; i < length; i++)
-    // {
-    //   Serial.print((char)payload[i]);
-    // }
-    // Serial.println();
     JsonDocument doc;
-    DeserializationError error = deserializeJson(doc, (const char *)payload);
+    JsonDocument filter;
+    filter["state"] = true;
+    filter["power"] = true;
+    DeserializationError error = deserializeJson(doc, (const char *)payload, DeserializationOption::Filter(filter));
     if (error)
     {
 #ifdef ESP32
@@ -151,6 +147,7 @@ public:
       return;
     }
   }
+
   String getActorName()
   {
     return name_actor;
@@ -269,10 +266,9 @@ void handleActors(bool checkAct)
 
   if (checkAct)
   {
-    String jsonValue = "";
-    serializeJson(ssedoc, jsonValue);
-    // if (measureJson(ssedoc) > 5)
-    SSEBroadcastJson(jsonValue.c_str(), 1);
+    char response[measureJson(ssedoc) + 1];
+    serializeJson(ssedoc, response, sizeof(response));
+    SSEBroadcastJson(response, 1);
   }
 }
 
@@ -306,9 +302,9 @@ void handleRequestActors()
     doc["inv"] = actors[id].getInverted();
   }
 
-  String response;
-  serializeJson(doc, response);
-  server.send(200, FPSTR("application/json"), response.c_str());
+  char response[measureJson(doc) + 1];
+  serializeJson(doc, response, sizeof(response));
+  server.send(200, FPSTR("application/json"), response);
 }
 
 void handleSetActor()
@@ -360,6 +356,7 @@ void handleSetActor()
   saveConfig();
   server.send(200, FPSTR("text/plain"), "ok");
   handleActors(true);
+  TickerAct.setLastTime(millis());
 }
 
 void handleDelActor()
@@ -393,6 +390,7 @@ void handleDelActor()
   saveConfig();
   server.send(200, FPSTR("text/plain"), "ok");
   handleActors(true);
+  TickerAct.setLastTime(millis());
 }
 
 void handlereqPins()
@@ -402,17 +400,17 @@ void handlereqPins()
 
   if (id != -1)
   {
-    message += F("<option>");
+    message += OPTIONSTART;
     message += PinToString(actors[id].getPinActor());
-    message += F("</option><option disabled>──────────</option>");
+    message += OPTIONDISABLED;
   }
   for (int i = 0; i < NUMBEROFPINS; i++)
   {
     if (pins_used[pins[i]] == false)
     {
-      message += F("<option>");
+      message += OPTIONSTART;
       message += pin_names[i];
-      message += F("</option>");
+      message += OPTIONEND;
     }
     yield();
   }

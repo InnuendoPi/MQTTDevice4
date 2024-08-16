@@ -33,9 +33,7 @@ bool loadConfig()
   StopOnMQTTError = miscObj["enable_mqtt"] | 0;
   wait_on_error_mqtt = miscObj["delay_mqtt"] | 120000;
 
-  // startBuzzer = miscObj["buzzer"] | 0;
   PIN_BUZZER = StringToPin(miscObj["buz"]);
-  // if (startBuzzer)
   if (PIN_BUZZER != -100)
     mqttBuzzer = miscObj["mqbuz"] | 0;
   else
@@ -157,19 +155,12 @@ bool loadConfig()
     initDisplay();
     TickerDisp.start();
   }
-  size_t len = measureJson(doc);
-  int memoryUsed = doc.memoryUsage();
 #ifdef ESP32
-  log_e("Config file size %d", size);
-  log_e("JSON config length: %d", len);
-  log_e("JSON memory usage: %d", memoryUsed);
+  log_e("JSON config length: %zu", measureJson(doc));
   log_e("%s", "--------------------");
 #endif
   if (PIN_BUZZER != -100)
   {
-    // pins_used[PIN_BUZZER] = true;
-    // pinMode(PIN_BUZZER, OUTPUT);
-    // digitalWrite(PIN_BUZZER, LOW);
     pins_used[PIN_BUZZER] = true;
     pinMode(PIN_BUZZER, OUTPUT);
     digitalWrite(PIN_BUZZER, LOW);
@@ -303,7 +294,7 @@ bool saveConfig()
     log_e("%s", "Failed to open config file for writing");
     log_e("%s", "------ saveConfig aborted ------");
 #endif
-    // if (startBuzzer)
+
     if (PIN_BUZZER != -100)
       sendAlarm(ALARM_ERROR);
     return false;
@@ -353,7 +344,6 @@ bool saveConfig()
 
   String Network = WiFi.SSID();
 
-  // if (startBuzzer)
   if (PIN_BUZZER != -100)
   {
     pins_used[PIN_BUZZER] = true;

@@ -1,9 +1,12 @@
 void startSSE()
 {
-    server.send(200, "text/plain", "ok");
+    server.send(200, FPSTR("text/plain"), "ok");
     handleSensors(true);
+    TickerSen.setLastTime(millis());
     handleActors(true);
+    TickerAct.setLastTime(millis());
     inductionSSE(true);
+    TickerInd.setLastTime(millis());
     miscSSE();
 }
 
@@ -12,28 +15,28 @@ void inductionSSE(bool val)
     // val true: init
     // val false: only updates
 
-    JsonDocument doc;
-    doc["enabled"] = (int)inductionCooker.getIsEnabled();
-    doc["power"] = 0;
+    JsonDocument ssedoc;
+    ssedoc["enabled"] = (int)inductionCooker.getIsEnabled();
+    ssedoc["power"] = 0;
     if (inductionCooker.getIsEnabled())
     {
-        doc["relayOn"] = inductionCooker.getisRelayon();
-        doc["power"] = inductionCooker.getPower();
-        doc["state"] = inductionCooker.getInductionState();
+        ssedoc["relayOn"] = inductionCooker.getisRelayon();
+        ssedoc["power"] = inductionCooker.getPower();
+        ssedoc["state"] = inductionCooker.getInductionState();
         if (inductionCooker.getisPower())
         {
-            doc["powerLevel"] = inductionCooker.getCMD_CUR();
+            ssedoc["powerLevel"] = inductionCooker.getCMD_CUR();
         }
         else
         {
-            doc["powerLevel"] = max(0, inductionCooker.getCMD_CUR() - 1);
+            ssedoc["powerLevel"] = max(0, inductionCooker.getCMD_CUR() - 1);
         }
     }
     else
         val = false;
 
-    doc["topic"] = inductionCooker.getTopic();
-    doc["pl"] = inductionCooker.getPowerLevelOnError();
+    ssedoc["topic"] = inductionCooker.getTopic();
+    ssedoc["pl"] = inductionCooker.getPowerLevelOnError();
 
     if (!val)
     {
@@ -55,30 +58,29 @@ void inductionSSE(bool val)
     }
     if (val)
     {
-        String response;
-        serializeJson(doc, response);
-        if (measureJson(doc) > 2 && inductionCooker.getIsEnabled())
-            SSEBroadcastJson(response.c_str(), 2);
+        char response[measureJson(ssedoc) + 1];
+        serializeJson(ssedoc, response, sizeof(response));
+        if (measureJson(ssedoc) > 2 && inductionCooker.getIsEnabled())
+            SSEBroadcastJson(response, 2);
     }
 }
 
 void miscSSE()
 {
-    JsonDocument doc;
-    doc["host"] = mqtthost;
-    doc["port"] = mqttport;
-    doc["s_mqtt"] = mqtt_state;
-    doc["display"] = useDisplay;
-    doc["lang"] = selLang;
+    JsonDocument ssedoc;
+    ssedoc["host"] = mqtthost;
+    ssedoc["port"] = mqttport;
+    ssedoc["s_mqtt"] = mqtt_state;
+    ssedoc["display"] = useDisplay;
+    ssedoc["lang"] = selLang;
     if (startMDNS)
-        doc["mdns"] = nameMDNS;
+        ssedoc["mdns"] = nameMDNS;
     else
-        doc["mdns"] = 0;
-    String response;
+        ssedoc["mdns"] = 0;
 
-    serializeJson(doc, response);
-    if (measureJson(doc) > 2)
-        SSEBroadcastJson(response.c_str(), 3); // only broadcast if state is different
+    char response[measureJson(ssedoc) + 1];
+    serializeJson(ssedoc, response, sizeof(response));
+    SSEBroadcastJson(response, 3);
 }
 
 void handleChannel()
@@ -130,34 +132,34 @@ void SSEKeepAlive()
 
 void SSEHandler(uint8_t channel)
 {
-  IPAddress clientIP = server.client().remoteIP(); // get IP address of client
+    IPAddress clientIP = server.client().remoteIP(); // get IP address of client
 
-  if (subscription[channel].check == true)
-  {
-    if (clientIP == subscription[channel].clientIP)
+    if (subscription[channel].check == true)
     {
-      subscription[channel].client = server.client();
-      subscription[channel].keepAliveTimer = Ticker();
-      subscription[channel].check = false;
-      subscriptionCount++;
+        if (clientIP == subscription[channel].clientIP)
+        {
+            subscription[channel].client = server.client();
+            subscription[channel].keepAliveTimer = Ticker();
+            subscription[channel].check = false;
+            subscriptionCount++;
+        }
     }
-  }
 
-  WiFiClient client = server.client();
-  SSESubscription &s = subscription[channel];
+    WiFiClient client = server.client();
+    SSESubscription &s = subscription[channel];
 
-  if (s.clientIP != client.remoteIP())
-  { // IP addresses don't match, reject this client
-    // log_e("Unregistered client with IP %s tries to listen", server.client().remoteIP().toString().c_str());
-    return handleNotFound();
-  }
-  client.setNoDelay(true);
-  s.client = client; // capture SSE server client connection
+    if (s.clientIP != client.remoteIP())
+    { // IP addresses don't match, reject this client
+        // log_e("Unregistered client with IP %s tries to listen", server.client().remoteIP().toString().c_str());
+        return handleNotFound();
+    }
+    client.setNoDelay(true);
+    s.client = client; // capture SSE server client connection
 
-  server.setContentLength(CONTENT_LENGTH_UNKNOWN); // the payload can go on forever
-  server.sendContent_P(PSTR("HTTP/1.1 200 OK\nContent-Type: text/event-stream\nConnection: keep-alive\nCache-Control: no-cache\nAccess-Control-Allow-Origin: *\n\n"));
-  s.keepAliveTimer.attach(15.0, SSEKeepAlive); // Refresh time every 30s - WebUpdate benötigt bei langsamer Leitung über 60s
-  initialSSE(channel);
+    server.setContentLength(CONTENT_LENGTH_UNKNOWN); // the payload can go on forever
+    server.sendContent_P(PSTR("HTTP/1.1 200 OK\nContent-Type: text/event-stream\nConnection: keep-alive\nCache-Control: no-cache\nAccess-Control-Allow-Origin: *\n\n"));
+    s.keepAliveTimer.attach(15.0, SSEKeepAlive); // Refresh time every 30s - WebUpdate benötigt bei langsamer Leitung über 60s
+    initialSSE(channel);
 }
 
 void SSEBroadcastJson(const char *jsonValue, uint8_t typ)
@@ -171,27 +173,32 @@ void SSEBroadcastJson(const char *jsonValue, uint8_t typ)
         String IPaddrstr = IPAddress(subscription[i].clientIP).toString();
         if (client)
         {
-            String response = "";
-            if (typ == 0)
-                response += "event: sensors\n";
-            else if (typ == 1)
-                response += "event: actors\n";
-            else if (typ == 2)
-                response += "event: ids\n";
-            else if (typ == 3)
-                response += "event: misc\n";
-            else if (typ == 4)
-                response += "event: alive\n"; // retry: 30000\n";
+            char response[strlen(jsonValue) + 55];
+            if (typ == 0) // sensors
+            {
+                sprintf_P(response, PSTR("event: sensors\ndata: %s\nid: %lu\nretry: 5000\n\n"), jsonValue, millis());
+            }
+            else if (typ == 1) // actors
+            {
+                sprintf_P(response, PSTR("event: actors\ndata: %s\nid: %lu\nretry: 5000\n\n"), jsonValue, millis());
+            }
+            else if (typ == 2) // induction
+            {
+                sprintf_P(response, PSTR("event: ids\ndata: %s\nid: %lu\nretry: 5000\n\n"), jsonValue, millis());
+            }
+            else if (typ == 3) // misc System
+            {
+                sprintf_P(response, PSTR("event: misc\ndata: %s\nid: %lu\nretry: 5000\n\n"), jsonValue, millis());
+            }
             else
-                return;
-
-            response += "data: ";
-            response += jsonValue;
-            response += "\n";
-            client.println(response);
+            {
+#ifdef ESP32
+                log_e("unknown SSE broadcast type %d", typ);
+#endif
+                continue;
+            }
+            client.print(response);
         }
-        // else
-        //   log_e("SSEBroadcastState - client %s registered on channel %d but not listening", IPaddrstr.c_str(), i);
     }
 }
 
@@ -236,7 +243,7 @@ void handleAll()
 void checkAliveSSE()
 {
     IPAddress clientIP = server.client().remoteIP(); // get IP address of client
-    String checkSSE = F("-1");
+    String checkSSE = F("0");
     for (uint8_t i = 0; i < SSE_MAX_CHANNELS; i++)
     {
         if (clientIP == subscription[i].clientIP)

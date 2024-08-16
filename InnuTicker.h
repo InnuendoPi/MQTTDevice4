@@ -2,10 +2,10 @@
 #define INNUTICKER
 
 //   Author:	Innuendo
-//   Version: 0.0.2
+//   Version: 0.0.4
 
 #include "Arduino.h"
-// #define TICKER_LIBRARY_VERSION 0.0.2
+// #define TICKER_LIBRARY_VERSION 0.0.4
  
 // Ticker status
 //
@@ -48,6 +48,7 @@ public:
 
 	// Die Funktion Update muss in der loop aufgerufen werden. Update prüft den Ticker und ruft wenn erforderlich die Callback Funktion auf
 	void update();
+	bool updateBack();
 	void updatenow();
 
 	// Setze Timer und Wiederholung neu
@@ -61,6 +62,13 @@ public:
 	// @param timer Länge Zeitintervall in ms 
 	//
 	void interval(uint32_t timer);
+
+	// Setze lasttime
+	//
+	// @rparam lastime in millis
+	//
+
+	void setLastTime(uint32_t timer);
 
 	// Aktuell verstrichene Zeit
 	//

@@ -54,7 +54,16 @@ void InnuTicker::update()
 	if (tick())
 		callback();
 }
-
+bool InnuTicker::updateBack()
+{
+	if (tick())
+	{	
+		callback();
+		return true;
+	}
+	else
+		return false;
+}
 void InnuTicker::updatenow()
 {
 	lastTime = millis();
@@ -100,6 +109,11 @@ bool InnuTicker::tick()
 void InnuTicker::interval(uint32_t timer)
 {
 	this->timer = timer;
+}
+
+void InnuTicker::setLastTime(uint32_t val)
+{
+	this->lastTime = val;
 }
 
 uint32_t InnuTicker::elapsed()

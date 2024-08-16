@@ -135,14 +135,6 @@ String convertUmlaute(String val, bool space)
 
 void setTicker()
 {
-  // Ticker Objekte
-  // uint8_t senFaktor = 1; // dyn update intervall sensors
-  // if (numberOfSensors >= 2 && numberOfSensors < 4)
-  //   senFaktor = 2;
-  // else if (numberOfSensors >= 4)
-  //   senFaktor = 3;
-
-  // TickerSen.config(tickerSenCallback, (SENCYLCE * senFaktor * SEN_UPDATE), 0);
   TickerSen.config(tickerSenCallback, (SENCYLCE * SEN_UPDATE), 0);
   TickerAct.config(tickerActCallback, ACT_UPDATE, 0);
   TickerInd.config(tickerIndCallback, IND_UPDATE, 0);
@@ -282,16 +274,16 @@ void sendAlarm(const uint8_t &setAlarm)
   {
   case ALARM_ON:
     tone(PIN_BUZZER, 440, 50);
-    delay(150);
+    millis2wait(150);
     tone(PIN_BUZZER, 660, 50);
-    delay(150);
+    millis2wait(150);
     tone(PIN_BUZZER, 880, 50);
     break;
   case ALARM_OFF:
     tone(PIN_BUZZER, 880, 50);
-    delay(150);
+    millis2wait(150);
     tone(PIN_BUZZER, 660, 50);
-    delay(150);
+    millis2wait(150);
     tone(PIN_BUZZER, 440, 50);
     break;
   case ALARM_INFO:
@@ -299,26 +291,26 @@ void sendAlarm(const uint8_t &setAlarm)
     break;
   case ALARM_SUCCESS:
     tone(PIN_BUZZER, 880, 50);
-    delay(150);
+    millis2wait(150);
     tone(PIN_BUZZER, 880, 50);
-    delay(150);
+    millis2wait(150);
     tone(PIN_BUZZER, 880, 50);
     break;
   case ALARM_WARNING:
     tone(PIN_BUZZER, 660, 50);
-    delay(150);
+    millis2wait(150);
     tone(PIN_BUZZER, 660, 50);
-    delay(150);
+    millis2wait(150);
     tone(PIN_BUZZER, 660, 50);
-    delay(150);
+    millis2wait(150);
     break;
   case ALARM_ERROR:
     tone(PIN_BUZZER, 440, 50);
-    delay(150);
+    millis2wait(150);
     tone(PIN_BUZZER, 440, 50);
-    delay(150);
+    millis2wait(150);
     tone(PIN_BUZZER, 440, 50);
-    delay(150);
+    millis2wait(150);
     break;
   default:
     break;
@@ -516,7 +508,6 @@ void EM_MQTTERROR() // MQTT Error -> handling
   }
   if (millis() - mqttconnectlasttry >= wait_on_error_mqtt)
   {
-    // if (StopOnMQTTError && mqtt_state)
     if (StopOnMQTTError)
     {
       mqtt_state = false; // MQTT in error state
@@ -527,7 +518,6 @@ void EM_MQTTERROR() // MQTT Error -> handling
 #endif
       actERR();
       inductionCooker.indERR();
-      // miscSSE();
     }
   }
 }
