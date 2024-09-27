@@ -1,5 +1,5 @@
 // Version
-#define Version "4.63"
+#define Version "4.64.3"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -15,6 +15,7 @@
 #define ACT_UPDATE 1000  //  actors update
 #define IND_UPDATE 1000  //  induction update
 #define DISP_UPDATE 1000 //  display update
+#define TIME_UPDATE 30000
 // Event handling Zeitintervall für Reconnects WLAN und MQTT
 #define tickerMQTT 10000 // für Ticker Objekt MQTT in ms
 #define tickerPUSUB 50   // Ticker PubSubClient
@@ -26,7 +27,6 @@
 #define LOGUPDATETOOLS "/updateTools.log"
 #define UPDATELOG "/webUpdateLog.txt"
 #define DEVBRANCH "/dev.txt"
-#define CERT "/ce.rts"
 #define CONFIG "/config.txt"
 
 #ifdef ESP32
@@ -53,7 +53,7 @@
 #define D19 13
 // #define D20 10
 
-bool pins_used[33]; // GPIO
+bool pins_used[34]; // GPIO
 #define NUMBEROFPINS 21
 static const int8_t pins[NUMBEROFPINS] = {26, 22, 21, 17, 16, 18, 19, 23, 5, 27, 25, 32, 12, 4, 0, 2, 33, 14, 15, 13, -100};
 static const String pin_names[NUMBEROFPINS] = {"D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "D13", "D14", "D15", "D16", "D17", "D18", "D19", "-"};
@@ -112,11 +112,10 @@ Adafruit_MAX31865 pt_2 = Adafruit_MAX31865(CS2, SPI_MOSI, SPI_MISO, SPI_CLK);
 bool activePT_0 = false, activePT_1 = false, activePT_2 = false;
 #endif
 
-
 SoftwareSerial softSerial; // Objekt SoftSerial ohne GPIO
 NextionComPort nextion;    // Objekt Display Kommunikation
 
-// Steuerung Buttons
+// Control buttons callbacks
 NextionComponent p0ForButton(nextion, 0, 19);
 NextionComponent p0BackButton(nextion, 0, 21);
 NextionComponent p1ForButton(nextion, 1, 9);
@@ -124,7 +123,7 @@ NextionComponent p1BackButton(nextion, 1, 7);
 NextionComponent p2ForButton(nextion, 2, 10);
 NextionComponent p2BackButton(nextion, 2, 2);
 
-// BrewPage
+// KettlePage
 NextionComponent uhrzeit_text(nextion, 0, 10);
 NextionComponent currentStepName_text(nextion, 0, 6);
 NextionComponent currentStepRemain_text(nextion, 0, 5);
@@ -145,7 +144,7 @@ NextionComponent kettleSoll4_text(nextion, 0, 18);
 NextionComponent progress(nextion, 0, 9);
 NextionComponent mqttDevice(nextion, 0, 20);
 NextionComponent notification(nextion, 0, 22);
-// KettlePage
+// BrewPage
 NextionComponent p1uhrzeit_text(nextion, 1, 3);
 NextionComponent p1current_text(nextion, 1, 4);
 NextionComponent p1remain_text(nextion, 1, 5);
@@ -162,7 +161,6 @@ NextionComponent p2temp_text(nextion, 2, 5);
 NextionComponent p2gauge(nextion, 2, 4);
 
 // CraftbeerPi4 definitions
-
 #define maxKettles 4
 #define maxKettleSign 15
 #define maxIdSign 23
@@ -226,3 +224,4 @@ char uhrzeit[6] = "00:00";
 #define OPTIONSTART "<option>"
 #define OPTIONEND "</option>"
 #define OPTIONDISABLED "</option><option disabled>──────────</option>"
+#define TRENNLINIE "-----------------------"

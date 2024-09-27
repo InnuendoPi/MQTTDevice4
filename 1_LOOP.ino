@@ -4,16 +4,19 @@ void loop()
   if (WiFi.status() == WL_CONNECTED)
   {
     TickerPUBSUB.update(); // Ticker PubSubClient
-    if (timeClient.update())
-      Serial.printf("*** SYSINFO: %s\n", timeClient.getFormattedTime().c_str());
 #ifdef ESP8266
     if (startMDNS) // mDNS handle
       mdns.update();
 #endif
   }
+  
+  TickerTime.update();
 
-  if (numberOfSensors > 0) // Ticker Sensoren
-    TickerSen.update();
+  if ((numberOfSensors > 0) && (millis() - lastRequestSensors >= timeoutSensors)) // Ticker Sensoren
+  {
+      TickerSen.update();
+  }
+
   if (numberOfActors > 0) // Ticker Aktoren
     TickerAct.update();
   if (inductionStatus > 0) // Ticker Induktion

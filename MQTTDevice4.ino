@@ -32,16 +32,16 @@
 #include <ESP8266mDNS.h>      // mDNS
 #include <ESP8266HTTPClient.h>
 #include <ESP8266httpUpdate.h>
-#include <WiFiClientSecure.h>
 #endif
+#include <WiFiClientSecure.h>
 #include <WiFiUdp.h>          // WiFi
 #include <WiFiManager.h> // WiFiManager zur Einrichtung
 #include <DNSServer.h>   // Benötigt für WiFiManager
 #include <LittleFS.h>    // Dateisystem
 #include <FS.h>          // Files
 #include <ArduinoJson.h> // Lesen und schreiben von JSON Dateien
-#include <NTPClient.h>   // Uhrzeit
 #include <Ticker.h>
+#include <time.h>
 #include <PubSubClient.h>   // MQTT Kommunikation
 #include <SoftwareSerial.h> // Serieller Port für Display
 #include "InnuTicker.h"     // Bibliothek für Hintergrund Aufgaben (Tasks)
@@ -49,6 +49,7 @@
 #include "index_htm.h"
 #include "edit_htm.h"
 #include "MQTTDevice.h"
+#include "InnuLog.h"
 
 // Sensoren
 OneWire oneWire(ONE_WIRE_BUS);
@@ -103,9 +104,9 @@ uint8_t numberOfSensors = 0; // Gesamtzahl der Sensoren
 unsigned char addressesFound[NUMBEROFSENSORSMAX][8];
 #define DEF_DELAY_IND 120000 // Standard Nachlaufzeit nach dem Ausschalten Induktionskochfeld
 
-#define maxHostSign 20
-#define maxUserSign 10
-#define maxPassSign 10
+#define maxHostSign 31
+#define maxUserSign 16
+#define maxPassSign 16
 char mqtthost[maxHostSign]; // MQTT Server
 char mqttuser[maxUserSign];
 char mqttpass[maxPassSign];
@@ -113,18 +114,22 @@ int mqttport;
 char mqtt_clientid[maxHostSign]; // AP-Mode und Gerätename
 
 // Zeitserver Einstellungen
-#define NTP_OFFSET 60 * 60                // Offset Winterzeit in Sekunden
-#define NTP_INTERVAL 60 * 60 * 1000       // Aktualisierung NTP in ms
+#define maxNTPSign 31
 #define NTP_ADDRESS "europe.pool.ntp.org" // NTP Server
-char ntpServer[maxHostSign] = NTP_ADDRESS;
-WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, NTP_ADDRESS, NTP_OFFSET, NTP_INTERVAL);
+#define NTP_ZONE "CET-1CEST,M3.5.0,M10.5.0/3"
+char ntpServer[maxNTPSign] = NTP_ADDRESS;
+char ntpZone[maxNTPSign] = NTP_ZONE;
+struct tm timeinfo;
+char zeit[9] = "00:00:00";
+#define SCHALTJAHR(Y) (((1970 + (Y)) > 0) && !((1970 + (Y)) % 4) && (((1970 + (Y)) % 100) || !((1970 + (Y)) % 400)))
 
 // Event handling Status Variablen
 bool StopOnMQTTError = false;     // Event handling für MQTT Fehler
 unsigned long mqttconnectlasttry; // Zeitstempel bei Fehler MQTT
 bool mqtt_state = true;           // Status MQTT
 uint8_t wlanStatus = 0;
+unsigned long lastRequestSensors = 0;                    // Zeitstempel Sensorabfrage
+int16_t timeoutSensors = 750 / (1 << (12 - RESOLUTION)); // Sensor timeout zur Berechnung der Temepratur - bei 11bit 375ms
 
 // Ticker Objekte
 InnuTicker TickerSen;
@@ -133,6 +138,7 @@ InnuTicker TickerInd;
 InnuTicker TickerMQTT;
 InnuTicker TickerDisp;
 InnuTicker TickerPUBSUB;
+InnuTicker TickerTime;
 
 // Event handling Standard Verzögerungen
 unsigned long wait_on_error_mqtt = 120000;             // How long should device wait between tries to reconnect WLAN      - approx in ms
@@ -154,7 +160,7 @@ int8_t actorsStatus = 0;
 bool inductionStatus = false;
 bool fermenterStatus = false;
 
-// bool startBuzzer = false; // Aktiviere Buzzer
+
 bool mqttBuzzer = false;  // MQTTBuzzer für CBPi4
 
 int8_t selLang = 0;       // Sprache

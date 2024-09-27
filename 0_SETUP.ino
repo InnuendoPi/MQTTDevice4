@@ -5,15 +5,17 @@ void setup()
 
 #ifdef ESP32
   snprintf(mqtt_clientid, maxHostSign, "ESP32-%llX", ESP.getEfuseMac());
-  Serial.printf("\n*** SYSINFO: MQTTDevice32 ID: %X\n", mqtt_clientid);
+  // Serial.printf("\n*** SYSINFO: MQTTDevice32 ID: %X\n", mqtt_clientid);
+  DEBUG_INFO("SYS", "\n*** SYSINFO: MQTTDevice32 ID: %X", mqtt_clientid);
   // WLAN Events
   WiFi.onEvent(WiFiEvent);
   WiFiEventId_t eventID = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info)
-                                       { log_e("WiFiStationDisconnected reason: %d", info.wifi_sta_disconnected.reason); },
+                                       { DEBUG_INFO("SYS", "WiFiStationDisconnected reason: %d", info.wifi_sta_disconnected.reason); },
                                        WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
 #elif ESP8266
   snprintf(mqtt_clientid, maxHostSign, "ESP8266-%08X", ESP.getChipId());
-  Serial.printf("\n*** SYSINFO: start up MQTTDevice - device ID: %s\n", mqtt_clientid);
+  // Serial.printf("\n*** SYSINFO: start up MQTTDevice - device ID: %s\n", mqtt_clientid);
+  DEBUG_INFO("SYS", "\n*** SYSINFO: start up MQTTDevice - device ID: %s", mqtt_clientid);
   // WLAN Events
   wifiConnectHandler = WiFi.onStationModeGotIP(EM_WIFICONNECT);
   wifiDisconnectHandler = WiFi.onStationModeDisconnected(EM_WIFIDISCONNECT);
@@ -41,14 +43,9 @@ void setup()
   // Lade Dateisystem
   if (LittleFS.begin())
   {
-    Serial.printf("*** SYSINFO: setup LittleFS free heap: %d\n", ESP.getFreeHeap());
-
-    // Starte NTP
-    timeClient.begin();
-    timeClient.forceUpdate();
-    if (!timeClient.isTimeSet())
-      timeClient.setPoolServerName(NTP_ADDRESS); // Fallback default ntp.org
-    checkSummerTime();
+    // set Logging
+    readLog();
+    DEBUG_INFO("SYS", "*** SYSINFO: setup LittleFS free heap: %d", ESP.getFreeHeap());
 
     // Prüfe WebUpdate
     if (LittleFS.exists(UPDATESYS))
@@ -70,19 +67,22 @@ void setup()
     // Starte Sensoren
     DS18B20.begin();
     pins_used[ONE_WIRE_BUS] = true;
-
-    if (LittleFS.exists(CONFIG)) // Lade Konfiguration
+    // Lade Konfiguration
+    if (LittleFS.exists(CONFIG))
       loadConfig();
     else
-      Serial.println("*** SYSINFO: config file config.txt missing. Load defaults ...");
-
+    {
+      DEBUG_INFO("SYS", "*** SYSINFO: config file config.txt missing. Load defaults ...");
+      // NTP
+      setupTime();
+    }
     // Starte MQTT
     EM_MQTTCONNECT();
     EM_MQTTSUBSCRIBE();
     TickerPUBSUB.start(); // Ticker PubSubClient
   }
   else
-    Serial.println("*** SYSINFO: error - cannot mount LittleFS!");
+    DEBUG_ERROR("SYS", "*** SYSINFO: error - cannot mount LittleFS!");
 
   // Starte Webserver
   setupServer();
@@ -91,7 +91,7 @@ void setup()
   if (startMDNS)
     EM_MDNSET();
   else
-    Serial.printf("*** SYSINFO: ESP8266 IP address: %s Time: %s RSSI: %d\n", WiFi.localIP().toString().c_str(), timeClient.getFormattedTime().c_str(), WiFi.RSSI());
+    DEBUG_INFO("SYS", "*** SYSINFO: ESP8266 IP address: %s Time: %s RSSI: %d", WiFi.localIP().toString().c_str(), zeit, WiFi.RSSI());
 }
 
 void setupServer()
@@ -113,12 +113,13 @@ void setupServer()
   server.on("/setIndu", handleSetIndu);               // Indu ändern
   server.on("/delSensor", handleDelSensor);           // Sensor löschen
   server.on("/delActor", handleDelActor);             // Aktor löschen
-  server.on("/reboot", EM_REBOOT);                 // reboots the whole Device
+  server.on("/reboot", EM_REBOOT);                    // reboots the whole Device
   server.on("/reqMisc", handleRequestMisc);           // Misc Infos für WebConfig
   server.on("/reqMisc2", handleRequestMisc2);         // Misc Infos für WebConfig
   server.on("/reqMiscAlert", handleRequestMiscAlert); // Misc Infos für WebConfig
   server.on("/reqFirm", handleRequestFirm);           // Firmware version
   server.on("/setMisc", handleSetMisc);               // Misc ändern
+  server.on("/setMiscLang", handleSetMiscLang);               // Misc ändern
   server.on("/startHTTPUpdate", startHTTPUpdate);     // Firmware WebUpdate
   server.on("/channel", handleChannel);               // Server Sent Events will be handled from this URI
   server.on("/startSSE", startSSE);                   // Server Sent Events will be handled from this URI
@@ -134,30 +135,37 @@ void setupServer()
   server.on("/edit", HTTP_DELETE, handleFileDelete);
   server.on(
       "/edit", HTTP_POST, []()
-      { server.send(200, "text/plain", ""); },
+      { replyOK(); },
       handleFileUpload);
   server.on(
       "/restore", HTTP_POST, []()
-      { server.send(200, FPSTR("text/plain"), "ok"); },
+      { replyOK(); },
       handleRestore);
-  
+
   server.on("/rest/events/0", handleAll);
   server.on("/rest/events/1", handleAll);
   server.on("/rest/events/2", handleAll);
   server.on("/rest/events/3", handleAll);
   server.on("/rest/events/4", handleAll);
   server.on("/rest/events/5", handleAll);
-  server.on("/rest/events/6", handleAll);
-  server.on("/rest/events/7", handleAll);
+
+  server.on("/mqttdevice.min.css", handleAll);
+  server.on("/mqttdevice.min.js", handleAll);
+  server.on("/mqttdevice.ttf", handleAll);
+  server.on("/favicon.ico", handleAll);
+  server.on("/de.json", handleAll);
+  server.on("/en.json", handleAll);
+  server.on("/config.txt", handleAll);
+  server.on("/log_cfg.json", handleAll);
 
   server.serveStatic("/mqttdevice.min.css", LittleFS, "/mqttdevice.min.css", "public, max-age=86400");
   server.serveStatic("/mqttdevice.min.js", LittleFS, "/mqttdevice.min.js", "public, max-age=86400");
   server.serveStatic("/mqttfont.ttf", LittleFS, "/mqttfont.ttf", "public, max-age=86400");
-  server.serveStatic("/de.json", LittleFS, "/de.json", "public, max-age=86400");
-  server.serveStatic("/en.json", LittleFS, "/en.json", "public, max-age=86400");
   server.serveStatic("/favicon.ico", LittleFS, "/favicon.ico", "public, max-age=86400");
+  server.serveStatic("/de.json", LittleFS, "/de.json", "no-store, must-revalidate");
+  server.serveStatic("/en.json", LittleFS, "/en.json", "no-store, must-revalidate");
   server.serveStatic("/config.txt", LittleFS, "/config.txt", "no-cache, no-store, must-revalidate");
-  
+  server.serveStatic("/log_cfg.json", LittleFS, "/log_cfg.json", "no-cache, no-store, must-revalidate");
 
   server.onNotFound(handleAll);
 #ifdef ESP32

@@ -6,12 +6,18 @@ void replyOK()
 {
   server.send(200, FPSTR("text/plain"), "");
 }
-
+void replyResponse(const char *msg)
+{
+  server.send(200, FPSTR("text/plain"), msg);
+}
 void replyOKWithMsg(String msg)
 {
   server.send(200, FPSTR("text/plain"), msg);
 }
-
+void replyReboot(const char *msg)
+{
+  server.send(205, FPSTR("text/plain"), msg);
+}
 void replyNotFound(String msg)
 {
   server.send(404, FPSTR("text/plain"), msg);

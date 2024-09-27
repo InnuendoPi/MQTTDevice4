@@ -99,9 +99,8 @@ public:
     {
       char subscribemsg[50];
       argument_actor.toCharArray(subscribemsg, 50);
-#ifdef ESP32
-      log_e("Act: Subscribing to %s", subscribemsg);
-#endif
+      DEBUG_VERBOSE("ACT", "Subscribing to %s", subscribemsg);
+
       pubsubClient.subscribe(subscribemsg);
     }
   }
@@ -112,9 +111,7 @@ public:
     {
       char subscribemsg[50];
       argument_actor.toCharArray(subscribemsg, 50);
-#ifdef ESP32
-      log_e("Act: Unsubscribing from %s", subscribemsg);
-#endif
+      DEBUG_VERBOSE("ACT", "Unsubscribing from %s", subscribemsg);
       pubsubClient.unsubscribe(subscribemsg);
     }
   }
@@ -128,9 +125,7 @@ public:
     DeserializationError error = deserializeJson(doc, (const char *)payload, DeserializationOption::Filter(filter));
     if (error)
     {
-#ifdef ESP32
-      log_e("Act: handlemqtt deserialize Json error %s", error.c_str());
-#endif
+      DEBUG_ERROR("ACT", "handlemqtt deserialize Json error %s", error.c_str());
       return;
     }
     if (doc["state"] == "off")
@@ -266,7 +261,7 @@ void handleActors(bool checkAct)
 
   if (checkAct)
   {
-    char response[measureJson(ssedoc) + 1];
+    char response[measureJson(ssedoc) + 2];
     serializeJson(ssedoc, response, sizeof(response));
     SSEBroadcastJson(response, 1);
   }
@@ -302,69 +297,55 @@ void handleRequestActors()
     doc["inv"] = actors[id].getInverted();
   }
 
-  char response[measureJson(doc) + 1];
+  char response[measureJson(doc) + 2];
   serializeJson(doc, response, sizeof(response));
-  server.send(200, FPSTR("application/json"), response);
+  replyResponse(response);
 }
 
 void handleSetActor()
 {
-  int8_t id = server.arg(0).toInt();
-
-  if (id == -1)
+  JsonDocument doc;
+  DeserializationError error = deserializeJson(doc, server.arg(0));
+  if (error)
   {
-    if (numberOfActors >= NUMBEROFACTORSMAX) // maximale Anzahl Aktoren erreicht?
+    DEBUG_ERROR("ACT", "error deserializeJson %s", error.c_str());
+    replyServerError("Server error deserialize actor json");
+    return;
+  }
+  int8_t id = doc["id"];
+  if (id == -1) // new actor
+  {
+    if (numberOfActors >= NUMBEROFACTORSMAX)
     {
-      server.send(204, FPSTR("text/plain"), "err");
+      DEBUG_ERROR("ACT", "error max number actors");
+      replyServerError("Server error max number actors");
       return;
     }
     id = numberOfActors;
     numberOfActors++;
   }
-
-  int8_t ac_pin = actors[id].getPinActor();
-  String ac_argument = actors[id].getActorTopic();
-  String ac_name = actors[id].getActorName();
-  bool ac_isinverted = actors[id].getInverted();
-  bool ac_switchable = actors[id].getActorSwitch();
-
-  for (uint8_t i = 0; i < server.args(); i++)
-  {
-    if (server.argName(i) == "name")
-    {
-      ac_name = checkName(server.arg(i), 15, false);
-    }
-    if (server.argName(i) == "pin")
-    {
-      ac_pin = StringToPin(server.arg(i));
-    }
-    if (server.argName(i) == "script")
-    {
-      ac_argument = checkName(server.arg(i), 20, true);
-    }
-    if (server.argName(i) == "inv")
-    {
-      ac_isinverted = checkBool(server.arg(i));
-    }
-    if (server.argName(i) == "sw")
-    {
-      ac_switchable = checkBool(server.arg(i));
-    }
-    yield();
-  }
-  actors[id].change(ac_pin, ac_argument, ac_name, ac_isinverted, ac_switchable);
+  actors[id].change(StringToPin(doc["pin"]), doc["mqtt"], doc["name"], doc["inv"], doc["sw"]);
   saveConfig();
-  server.send(200, FPSTR("text/plain"), "ok");
+  replyOK();
   handleActors(true);
   TickerAct.setLastTime(millis());
 }
 
 void handleDelActor()
 {
-  int8_t id = server.arg(0).toInt();
+  JsonDocument doc;
+  DeserializationError error = deserializeJson(doc, server.arg(0));
+  if (error)
+  {
+    DEBUG_ERROR("ACT", "error deserializeJson %s", error.c_str());
+    replyServerError("Server error delete actor");
+    return;
+  }
+  int8_t id = doc["id"];
   if (id < 0 || id > numberOfActors)
   {
-    server.send(200, FPSTR("text/plain"), "ok");
+    DEBUG_ERROR("ACT", "error delete actor out of bounds");
+    replyServerError("Server error delete actor out of bounds");
     return;
   }
   actors[id].setIsOn(false);
@@ -388,7 +369,7 @@ void handleDelActor()
   else
     numberOfActors = 0;
   saveConfig();
-  server.send(200, FPSTR("text/plain"), "ok");
+  replyOK();
   handleActors(true);
   TickerAct.setLastTime(millis());
 }
@@ -414,7 +395,7 @@ void handlereqPins()
     }
     yield();
   }
-  server.send_P(200, "text/plain", message.c_str());
+  replyResponse(message.c_str());
 }
 
 int8_t StringToPin(String pinstring)
@@ -462,9 +443,9 @@ void actERR()
       actors[i].setIsOn(false);
       actors[i].setActorState(false);
       actors[i].Update();
-#ifdef ESP32
-      log_e("ACT MQTT event handling - actor: %s state: %d isOnBeforeError: %d", actors[i].getActorName().c_str(), actors[i].getActorState(), actors[i].getIsOnBeforeError());
-#endif
+
+      DEBUG_ERROR("ACT", "ACT MQTT event handling - actor: %s state: %d isOnBeforeError: %d", actors[i].getActorName().c_str(), actors[i].getActorState(), actors[i].getIsOnBeforeError());
+
     }
     yield();
   }

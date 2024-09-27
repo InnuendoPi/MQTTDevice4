@@ -8,9 +8,7 @@ bool loadFromLittlefs(String path)
 {
   if (path.endsWith("/undefined"))
   {
-#ifdef ESP32
-    log_e("Web loadFromLittlefs path error: %s", path.c_str());
-#endif
+    DEBUG_ERROR("SYS", "Web loadFromLittlefs path error: %s", path.c_str());
     return false;
   }
   else if (path.endsWith("/"))
@@ -144,21 +142,20 @@ void handleRequestMisc2()
   else
     doc["mdns"] = 0;
   
-  char response[measureJson(doc) + 1];
+  char response[measureJson(doc) + 2];
   serializeJson(doc, response, sizeof(response));
-  server.send(200, FPSTR("application/json"), response);
+  replyResponse(response);
 }
 
 void handleRequestMiscAlert()
 {
-  JsonDocument doc;
-  doc["alert"] = alertState;
-  if (alertState > 0)
-    alertState = 0;
-
-  char response[measureJson(doc) + 1];
-  serializeJson(doc, response, sizeof(response));
-  server.send(200, FPSTR("application/json"), response);
+  if (alertState)
+  {
+    replyResponse("1");
+    alertState = false;
+  }
+  else
+    replyResponse("0");
 }
 
 void handleRequestMisc()
@@ -184,8 +181,17 @@ void handleRequestMisc()
   doc["s_mqtt"] = mqtt_state; // Anzeige MQTT Status -> mqtt_state verzögerter Status!
   doc["spi"] = startSPI;
   doc["ntp"] = ntpServer;
+  doc["zone"] = ntpZone;
   doc["duty"] = DUTYCYLCE;
   doc["sen"] = SENCYLCE;
+  
+  doc["logCFG"] = getTagLevel("CFG");
+  doc["logSen"] = getTagLevel("SEN");
+  doc["logAct"] = getTagLevel("ACT");
+  doc["logInd"] = getTagLevel("IND");
+  doc["logSys"] = getTagLevel("SYS");
+  doc["logDis"] = getTagLevel("DIS");
+
   String message = "";
   if (isPin(PIN_BUZZER))
   {
@@ -211,41 +217,56 @@ void handleRequestMisc()
   }
   doc["buz"] = message;
   
-  char response[measureJson(doc) + 1];
+  char response[measureJson(doc) + 2];
   serializeJson(doc, response, sizeof(response));
-  server.send(200, FPSTR("application/json"), response);
+  replyResponse(response);
+}
+
+void handleSetMiscLang()
+{
+  JsonDocument doc;
+  DeserializationError error = deserializeJson(doc, server.arg(0));
+  if (error)
+  {
+    DEBUG_ERROR("SYS", "error deserializeJson %s", error.c_str());
+    replyServerError("Server error set language");
+    return;
+  }
+  selLang = doc["lang"];
+  saveConfig();
+  replyOK();
 }
 
 void handleRequestFirm()
 {
   String request = server.arg(0);
   String message;
-  if (startMDNS)
-  {
-    message = nameMDNS;
-    message += F(" V");
-  }
-  else
-  {
+  // if (startMDNS)
+  // {
+  //   message = nameMDNS;
+  //   message += F(" V ");
+  // }
+  // else
+  // {
 #ifdef ESP32
     message = F("MQTTDevice32 V ");
 #elif ESP8266
     message = F("MQTTDevice V ");
 #endif
-  }
+  // }
   message += Version;
   if (devBranch == 1)
     message += F(" dev");
 
-  server.send(200, FPSTR("text/plain"), message.c_str());
+  replyResponse(message.c_str());
 }
 
 void handleGetTitle()
 {
 #ifdef ESP32
-  server.send(200, FPSTR("text/plain"), "MQTTDevice32");
+  replyResponse("MQTTDevice32 ");
 #elif ESP8266
-  server.send(200, FPSTR("text/plain"), "MQTTDevice4");
+  replyResponse("MQTTDevice4 ");  
 #endif
 }
 
@@ -253,205 +274,101 @@ void handleReqSys()
 {
   JsonDocument doc;
   String message;
-  if (startMDNS)
-  {
-    message = nameMDNS;
-    message += F(" V");
-  }
-  else
-  {
 #ifdef ESP32
-    message = F("MQTTDevice32 V ");
+    message = F("MQTTDevice32 V");
+    doc["title"] = "MQTTDevice32";
 #elif ESP8266
-    message = F("MQTTDevice4 V ");
+    message = F("MQTTDevice4 V");
+    doc["title"] = "MQTTDevice4";
 #endif
-  }
   message += Version;
   if (devBranch == 1)
     message += F(" dev");
 
   doc["firm"] = message;
-#ifdef ESP32
-  doc["title"] = "MQTTDevice32";
-#elif ESP8266
-  doc["title"] = "MQTTDevice4";
-#endif
-  doc["lang"] = selLang;
-  
-  char response[measureJson(doc) + 1];
+    
+  char response[measureJson(doc) + 2];
   serializeJson(doc, response, sizeof(response));
-  server.send(200, FPSTR("application/json"), response);
+  replyResponse(response);
 }
 
 void handleSetMisc()
 {
-  for (uint8_t i = 0; i < server.args(); i++)
+  JsonDocument doc;
+  DeserializationError error = deserializeJson(doc, server.arg(0));
+  if (error)
   {
-    if (server.argName(i) == "reset")
-    {
-      if (server.arg(i) == "true")
-      {
-        WiFi.disconnect();
-        wifiManager.resetSettings();
-        millis2wait(PAUSE2SEC);
-        ESP.restart();
-      }
-    }
-    if (server.argName(i) == "clear")
-    {
-      if (server.arg(i) == "true")
-      {
-        LittleFS.remove("/config.txt");
-        delay(PAUSE2SEC);
-        ESP.restart();
-      }
-    }
-    if (server.argName(i) == "all")
-    {
-
-      int8_t val = 0;
-      if (isValidDigit(server.arg(i)))
-        val = server.arg(i).toInt();
-      if (val == 1)
-      {
-        LittleFS.remove(CONFIG);
-        WiFi.disconnect();
-        wifiManager.resetSettings();
-        delay(PAUSE1SEC);
-        EM_REBOOT();
-      }
-    }
-    if (server.argName(i) == "mqtthost")
-    {
-      server.arg(i).toCharArray(mqtthost, maxHostSign);
-    }
-    if (server.argName(i) == "mqttport")
-    {
-      if (isValidInt(server.arg(i)))
-      {
-        mqttport = server.arg(i).toInt();
-      }
-    }
-    if (server.argName(i) == "mqttuser")
-    {
-      server.arg(i).toCharArray(mqttuser, maxUserSign);
-    }
-    if (server.argName(i) == "mqttpass")
-    {
-      server.arg(i).toCharArray(mqttpass, maxPassSign);
-    }
-    // if (server.argName(i) == "buzzer")
-    // {
-    //   startBuzzer = checkBool(server.arg(i));
-    // }
-    if (server.argName(i) == "buzzer")
-    {
-      pins_used[PIN_BUZZER] = false;
-      PIN_BUZZER = StringToPin(server.arg(i));
-      pins_used[PIN_BUZZER] = true;
-    }
-    if (server.argName(i) == "mqbuz")
-    {
-      mqttBuzzer = checkBool(server.arg(i));
-    }
-    if (server.argName(i) == "res")
-    {
-      senRes = checkBool(server.arg(i));
-    }
-    if (server.argName(i) == "display")
-    {
-      useDisplay = checkBool(server.arg(i));
-    }
-    if (server.argName(i) == "page")
-    {
-      if (isValidDigit(server.arg(i)))
-        startPage = server.arg(i).toInt();
-      else
-        startPage = 1;
-    }
-    if (server.argName(i) == "ferm")
-    {
-      useFerm = checkBool(server.arg(i));
-    }
-    if (server.argName(i) == "devbranch")
-    {
-      devBranch = checkBool(server.arg(i));
-    }
-    if (server.argName(i) == "mdns_name")
-    {
-      server.arg(i).toCharArray(nameMDNS, maxHostSign);
-      checkChars(nameMDNS);
-    }
-    if (server.argName(i) == "mdns")
-    {
-      startMDNS = checkBool(server.arg(i));
-    }
-    if (server.argName(i) == "enable_mqtt")
-    {
-      StopOnMQTTError = checkBool(server.arg(i));
-    }
-    if (server.argName(i) == "delay_mqtt")
-      if (isValidInt(server.arg(i)))
-      {
-        int16_t tmpVal = server.arg(i).toInt();
-        wait_on_error_mqtt = constrain(tmpVal, 1, 600) * 1000;
-      }
-    if (server.argName(i) == "del_sen_act")
-    {
-      if (isValidInt(server.arg(i)))
-      {
-        int16_t tmpVal = server.arg(i).toInt();
-        wait_on_Sensor_error_actor = constrain(tmpVal, 1, 600) * 1000;
-      }
-    }
-    if (server.argName(i) == "del_sen_ind")
-    {
-      if (isValidInt(server.arg(i)))
-      {
-        int16_t tmpVal = server.arg(i).toInt();
-        wait_on_Sensor_error_induction = constrain(tmpVal, 1, 600) * 1000;
-      }
-    }
-    if (server.argName(i) == "ntp")
-    {
-      server.arg(i).toCharArray(ntpServer, maxHostSign);
-      checkChars(ntpServer);
-    }
-    if (server.argName(i) == "spi")
-    {
-      startSPI = checkBool(server.arg(i));
-    }
-    if (server.argName(i) == "lang")
-    {
-      int8_t temp = -1;
-      if (isValidDigit(server.arg(i)))
-      {
-        temp = server.arg(i).toInt();
-      }
-      if (temp != selLang && temp >= 0)
-      {
-        selLang = temp;
-      }
-    }
-    if (server.argName(i) == "duty")
-    {
-      if (isValidInt(server.arg(i)))
-      {
-        DUTYCYLCE = server.arg(i).toInt();
-      }
-    }
-    if (server.argName(i) == "sen")
-    {
-      if (isValidInt(server.arg(i)))
-      {
-        SENCYLCE = server.arg(i).toInt();
-      }
-    }
-    yield();
+    DEBUG_ERROR("SYS", "error deserializeJson %s", error.c_str());
+    replyServerError("Server error deserialize misc settings");
+    return;
   }
+   
+  if (doc["reset"] && doc["clear"])
+  {
+    LittleFS.remove(CONFIG);
+    WiFi.disconnect();
+    wifiManager.resetSettings();
+    delay(PAUSE1SEC);
+    EM_REBOOT();
+  }
+  if (doc["reset"])
+  {
+    WiFi.disconnect();
+    wifiManager.resetSettings();
+    delay(PAUSE1SEC);
+    ESP.restart();
+  }
+  if (doc["clear"])
+  {
+    LittleFS.remove(CONFIG);
+    EM_REBOOT();
+  }
+  
+  PIN_BUZZER = StringToPin(doc["buz"]);
+  pins_used[PIN_BUZZER] = true;
+  
+  mqttport = doc["mqttport"];
+  strlcpy(mqtthost, doc["mqtthost"] | "", maxHostSign);
+  strlcpy(mqttuser, doc["mqttuser"] | "", maxUserSign);
+  strlcpy(mqttpass, doc["mqttpass"] | "", maxPassSign);
+
+  mqttBuzzer = doc["mqbuz"];
+  senRes = doc["res"];
+  useDisplay = doc["display"];
+  startPage = doc["page"];
+  useFerm = doc["ferm"];
+  devBranch = doc["dev"];
+  strlcpy(nameMDNS, doc["mdns_name"] | "", maxHostSign);
+  startMDNS = doc["mdns"];
+  StopOnMQTTError = doc["e_mqtt"];
+  wait_on_error_mqtt = doc["d_mqtt"].as<int>() * 1000;
+  wait_on_Sensor_error_actor = doc["dsa"].as<int>() * 1000;
+  wait_on_Sensor_error_induction = doc["dsi"].as<int>() * 1000;
+     
+  strlcpy(ntpServer, doc["ntp"] | NTP_ADDRESS, maxNTPSign);
+  strlcpy(ntpZone, doc["zone"] | NTP_ZONE, maxNTPSign);
+      // checkChars(ntpServer);
+  startSPI = doc["spi"];
+  
+    // if (server.argName(i) == "lang")
+    //   int8_t temp = -1;
+    //   if (isValidDigit(server.arg(i)))
+    //   if (temp != selLang && temp >= 0)
+    //   {
+    //     selLang = temp;
+    //   }
+
+  DUTYCYLCE = doc["duty"];
+  SENCYLCE = doc["sen"];
+  setTagLevel("CFG", doc["logCFG"]);
+  setTagLevel("SEN", doc["logSen"]);
+  setTagLevel("ACT", doc["logAct"]);
+  setTagLevel("IND", doc["logInd"]);
+  setTagLevel("SYS", doc["logSys"]);
+  setTagLevel("DIS", doc["logDis"]);
+ 
   saveConfig();
-  // server.sendHeader("Location", "/", true);
-  server.send(200, FPSTR("text/plain"), "ok");
+  replyOK();
   miscSSE();
 }
 
@@ -484,7 +401,7 @@ void handleRestore()
 
 void handleGetLanguage()
 {
-  char response[5];
+  char response[3];
   sprintf_P(response, PSTR("%d"), selLang);
-  server.send_P(200, "text/plain", response);
+  replyResponse(response);
 }

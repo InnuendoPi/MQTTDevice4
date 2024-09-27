@@ -32,6 +32,7 @@ public:
     {
       if (OneWire::crc8(sens_address, 7) != sens_address[7])
       {
+        DEBUG_ERROR("SEN", "sensor address CRC %s %s %s %s %s %s %s %s", sens_address[0], sens_address[1], sens_address[2], sens_address[3], sens_address[4], sens_address[5], sens_address[6], sens_address[7]);
         sensorsStatus = EM_CRCER;
         sens_state = false;
       }
@@ -41,16 +42,19 @@ public:
         {
           sensorsStatus = EM_DEVER;
           sens_state = false;
+          DEBUG_ERROR("SEN", "sensor address device error %s %s %s %s %s %s %s %s", sens_address[0], sens_address[1], sens_address[2], sens_address[3], sens_address[4], sens_address[5], sens_address[6], sens_address[7]);
         }
         else if (!sens_isConnected && sens_address[0] != 0xFF) // Sensor with valid address not connected
         {
           sensorsStatus = EM_UNPL;
           sens_state = false;
+          DEBUG_ERROR("SEN", "sensor address unplugged");
         }
         else // not connected and unvalid address
         {
           sensorsStatus = EM_SENER;
           sens_state = false;
+          DEBUG_ERROR("SEN", "sensor address error %s %s %s %s %s %s %s %s", sens_address[0], sens_address[1], sens_address[2], sens_address[3], sens_address[4], sens_address[5], sens_address[6], sens_address[7]);
         }
       } // sens_value -127
       else
@@ -84,11 +88,10 @@ public:
       {
         sensorsStatus = EM_SENER;
         sens_state = false;
+        DEBUG_ERROR("SEN", "PT100 sen error");
       }
       sens_err = sensorsStatus;
-#ifdef ESP32
-      log_e("Sen Update value: %.03f type: %d id: %d", sens_value, sens_type, sens_ptid);
-#endif
+      // DEBUG_VERBOSE("SEN", "Update value: %.03f type: %d id: %d", sens_value, sens_type, sens_ptid);
     } // if senstyp pt100
     else if (sens_type == 2)
     {
@@ -112,12 +115,12 @@ public:
       {
         sensorsStatus = EM_SENER;
         sens_state = false;
+        DEBUG_ERROR("SEN", "PT1000 sen error");
       }
       sens_err = sensorsStatus;
-#ifdef ESP32
-      log_e("Sen Update value: %.03f type: %d id: %d", sens_value, sens_type, sens_ptid);
-#endif
+      // DEBUG_VERBOSE("SEN", "Update value: %.03f type: %d id: %d", sens_value, sens_type, sens_ptid);
     } // if senstyp pt1000
+    DEBUG_VERBOSE("SEN", "name: %s type: %d offset1: %g offset2: %g pin: %d timeoutSensors: %d", sens_name.c_str(), sens_type, sens_offset1, sens_offset2, sens_pin, timeoutSensors);
     if (TickerPUBSUB.state() == RUNNING && TickerMQTT.state() != RUNNING)
       publishmqtt();
   } // void Update
@@ -125,6 +128,8 @@ public:
   void change(const String &new_address, const String &new_mqtttopic, const String &new_name, const String &new_id, float new_offset1, float new_offset2, const bool &new_sw, const uint8_t &new_type, const uint8_t &new_pin)
   {
     new_mqtttopic.toCharArray(sens_mqtttopic, new_mqtttopic.length() + 1);
+    // strlcpy(sens_mqtttopic, new_mqtttopic.c_str(), 49);
+    // sprintf(sens_mqtttopic, "%s", new_mqtttopic.c_str());
     sens_id = new_id;
     sens_name = new_name;
     sens_offset1 = new_offset1;
@@ -140,6 +145,8 @@ public:
       {
         char address_char[20];
         new_address.toCharArray(address_char, new_address.length() + 1);
+        // strlcpy(address_char, new_address.c_str(), 19);
+        // sprintf(address_char, "%s", new_address.c_str());
         char hexbyte[2];
         int32_t octets[8];
         for (uint8_t d = 0; d < 16; d += 2)
@@ -158,9 +165,17 @@ public:
         }
       }
       if (senRes)
+      {
         DS18B20.setResolution(sens_address, RESOLUTION_HIGH);
+        timeoutSensors = 750 / (1 << (12 - RESOLUTION_HIGH));
+        DEBUG_INFO("SEN", "senor: %s set resolution: 12 timeout: %d", sens_name.c_str(), timeoutSensors);
+      }
       else
+      {
         DS18B20.setResolution(sens_address, RESOLUTION);
+        timeoutSensors = 750 / (1 << (12 - RESOLUTION));
+        DEBUG_INFO("SEN", "senor: %s set resolution: 11 timeout: %d", sens_name.c_str(), timeoutSensors);
+      }
     }
   }
 
@@ -316,7 +331,7 @@ TemperatureSensor sensors[NUMBEROFSENSORSMAX] = {
     TemperatureSensor("", "", "", "", 0.0, 0.0, false, 0, 0),
     TemperatureSensor("", "", "", "", 0.0, 0.0, false, 0, 0)};
 #endif
-// Funktion für Loop im Timer Objekt
+
 void handleSensors(bool checkSen)
 {
   // checkSen true: init
@@ -353,10 +368,9 @@ void handleSensors(bool checkSen)
     yield();
   }
   sensorsStatus = max_status;
-
   if (checkSen)
   {
-    char response[measureJson(ssedoc) + 1];
+    char response[measureJson(ssedoc) + 2];
     serializeJson(ssedoc, response, sizeof(response));
     SSEBroadcastJson(response, 0);
   }
@@ -390,80 +404,30 @@ String SensorAddressToString(unsigned char addr[8])
   return charbuffer;
 }
 
-// Sensor wird geändert
 void handleSetSensor()
 {
-  int8_t id = server.arg(0).toInt();
-
-  if (id == -1)
+  JsonDocument doc;
+  DeserializationError error = deserializeJson(doc, server.arg(0));
+  if (error)
   {
-    if (numberOfSensors >= NUMBEROFSENSORSMAX) // maximale Anzahl Aktoren erreicht?
+    DEBUG_ERROR("SEN", "error deserializeJson %s", error.c_str());
+    replyServerError("Server error deserialize sensor json");
+    return;
+  }
+  int8_t id = doc["id"];
+  if (id == -1) // new sensor
+  {
+    if (numberOfSensors >= NUMBEROFSENSORSMAX)
     {
-      server.send(204, FPSTR("text/plain"), "err");
+      replyServerError("Server error max number sensors");
       return;
     }
     id = numberOfSensors;
     numberOfSensors++;
   }
 
-  String new_mqtttopic = sensors[id].getSensorTopic();
-  String new_name = sensors[id].getSensorName();
-  String new_address = sensors[id].getSens_adress_string();
-  String new_id = sensors[id].getId();
-  float new_offset1 = sensors[id].getOffset1();
-  float new_offset2 = sensors[id].getOffset2();
-  bool new_sw = sensors[id].getSensorSwitch();
-  uint8_t new_type = sensors[id].getSensType();
-  uint8_t new_pin = sensors[id].getSensPin();
-
-  for (uint8_t i = 0; i < server.args(); i++)
-  {
-    if (server.argName(i) == "name")
-    {
-      new_name = checkName(server.arg(i), 15, false);
-    }
-    if (server.argName(i) == "topic")
-    {
-      new_mqtttopic = checkName(server.arg(i), 20, true);
-    }
-    if (server.argName(i) == "address")
-    {
-      new_address = server.arg(i);
-    }
-    if (server.argName(i) == "offset1")
-    {
-      new_offset1 = formatDOT(server.arg(i));
-    }
-    if (server.argName(i) == "offset2")
-    {
-      new_offset2 = formatDOT(server.arg(i));
-    }
-    if (server.argName(i) == "sw")
-    {
-      new_sw = checkBool(server.arg(i));
-    }
-    if (server.argName(i) == "cbpiid")
-    {
-      new_id = server.arg(i);
-    }
-    if (server.argName(i) == "type")
-    {
-      if (isValidDigit(server.arg(i)))
-        new_type = server.arg(i).toInt();
-      else
-        new_type = 0;
-    }
-    if (server.argName(i) == "pin")
-    {
-      if (isValidDigit(server.arg(i)))
-        new_pin = server.arg(i).toInt();
-      else
-        new_pin = 2;
-    }
-    yield();
-  }
-  sensors[id].change(new_address, new_mqtttopic, new_name, new_id, new_offset1, new_offset2, new_sw, new_type, new_pin);
-  server.send(200, FPSTR("text/plain"), "ok");
+  sensors[id].change(doc["address"], doc["script"], doc["name"], doc["cbpiid"], doc["offset1"], doc["offset2"], doc["sw"], doc["type"], doc["pin"]);
+  replyOK();
   saveConfig();
   setupPT();
   handleSensors(true);
@@ -472,7 +436,15 @@ void handleSetSensor()
 
 void handleDelSensor()
 {
-  int8_t id = server.arg(0).toInt();
+  JsonDocument doc;
+  DeserializationError error = deserializeJson(doc, server.arg(0));
+  if (error)
+  {
+    DEBUG_ERROR("SEN", "error deserializeJson %s", error.c_str());
+    replyServerError("Server error sensor delete");
+    return;
+  }
+  int8_t id = doc["id"];
   for (uint8_t i = id; i < numberOfSensors; i++)
   {
     if (i == (NUMBEROFSENSORSMAX - 1)) // 5 - Array von 0 bis (NUMBEROFSENSORSMAX-1)
@@ -489,7 +461,7 @@ void handleDelSensor()
   else
     numberOfSensors = 0;
   saveConfig();
-  server.send(200, FPSTR("text/plain"), "ok");
+  replyOK();
   handleSensors(true);
   TickerSen.setLastTime(millis());
 }
@@ -512,7 +484,7 @@ void handleRequestSensorAddresses()
     message += OPTIONEND;
     yield();
   }
-  server.send(200, FPSTR("text/html"), message.c_str());
+  replyResponse(message.c_str());
 }
 
 void handleRequestSensors()
@@ -546,7 +518,7 @@ void handleRequestSensors()
       else
         sensorsObj["value"] = "ERR";
 
-      sensorsObj["mqtt"] = sensors[i].getSensorTopic();
+      sensorsObj["script"] = sensors[i].getSensorTopic();
       sensorsObj["cbpiid"] = sensors[i].getId();
       sensorsObj["type"] = sensors[id].getSensType();
       sensorsObj["pin"] = sensors[id].getSensPin();
@@ -565,9 +537,9 @@ void handleRequestSensors()
     doc["pin"] = sensors[id].getSensPin();
   }
 
-  char response[measureJson(doc) + 1];
+  char response[measureJson(doc) + 2];
   serializeJson(doc, response, sizeof(response));
-  server.send(200, FPSTR("application/json"), response);
+  replyResponse(response);
 }
 
 void setupPT()
@@ -575,11 +547,6 @@ void setupPT()
   // startSPI false := Aus, true := starte Max31865
   // sens_type 0 := DS18B20, 1 := PT100, 2 := PT1000
   // sens_pin 0 := 2-Leiter, 1 := 3-Leiter, 2 := 4-Leiter
-  // #ifdef ESP32
-  // log_e("MOSI: %d/%s MISO: %d/%s CLK: %d/%s", SPI_MOSI, PinToString(SPI_MOSI).c_str(), SPI_MISO, PinToString(SPI_MISO).c_str(), SPI_CLK, PinToString(SPI_CLK).c_str());
-  // log_e("MOSI: %d MISO: %d CLK: %d SS: %d", MOSI, MISO, SCK, SS);
-  // #endif
-
   pins_used[SPI_MOSI] = true; // MAX31865
   pins_used[SPI_MISO] = true; // MAX31865
   pins_used[SPI_CLK] = true;  // MAX31865
@@ -592,9 +559,6 @@ void setupPT()
       switch (sensors[i].getSensPin())
       {
       case 0: // 2-cable
-        // #ifdef ESP32
-        // log_e("Pin 0: 2-cable Sensor: %d %s type: %d", i, sensors[i].getSensorName().c_str(), sensors[i].getSensType());
-        // #endif
         if (!activePT_0)
         {
           activePT_0 = pt_0.begin(MAX31865_2WIRE);
@@ -629,9 +593,6 @@ void setupPT()
 #endif
         break;
       case 1: // 3-cable
-        // #ifdef ESP32
-        // log_e("Pin 1: 3-cable Sensor: %d %s type: %d", i, sensors[i].getSensorName().c_str(), sensors[i].getSensType());
-        // #endif
         if (!activePT_0)
         {
           activePT_0 = pt_0.begin(MAX31865_3WIRE);
@@ -666,9 +627,6 @@ void setupPT()
 #endif
         break;
       case 2: // 4-cable
-        // #ifdef ESP32
-        // log_e("Pin 2: 4-cable Sensor: %d %s type: %d", i, sensors[i].getSensorName().c_str(), sensors[i].getSensType());
-        // #endif
         if (!activePT_0)
         {
           activePT_0 = pt_0.begin(MAX31865_4WIRE);
@@ -704,11 +662,6 @@ void setupPT()
         break;
       }
     }
-    // #ifdef ESP32
-    // else
-    // log_e("Dallas Sensor: %d %s type: %d", i, sensors[i].getSensorName().c_str(), sensors[i].getSensType());
-    // #endif
-
     pins_used[CS0] = activePT_0;
     pins_used[CS1] = activePT_1;
     pins_used[CS2] = activePT_2;
@@ -716,7 +669,6 @@ void setupPT()
     pins_used[CS3] = activePT_3;
     pins_used[CS3] = activePT_4;
     pins_used[CS5] = activePT_5;
-    // log_e("active PT100x Sensors: 0:%d 1:%d 2:%d", activePT_0, activePT_1, activePT_2);
 #endif
   }
 }

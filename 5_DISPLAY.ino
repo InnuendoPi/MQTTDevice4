@@ -161,9 +161,7 @@ void cbpi4kettle_subscribe()
 {
   if (pubsubClient.connected())
   {
-#ifdef ESP32
-    log_e("Disp: Subscribing to %s", cbpi4kettle_topic);
-#endif
+    DEBUG_VERBOSE("DIS", "Subscribing to %s", cbpi4kettle_topic);
     pubsubClient.subscribe(cbpi4kettle_topic);
     pubsubClient.loop();
   }
@@ -173,9 +171,7 @@ void cbpi4kettle_unsubscribe()
 {
   if (pubsubClient.connected())
   {
-#ifdef ESP32
-    log_e("Disp: Unsubscribing from %s", cbpi4kettle_topic);
-#endif
+    DEBUG_VERBOSE("DIS", "Unsubscribing from %s", cbpi4kettle_topic);
     pubsubClient.unsubscribe(cbpi4steps_topic);
   }
 }
@@ -184,9 +180,7 @@ void cbpi4steps_subscribe()
 {
   if (pubsubClient.connected())
   {
-#ifdef ESP32
-    log_e("Disp: Subscribing to %s", cbpi4steps_topic);
-#endif
+    DEBUG_VERBOSE("DIS", "Subscribing to %s", cbpi4steps_topic);
     pubsubClient.subscribe(cbpi4steps_topic);
     pubsubClient.loop();
   }
@@ -196,9 +190,7 @@ void cbpi4steps_unsubscribe()
 {
   if (pubsubClient.connected())
   {
-#ifdef ESP32
-    log_e("Disp: Unsubscribing from %s", cbpi4steps_topic);
-#endif
+    DEBUG_VERBOSE("DIS", "Unsubscribing from %s", cbpi4steps_topic);
     pubsubClient.unsubscribe(cbpi4steps_topic);
   }
 }
@@ -207,9 +199,7 @@ void cbpi4notification_subscribe()
 {
   if (pubsubClient.connected())
   {
-#ifdef ESP32
-    log_e("Disp: Subscribing to %s", cbpi4notification_topic);
-#endif
+    DEBUG_VERBOSE("DIS", "Subscribing to %s", cbpi4notification_topic);
     pubsubClient.subscribe(cbpi4notification_topic);
     pubsubClient.loop();
   }
@@ -218,9 +208,7 @@ void cbpi4notification_unsubscribe()
 {
   if (pubsubClient.connected())
   {
-#ifdef ESP32
-    log_e("Disp: Unsubscribing from %s", cbpi4notification_topic);
-#endif
+    DEBUG_VERBOSE("DIS", "Unsubscribing from %s", cbpi4notification_topic);
     pubsubClient.unsubscribe(cbpi4notification_topic);
   }
 }
@@ -229,9 +217,7 @@ void cbpi4fermenter_subscribe()
 {
   if (pubsubClient.connected())
   {
-#ifdef ESP32
-    log_e("Disp: Subscribing to %s", cbpi4fermenter_topic);
-#endif
+    DEBUG_VERBOSE("DIS", "Subscribing to %s", cbpi4fermenter_topic);
     pubsubClient.subscribe(cbpi4fermenter_topic);
     pubsubClient.loop();
   }
@@ -240,9 +226,7 @@ void cbpi4fermenter_unsubscribe()
 {
   if (pubsubClient.connected())
   {
-#ifdef ESP32
-    log_e("Disp: Unsubscribing from %s", cbpi4fermenter_topic);
-#endif
+    DEBUG_VERBOSE("DIS", "Unsubscribing from %s", cbpi4fermenter_topic);
     pubsubClient.unsubscribe(cbpi4fermenter_topic);
   }
 }
@@ -251,9 +235,7 @@ void cbpi4fermentersteps_subscribe()
 {
   if (pubsubClient.connected())
   {
-#ifdef ESP32
-    log_e("Disp: Subscribing to %s", cbpi4fermentersteps_topic);
-#endif
+    DEBUG_VERBOSE("DIS", "Subscribing to %s", cbpi4fermentersteps_topic);
     pubsubClient.subscribe(cbpi4fermentersteps_topic);
     pubsubClient.loop();
   }
@@ -263,9 +245,7 @@ void cbpi4fermentersteps_unsubscribe()
 {
   if (pubsubClient.connected())
   {
-#ifdef ESP32
-    log_e("Disp: Unsubscribing from %s", cbpi4fermentersteps_topic);
-#endif
+    DEBUG_VERBOSE("DIS", "Unsubscribing from %s", cbpi4fermentersteps_topic);
     pubsubClient.unsubscribe(cbpi4fermentersteps_topic);
   }
 }
@@ -276,10 +256,7 @@ void cbpi4kettle_handlemqtt(unsigned char *payload)
   DeserializationError error = deserializeJson(doc, (const char *)payload);
   if (error)
   {
-    int32_t memoryUsed = doc.memoryUsage();
-#ifdef ESP32
-    log_e("Disp: handlemqtt notification deserialize Json error %s MemoryUsage %d", error.c_str(), memoryUsed);
-#endif
+    DEBUG_ERROR("DIS", "handlemqtt notification deserialize Json error %s MemoryUsage %d", error.c_str());
     return;
   }
   for (uint8_t i = 0; i < maxKettles; i++)
@@ -346,11 +323,7 @@ void cbpi4sensor_handlemqtt(unsigned char *payload)
   DeserializationError error = deserializeJson(doc, (const char *)payload);
   if (error)
   {
-    int32_t memoryUsed = doc.memoryUsage();
-#ifdef ESP32
-    log_e("Disp: handlemqtt notification deserialize Json error %s MemoryUsage %d", error.c_str(), memoryUsed);
-#endif
-
+    DEBUG_ERROR("DIS", "handlemqtt notification deserialize Json error %s", error.c_str());
     return;
   }
   for (uint8_t i = 0; i < maxKettles; i++)
@@ -369,10 +342,7 @@ void cbpi4steps_handlemqtt(unsigned char *payload)
   DeserializationError error = deserializeJson(doc, (const char *)payload);
   if (error)
   {
-    int32_t memoryUsed = doc.memoryUsage();
-#ifdef ESP32
-    log_e("Disp: handlemqtt notification deserialize Json error %s MemoryUsage %d", error.c_str(), memoryUsed);
-#endif
+    DEBUG_ERROR("DIS", "handlemqtt notification deserialize Json error %s", error.c_str());
     return;
   }
   if (doc["status"] == "D") // ignore solved steps
@@ -523,7 +493,8 @@ void cbpi4steps_handlemqtt(unsigned char *payload)
     }
     else
     {
-      if (props.containsKey("Timer"))
+      // if (props.containsKey("Timer"))
+      if (props["Timer"].is<int>())
       {
         int minutes = props["Timer"].as<int>();
         sprintf(currentStepRemain, "%02d:%02d", minutes, 0);
@@ -556,10 +527,7 @@ void cbpi4notification_handlemqtt(unsigned char *payload)
   DeserializationError error = deserializeJson(doc, (const char *)payload);
   if (error)
   {
-    int32_t memoryUsed = doc.memoryUsage();
-#ifdef ESP32
-    log_e("Disp: handlemqtt notification deserialize Json error %s MemoryUsage %d", error.c_str(), memoryUsed);
-#endif
+    DEBUG_ERROR("DIS", "handlemqtt notification deserialize Json error %s", error.c_str());
     return;
   }
 
@@ -636,10 +604,7 @@ void cbpi4fermenter_handlemqtt(unsigned char *payload)
   // DeserializationError error = deserializeJson(doc, (const char *)payload);
   if (error)
   {
-    int32_t memoryUsed = doc.memoryUsage();
-#ifdef ESP32
-    log_e("Disp: handlemqtt fermenter deserialize Json error %s MemoryUsage %d", error.c_str(), memoryUsed);
-#endif
+    DEBUG_ERROR("DIS", "handlemqtt fermenter deserialize Json error %s MemoryUsage %d", error.c_str());
     return;
   }
   
@@ -716,10 +681,7 @@ void cbpi4fermentersteps_handlemqtt(unsigned char *payload)
   DeserializationError error = deserializeJson(doc, (const char *)payload, DeserializationOption::Filter(filter));
   if (error)
   {
-    int32_t memoryUsed = doc.memoryUsage();
-#ifdef ESP32
-    log_e("Disp: handlemqtt notification deserialize Json error %s MemoryUsage %d", error.c_str(), memoryUsed);
-#endif
+    DEBUG_ERROR("DIS", "handlemqtt notification deserialize Json error %s MemoryUsage %d", error.c_str());
     return;
   }
   

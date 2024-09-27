@@ -1,5 +1,19 @@
 # Changelog
 
+Version 4.64
+
+- Fix:        ESP32 pin mapping D16 incorrect
+- Fix:        ESP32 used_pin array at position D16 incorrect
+- Fix:        ESP32 second sensor PT100x exception fixed (mapping GPIO D16)
+- Fix:        Replaced deprecated ArduinoJSON function containskey
+- Fix:        DS18B20 sensor timeout when high resolution enabled
+- changed:    migrate web if ajax post methods to JSON format
+- changed:    Dallas DS18B20 temperature request async mode
+- New:        web if client side validation
+- New:        InnuLog lib debug output on serial monitor
+- Update:     ArduinoJSON 7.2.0
+- Update:     ESPTool 4.8.1
+
 Version 4.63
 
 - Fix:        missing LF (\n) in SSE broadcasts

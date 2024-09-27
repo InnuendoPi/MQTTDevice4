@@ -5,6 +5,7 @@
 //   Version: 0.0.4
 
 #include "Arduino.h"
+
 // #define TICKER_LIBRARY_VERSION 0.0.4
  
 // Ticker status

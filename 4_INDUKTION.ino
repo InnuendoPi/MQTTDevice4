@@ -125,9 +125,7 @@ public:
       {
         char subscribemsg[50];
         mqtttopic.toCharArray(subscribemsg, 50);
-#ifdef ESP32
-        log_e("Ind: Subscribing to %s", subscribemsg);
-#endif
+        DEBUG_VERBOSE("IND",  "Subscribing to %s", subscribemsg);
         pubsubClient.subscribe(subscribemsg);
       }
     }
@@ -139,9 +137,7 @@ public:
     {
       char subscribemsg[50];
       mqtttopic.toCharArray(subscribemsg, 50);
-#ifdef ESP32
-      log_e("Ind: Unsubscribing from %s", subscribemsg);
-#endif
+      DEBUG_VERBOSE("IND",  "Unsubscribing from %s", subscribemsg);
       pubsubClient.unsubscribe(subscribemsg);
     }
   }
@@ -155,9 +151,7 @@ public:
     DeserializationError error = deserializeJson(doc, (const char *)payload, DeserializationOption::Filter(filter));
     if (error)
     {
-#ifdef ESP32
-      log_e("Ind: handlemqtt deserialize Json error %s", error.c_str());
-#endif
+      DEBUG_ERROR("IND", "handlemqtt deserialize Json error %s", error.c_str());
       return;
     }
     if (doc["state"] == "off")
@@ -352,9 +346,7 @@ public:
     if (isInduon && powerLevelOnError < 100 && induction_state) // powerlevelonerror == 100 -> kein event handling
     {
       powerLevelBeforeError = power;
-#ifdef ESP32
-      log_e("IND MQTT event handling induction - power level: %d event power level: %d", power, powerLevelOnError);
-#endif
+      DEBUG_VERBOSE("IND",  "MQTT event handling induction - power level: %d event power level: %d", power, powerLevelOnError);
       if (powerLevelOnError == 0)
         isInduon = false;
       else
@@ -516,10 +508,9 @@ void handleRequestInduction()
 
   doc["topic"] = inductionCooker.getTopic();
   doc["pl"] = inductionCooker.getPowerLevelOnError();
-
-  char response[measureJson(doc) + 1];
+  char response[measureJson(doc) + 2];
   serializeJson(doc, response, sizeof(response));
-  server.send(200, FPSTR("application/json"), response);
+  replyResponse(response);
 }
 
 void handleRequestIndu()
@@ -564,53 +555,23 @@ void handleRequestIndu()
       yield();
     }
   }
-  server.send_P(200, "text/plain", message.c_str());
+  replyResponse(message.c_str());
 }
 
 void handleSetIndu()
 {
-  int8_t pin_white = inductionCooker.getPinWhite();
-  int8_t pin_blue = inductionCooker.getPinInterrupt();
-  int8_t pin_yellow = inductionCooker.getPinYellow();
-  bool is_enabled = inductionCooker.getIsEnabled();
-  String topic = inductionCooker.getTopic();
-  int8_t pl = inductionCooker.getPowerLevelOnError();
-
-  for (uint8_t i = 0; i < server.args(); i++)
+  JsonDocument doc;
+  DeserializationError error = deserializeJson(doc, server.arg(0));
+  if (error)
   {
-    if (server.argName(i) == "enabled")
-    {
-      is_enabled = checkBool(server.arg(i));
-    }
-    if (server.argName(i) == "topic")
-    {
-      topic = checkName(server.arg(i), 20, true);
-    }
-    if (server.argName(i) == "pinwhite")
-    {
-      pin_white = StringToPin(server.arg(i));
-    }
-    if (server.argName(i) == "pinyellow")
-    {
-      pin_yellow = StringToPin(server.arg(i));
-    }
-    if (server.argName(i) == "pinblue")
-    {
-      pin_blue = StringToPin(server.arg(i));
-    }
-    if (server.argName(i) == "pl")
-    {
-      if (isValidInt(server.arg(i)))
-        pl = constrain(server.arg(i).toInt(), 0, 100);
-      else
-        pl = 100;
-    }
-    yield();
+    DEBUG_ERROR("IND", "error deserializeJson %s", error.c_str());
+    replyServerError("Server error set induction");
+    return;
   }
-
-  inductionCooker.change(pin_white, pin_yellow, pin_blue, topic, is_enabled, pl);
+  Serial.println(server.arg(0));
+  inductionCooker.change(StringToPin(doc["pinw"]), StringToPin(doc["piny"]), StringToPin(doc["pinb"]), doc["topic"], doc["enabled"], doc["pl"]);
   saveConfig();
-  server.send(200, FPSTR("text/plain"), "ok");
+  replyOK();
   inductionSSE(true);
 }
 
@@ -632,19 +593,19 @@ void checkIDSstate()
         break;
       case 1:
       case 2: // E0
-        log_e("GGM IDS Fehler E0: %d kein/leerer Kessel", newError);
+        DEBUG_ERROR("IND", "GGM IDS Fehler E0: %d kein/leerer Kessel", newError);
         break;
       case 3: // E1
-        log_e("GGM IDS Fehler E1: %d Stromkreisfehler", newError);
+        DEBUG_ERROR("IND", "GGM IDS Fehler E1: %d Stromkreisfehler", newError);
         break;
       case 4: // E2
               // E2 unbelegt
               // break;
       case 5: // E3
-        log_e("GGM IDS Fehler E3: %d Überhitzung", newError);
+        DEBUG_ERROR("IND", "GGM IDS Fehler E3: %d Überhitzung", newError);
         break;
       case 6: // E4
-        log_e("GGM IDS Fehler E4: %d Temperatursensor", newError);
+        DEBUG_ERROR("IND", "GGM IDS Fehler E4: %d Temperatursensor", newError);
         break;
       case 7: // E5
               // E5 unbelegt
@@ -653,10 +614,10 @@ void checkIDSstate()
               // E5 unbelegt
               // break;
       case 9: // E7
-        log_e("GGM IDS Fehler E7: %d Niederspannungsschutz", newError);
+        DEBUG_ERROR("IND", "GGM IDS Fehler E7: %d Niederspannungsschutz", newError);
         break;
       case 10: // E8
-        log_e("GGM IDS Fehler E8: %d Überspannungsschutz", newError);
+        DEBUG_ERROR("IND", "GGM IDS Fehler E8: %d Überspannungsschutz", newError);
         break;
       case 11: // E9
                // E9 unbelegt
@@ -668,7 +629,7 @@ void checkIDSstate()
                // EB unbelegt
                // break;
       case 14: // EC
-        log_e("GGM IDS Fehler EC: %d Bedienfeld", newError);
+        DEBUG_ERROR("IND", "GGM IDS Fehler EC: %d Bedienfeld", newError);
         break;
       }
 #endif
