@@ -9,11 +9,12 @@ void loop()
       mdns.update();
 #endif
   }
-  
+
   TickerTime.update();
 
   if ((numberOfSensors > 0) && (millis() - lastRequestSensors >= timeoutSensors)) // Ticker Sensoren
   {
+    // if (DS18B20.isConversionComplete())
       TickerSen.update();
   }
 
@@ -24,6 +25,6 @@ void loop()
   if (useDisplay) // Ticker Display
   {
     TickerDisp.update();
-    nextion.update();
+    nextion.checkNex();
   }
 }

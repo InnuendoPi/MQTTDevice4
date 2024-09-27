@@ -45,7 +45,7 @@
 #include <PubSubClient.h>   // MQTT Kommunikation
 #include <SoftwareSerial.h> // Serieller Port für Display
 #include "InnuTicker.h"     // Bibliothek für Hintergrund Aufgaben (Tasks)
-#include "NextionX2.h"      // Display Nextion
+#include "InnuNextion.h"
 #include "index_htm.h"
 #include "edit_htm.h"
 #include "MQTTDevice.h"
@@ -165,6 +165,11 @@ bool mqttBuzzer = false;  // MQTTBuzzer für CBPi4
 
 int8_t selLang = 0;       // Sprache
 
+// Serial
+#define DEF_SERIAL 115200
+#define DEF_NEXTION 9600
+SoftwareSerial softSerial;
+
 // Display Next
 #define NUMBEROFPAGES 3
 bool useDisplay = false;
@@ -172,6 +177,7 @@ bool useFerm = false;
 int startPage = 0;  // Startseite: BrewPage = 0 Kettlepage = 1 InductionPage = 2
 int activePage = 0; // die aktuell angezeigte Seite
 int tempPage = -1;  // die aktuell angezeigte Seite
+InnuNex nextion(softSerial); 
 
 // FSBrowser
 File fsUploadFile; // a File object to temporarily store the received file

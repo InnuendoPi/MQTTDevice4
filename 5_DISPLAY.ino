@@ -1,37 +1,70 @@
+void readCustomCommand()
+{
+  int tempID = nextion.cmdGroup;
+  int tempPage = nextion.cmdLength;
+
+  if (tempID == 102) // 0x66 -> receive page command from readcustomcommand
+  {
+    DEBUG_VERBOSE("DIS", "page command activePage: %d currentPage: %d lastcurrent: %d cmdLength: %d cmdGroup: %d", activePage, nextion.currentPageId, nextion.lastCurrentPageId, tempPage, tempID);
+    tickerDispCallback();
+  }
+  else // 0x65 -> receive component id from readcustomcommand
+  {
+    DEBUG_VERBOSE("DIS", "componentID: %d activePage: %d currentPage: %d lastcurrent: %d cmdLength: %d", tempID, activePage, nextion.currentPageId, nextion.lastCurrentPageId, tempPage);
+
+    // Trigger Buttons manueller Modus
+    if (activePage == 2) // Induction page
+    {
+      uint8_t manStatus = nextion.readNum(powerButton);
+      uint8_t manPower = nextion.readNum(p2slider);
+      switch (tempID)
+      {
+      case 3: // OnOff Button
+        break;
+      case 8: // Plus
+        break;
+      case 9: // Minus
+        break;
+      }
+      if (manStatus && manPower > 0)
+        inductionCooker.setNewPower(manPower);
+      else
+        inductionCooker.setNewPower(0);
+    }
+  }
+}
+
 void initDisplay()
 {
-  // BrewPage:    max 4 Kettels mit Temepratur und Ziel
-  // KettlePage:  Kessel an Sensor ID 0 (IDS2 MaischeSud)
-
-  // register callback functions
-  p0ForButton.touch(pageCallback1);         // BrewPage forward to KettlePage
-  p0BackButton.touch(pageCallback2);        // BrewPage backward to InductionPage
-  p1ForButton.touch(pageCallback2);         // KelltlePage forward to InductionPage
-  p1BackButton.touch(pageCallback0);        // KettlePage backward to BrewPage
-  p2ForButton.touch(pageCallback0);         // InductionPage forward to BrewPage
-  p2BackButton.touch(pageCallback1);        // InductionPage backward to KettlePage
-  powerButton.release(powerButtonCallback); // buttonBack auf induction page backward auf page 1
-
   activePage = startPage;
-  tempPage = startPage;
   switch (startPage)
   {
   case 0:
-    nextion.command("page 0");
+    nextion.writeStr("page 0");
+    nextion.currentPageId = 0;
+    nextion.lastCurrentPageId = 1;
     break;
   case 1:
-    nextion.command("page 1");
+    nextion.writeStr("page 1");
+    nextion.currentPageId = 1;      // setze currentPageId wenn Startseite nicht 0
+    nextion.lastCurrentPageId = 0;
     break;
   case 2:
-    nextion.command("page 2");
+    nextion.writeStr("page 2");
+    nextion.currentPageId = 2;
+    nextion.lastCurrentPageId = 0;
     break;
   default:
-    nextion.command("page 0");
+    startPage = 0;
+    nextion.writeStr("page 0");
+    nextion.currentPageId = 0;
+    nextion.lastCurrentPageId = 1;
     break;
   }
-  nextion.command("doevents"); // Force immediate screen refresh and receive serial bytes to buffer
-  // start display tikcer
-  activePage = nextion.getCurrentPageID();
+  
+  if (nextion.getDebug())
+    DEBUG_INFO("CFG", "activePage: %d startPage: %d currentPage: %d lastcurrent: %d", activePage, startPage, nextion.currentPageId, nextion.lastCurrentPageId);
+  tickerDispCallback();
 }
 
 void dispPublishmqtt()
@@ -49,62 +82,63 @@ void dispPublishmqtt()
   }
 }
 
-void BrewPage() // Seite 1
+void KettlePage() // Seite 1
 {
-  currentStepName_text.attribute("txt", currentStepName);
-  currentStepRemain_text.attribute("txt", currentStepRemain);
-  nextStepRemain_text.attribute("txt", nextStepRemain);
-  nextStepName_text.attribute("txt", nextStepName);
+  nextion.writeStr(currentStepName_text, currentStepName);
+  nextion.writeStr(currentStepRemain_text, currentStepRemain);
+  nextion.writeStr(nextStepRemain_text, nextStepRemain);
+  nextion.writeStr(nextStepName_text, nextStepName);
 
   if (strlen(structKettles[0].id) > 0)
   {
-    kettleName1_text.attribute("txt", structKettles[0].name);
+    nextion.writeStr(kettleName1_text, structKettles[0].name);
     if (sensors[0].getId() != "")
-      kettleSoll1_text.attribute("txt", structKettles[0].target_temp);
+      nextion.writeStr(kettleSoll1_text, structKettles[0].target_temp);
     else
-      kettleSoll1_text.attribute("txt", "na");
-    kettleIst1_text.attribute("txt", structKettles[0].current_temp);
+      nextion.writeStr(kettleSoll1_text, "na");
+    nextion.writeStr(kettleIst1_text, structKettles[0].current_temp);
   }
   else
     dispPublishmqtt();
 
   if (strlen(structKettles[1].id) > 0)
   {
-    kettleName2_text.attribute("txt", structKettles[1].name);
+    nextion.writeStr(kettleName2_text, structKettles[1].name);
     if (sensors[1].getId() != "")
-      kettleSoll2_text.attribute("txt", structKettles[1].target_temp);
+      nextion.writeStr(kettleSoll2_text, structKettles[1].target_temp);
     else
-      kettleSoll2_text.attribute("txt", "na");
-    kettleIst2_text.attribute("txt", structKettles[1].current_temp);
+      nextion.writeStr(kettleSoll2_text, "na");
+    nextion.writeStr(kettleIst2_text, structKettles[1].current_temp);
   }
   if (strlen(structKettles[2].id) > 0)
   {
-    kettleName3_text.attribute("txt", structKettles[2].name);
+    nextion.writeStr(kettleName3_text, structKettles[2].name);
     if (sensors[2].getId() != "")
-      kettleSoll3_text.attribute("txt", structKettles[2].target_temp);
+      nextion.writeStr(kettleSoll3_text, structKettles[2].target_temp);
     else
-      kettleSoll3_text.attribute("txt", "na");
-    kettleIst3_text.attribute("txt", structKettles[2].current_temp);
+      nextion.writeStr(kettleSoll3_text, "na");
+    nextion.writeStr(kettleIst3_text, structKettles[2].current_temp);
   }
   if (strlen(structKettles[3].id) > 0)
   {
-    kettleName4_text.attribute("txt", structKettles[3].name);
+    nextion.writeStr(kettleName4_text, structKettles[3].name);
     if (sensors[3].getId() != "")
-      kettleSoll4_text.attribute("txt", structKettles[3].target_temp);
+      nextion.writeStr(kettleSoll4_text, structKettles[3].target_temp);
     else
-      kettleSoll4_text.attribute("txt", "na");
-    kettleIst4_text.attribute("txt", structKettles[3].current_temp);
+      nextion.writeStr(kettleSoll4_text, "na");
+    nextion.writeStr(kettleIst4_text, structKettles[3].current_temp);
   }
-  progress.value(sliderval);
-  notification.attribute("txt", notify);
+  nextion.writeNum(progress, sliderval);
+  nextion.writeStr(notification, notify);
 }
 
-void KettlePage() // Seite 2
+void BrewPage() // Seite 2
 {
+  // DEBUG_INFO("DIS", "BrewPage");
   if (strlen(structKettles[0].sensor) != 0)
   {
-    p1temp_text.attribute("txt", structKettles[0].current_temp);
-    p1target_text.attribute("txt", structKettles[0].target_temp);
+    nextion.writeStr(p1temp_text, structKettles[0].current_temp);
+    nextion.writeStr(p1target_text, structKettles[0].target_temp);
 
     // Serial.printf("KettlePage sensor %s current temp: %s\n", structKettles[0].sensor, structKettles[0].current_temp);
 
@@ -128,14 +162,14 @@ void KettlePage() // Seite 2
   }
   else
   {
-    p1temp_text.attribute("txt", structKettles[0].current_temp);
-    p1target_text.attribute("txt", "na");
+    nextion.writeStr(p1temp_text, structKettles[0].current_temp);
+    nextion.writeStr(p1target_text, "na");
   }
 
-  p1current_text.attribute("txt", currentStepName);
-  p1remain_text.attribute("txt", currentStepRemain);
-  p1progress.value(sliderval);
-  p1notification.attribute("txt", notify);
+  nextion.writeStr(p1current_text, currentStepName);
+  nextion.writeStr(p1remain_text, currentStepRemain);
+  nextion.writeNum(p1progress, sliderval);
+  nextion.writeStr(p1notification, notify);
 }
 
 void InductionPage()
@@ -146,15 +180,15 @@ void InductionPage()
   // p2temp_text
   // 316 = 0°C - 360 = 44°C - 223 = 100°C -- 53,4 je 20°C
 
-  int32_t aktSlider = p2slider.value();
+  int32_t aktSlider = nextion.readNum(p2slider);
   if (aktSlider >= 0 && aktSlider <= 100)
     inductionCooker.inductionNewPower(aktSlider); // inductionCooker.handleInductionPage(aktSlider);
 
-  p2temp_text.attribute("txt", String(structKettles[0].current_temp).c_str());
+  nextion.writeStr(p2temp_text, String(structKettles[0].current_temp).c_str());
   if (sensors[0].calcOffset() < 16.0)
-    p2gauge.attribute("val", (int)(sensors[0].calcOffset() * 2.7 + 316));
+    nextion.writeNum(p2gauge, (int)(sensors[0].calcOffset() * 2.7 + 316));
   else
-    p2gauge.attribute("val", (int)(sensors[0].calcOffset() * 2.7 - 44));
+    nextion.writeNum(p2gauge, (int)(sensors[0].calcOffset() * 2.7 - 44));
 }
 
 void cbpi4kettle_subscribe()
@@ -273,20 +307,20 @@ void cbpi4kettle_handlemqtt(unsigned char *payload)
       switch (i)
       {
       case 0:
-        kettleName1_text.attribute("txt", structKettles[i].name);
-        kettleSoll1_text.attribute("txt", structKettles[i].target_temp);
+        nextion.writeStr(kettleName1_text, structKettles[i].name);
+        nextion.writeStr(kettleSoll1_text, structKettles[i].target_temp);
         break;
       case 1:
-        kettleName2_text.attribute("txt", structKettles[i].name);
-        kettleSoll2_text.attribute("txt", structKettles[i].target_temp);
+        nextion.writeStr(kettleName2_text, structKettles[i].name);
+        nextion.writeStr(kettleSoll2_text, structKettles[i].target_temp);
         break;
       case 2:
-        kettleName3_text.attribute("txt", structKettles[i].name);
-        kettleSoll3_text.attribute("txt", structKettles[i].target_temp);
+        nextion.writeStr(kettleName3_text, structKettles[i].name);
+        nextion.writeStr(kettleSoll3_text, structKettles[i].target_temp);
         break;
       case 3:
-        kettleName4_text.attribute("txt", structKettles[i].name);
-        kettleSoll4_text.attribute("txt", structKettles[i].target_temp);
+        nextion.writeStr(kettleName4_text, structKettles[i].name);
+        nextion.writeStr(kettleSoll4_text, structKettles[i].target_temp);
         break;
       }
       break;
@@ -299,16 +333,16 @@ void cbpi4kettle_handlemqtt(unsigned char *payload)
         switch (i)
         {
         case 0:
-          kettleSoll1_text.attribute("txt", structKettles[i].target_temp);
+          nextion.writeStr(kettleSoll1_text, structKettles[i].target_temp);
           break;
         case 1:
-          kettleSoll2_text.attribute("txt", structKettles[i].target_temp);
+          nextion.writeStr(kettleSoll2_text, structKettles[i].target_temp);
           break;
         case 2:
-          kettleSoll3_text.attribute("txt", structKettles[i].target_temp);
+          nextion.writeStr(kettleSoll3_text, structKettles[i].target_temp);
           break;
         case 3:
-          kettleSoll4_text.attribute("txt", structKettles[i].target_temp);
+          nextion.writeStr(kettleSoll4_text, structKettles[i].target_temp);
           break;
         }
         break;
@@ -398,8 +432,8 @@ void cbpi4steps_handlemqtt(unsigned char *payload)
           }
           if (activePage == 0)
           {
-            nextStepName_text.attribute("txt", nextStepName);
-            nextStepRemain_text.attribute("txt", nextStepRemain);
+            nextion.writeStr(nextStepName_text, nextStepName);
+            nextion.writeStr(nextStepRemain_text, nextStepRemain);
           }
           break;
         }
@@ -450,17 +484,17 @@ void cbpi4steps_handlemqtt(unsigned char *payload)
         strlcpy(notify, "", maxNotifySign);
       }
       if (activePage == 0)
-        currentStepName_text.attribute("txt", currentStepName);
+        nextion.writeStr(currentStepName_text, currentStepName);
       if (activePage == 1)
-        p1current_text.attribute("txt", currentStepName);
+        nextion.writeStr(p1current_text, currentStepName);
     }
     if (doc["state_text"] != 0 && doc["state_text"] != "Waiting for Target Temp")
     {
       strlcpy(currentStepRemain, doc["state_text"] | "", maxRemainSign);
       if (activePage == 0)
-        currentStepRemain_text.attribute("txt", currentStepRemain);
+        nextion.writeStr(currentStepRemain_text, currentStepRemain);
       if (activePage == 1)
-        p1remain_text.attribute("txt", currentStepRemain);
+        nextion.writeStr(p1remain_text, currentStepRemain);
 
       if (doc["type"] == "MashStep" && doc["state_text"] != "")
       {
@@ -478,17 +512,17 @@ void cbpi4steps_handlemqtt(unsigned char *payload)
       {
         sliderval = (valTimer * 60 - (min * 60 + sec)) * 100 / (valTimer * 60);
         if (activePage == 0)
-          progress.value(sliderval);
+          nextion.writeNum(progress, sliderval);
         if (activePage == 1)
-          p1progress.value(sliderval);
+          nextion.writeNum(p1progress, sliderval);
       }
       else
       {
         sliderval = 0;
         if (activePage == 0)
-          progress.value(0);
+          nextion.writeNum(progress, 0);
         if (activePage == 1)
-          p1progress.value(0);
+          nextion.writeNum(p1progress, 0);
       }
     }
     else
@@ -499,23 +533,23 @@ void cbpi4steps_handlemqtt(unsigned char *payload)
         int minutes = props["Timer"].as<int>();
         sprintf(currentStepRemain, "%02d:%02d", minutes, 0);
         if (activePage == 0)
-          currentStepRemain_text.attribute("txt", currentStepRemain);
+          nextion.writeStr(currentStepRemain_text, currentStepRemain);
         if (activePage == 1)
-          p1remain_text.attribute("txt", currentStepRemain);
+          nextion.writeStr(p1remain_text, currentStepRemain);
       }
       else
       {
         strcpy(currentStepRemain, "0:00");
         if (activePage == 0)
-          currentStepRemain_text.attribute("txt", currentStepRemain);
+          nextion.writeStr(currentStepRemain_text, currentStepRemain);
         if (activePage == 1)
-          p1remain_text.attribute("txt", currentStepRemain);
+          nextion.writeStr(p1remain_text, currentStepRemain);
       }
       sliderval = 0;
       if (activePage == 0)
-        progress.value(sliderval);
+        nextion.writeNum(progress, sliderval);
       if (activePage == 1)
-        p1progress.value(sliderval);
+        nextion.writeNum(p1progress, sliderval);
     }
     return;
   }
@@ -627,20 +661,20 @@ void cbpi4fermenter_handlemqtt(unsigned char *payload)
       switch (i)
       {
       case 0:
-        kettleName1_text.attribute("txt", structKettles[i].name);
-        kettleSoll1_text.attribute("txt", structKettles[i].target_temp);
+        nextion.writeStr(kettleName1_text, structKettles[i].name);
+        nextion.writeStr(kettleSoll1_text, structKettles[i].target_temp);
         break;
       case 1:
-        kettleName2_text.attribute("txt", structKettles[i].name);
-        kettleSoll2_text.attribute("txt", structKettles[i].target_temp);
+        nextion.writeStr(kettleName2_text, structKettles[i].name);
+        nextion.writeStr(kettleSoll2_text, structKettles[i].target_temp);
         break;
       case 2:
-        kettleName3_text.attribute("txt", structKettles[i].name);
-        kettleSoll3_text.attribute("txt", structKettles[i].target_temp);
+        nextion.writeStr(kettleName3_text, structKettles[i].name);
+        nextion.writeStr(kettleSoll3_text, structKettles[i].target_temp);
         break;
       case 3:
-        kettleName4_text.attribute("txt", structKettles[i].name);
-        kettleSoll4_text.attribute("txt", structKettles[i].target_temp);
+        nextion.writeStr(kettleName4_text, structKettles[i].name);
+        nextion.writeStr(kettleSoll4_text, structKettles[i].target_temp);
         break;
       }
       break;
@@ -654,16 +688,16 @@ void cbpi4fermenter_handlemqtt(unsigned char *payload)
         switch (i)
         {
         case 0:
-          kettleSoll1_text.attribute("txt", structKettles[i].target_temp);
+          nextion.writeStr(kettleSoll1_text, structKettles[i].target_temp);
           break;
         case 1:
-          kettleSoll2_text.attribute("txt", structKettles[i].target_temp);
+          nextion.writeStr(kettleSoll2_text, structKettles[i].target_temp);
           break;
         case 2:
-          kettleSoll3_text.attribute("txt", structKettles[i].target_temp);
+          nextion.writeStr(kettleSoll3_text, structKettles[i].target_temp);
           break;
         case 3:
-          kettleSoll4_text.attribute("txt", structKettles[i].target_temp);
+          nextion.writeStr(kettleSoll4_text, structKettles[i].target_temp);
           break;
         }
         break;

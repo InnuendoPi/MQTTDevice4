@@ -11,6 +11,7 @@ Version 4.64
 - changed:    Dallas DS18B20 temperature request async mode
 - New:        web if client side validation
 - New:        InnuLog lib debug output on serial monitor
+- New:        InnuNextion Display lib (platformIO ready)
 - Update:     ArduinoJSON 7.2.0
 - Update:     ESPTool 4.8.1
 

@@ -190,8 +190,11 @@ void handleRequestMisc()
   doc["logAct"] = getTagLevel("ACT");
   doc["logInd"] = getTagLevel("IND");
   doc["logSys"] = getTagLevel("SYS");
-  doc["logDis"] = getTagLevel("DIS");
-
+  if (getTagLevel("DIS") > 0)
+    doc["logDis"] = 1;
+  else
+    doc["logDis"] = 0;
+    
   String message = "";
   if (isPin(PIN_BUZZER))
   {
@@ -365,8 +368,16 @@ void handleSetMisc()
   setTagLevel("ACT", doc["logAct"]);
   setTagLevel("IND", doc["logInd"]);
   setTagLevel("SYS", doc["logSys"]);
-  setTagLevel("DIS", doc["logDis"]);
- 
+  if (doc["logDis"] > 0)
+  {
+    setTagLevel("DIS", 3);
+    nextion.setDebug(true);
+  }
+  else
+  {
+    setTagLevel("DIS", 0);
+    nextion.setDebug(false);
+  }
   saveConfig();
   replyOK();
   miscSSE();

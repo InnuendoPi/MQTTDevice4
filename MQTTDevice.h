@@ -1,5 +1,5 @@
 // Version
-#define Version "4.64.3"
+#define Version "4.64.5"
 
 // Definiere Pausen
 #define PAUSE1SEC 1000
@@ -112,53 +112,42 @@ Adafruit_MAX31865 pt_2 = Adafruit_MAX31865(CS2, SPI_MOSI, SPI_MISO, SPI_CLK);
 bool activePT_0 = false, activePT_1 = false, activePT_2 = false;
 #endif
 
-SoftwareSerial softSerial; // Objekt SoftSerial ohne GPIO
-NextionComPort nextion;    // Objekt Display Kommunikation
-
-// Control buttons callbacks
-NextionComponent p0ForButton(nextion, 0, 19);
-NextionComponent p0BackButton(nextion, 0, 21);
-NextionComponent p1ForButton(nextion, 1, 9);
-NextionComponent p1BackButton(nextion, 1, 7);
-NextionComponent p2ForButton(nextion, 2, 10);
-NextionComponent p2BackButton(nextion, 2, 2);
-
 // KettlePage
-NextionComponent uhrzeit_text(nextion, 0, 10);
-NextionComponent currentStepName_text(nextion, 0, 6);
-NextionComponent currentStepRemain_text(nextion, 0, 5);
-NextionComponent nextStepName_text(nextion, 0, 7);
-NextionComponent nextStepRemain_text(nextion, 0, 8);
-NextionComponent kettleName1_text(nextion, 0, 1);
-NextionComponent kettleIst1_text(nextion, 0, 11);
-NextionComponent kettleSoll1_text(nextion, 0, 15);
-NextionComponent kettleName2_text(nextion, 0, 2);
-NextionComponent kettleIst2_text(nextion, 0, 12);
-NextionComponent kettleSoll2_text(nextion, 0, 16);
-NextionComponent kettleName3_text(nextion, 0, 3);
-NextionComponent kettleIst3_text(nextion, 0, 13);
-NextionComponent kettleSoll3_text(nextion, 0, 17);
-NextionComponent kettleName4_text(nextion, 0, 4);
-NextionComponent kettleIst4_text(nextion, 0, 14);
-NextionComponent kettleSoll4_text(nextion, 0, 18);
-NextionComponent progress(nextion, 0, 9);
-NextionComponent mqttDevice(nextion, 0, 20);
-NextionComponent notification(nextion, 0, 22);
+#define uhrzeit_text "clock.txt"
+#define currentStepName_text "currentStep.txt"
+#define currentStepRemain_text "currentRemain.txt"
+#define nextStepName_text "nextStep.txt"
+#define nextStepRemain_text "nextTimer.txt"
+#define kettleName1_text "Kettle1.txt"
+#define kettleIst1_text "temp1.txt"
+#define kettleSoll1_text "target1.txt"
+#define kettleName2_text "Kettle2.txt"
+#define kettleIst2_text "temp2.txt"
+#define kettleSoll2_text "target2.txt"
+#define kettleName3_text "Kettle3.txt"
+#define kettleIst3_text "temp3.txt"
+#define kettleSoll3_text "target3.txt"
+#define kettleName4_text "Kettle4.txt"
+#define kettleIst4_text "temp4.txt"
+#define kettleSoll4_text "target4.txt"
+#define progress "j0.txt"
+#define mqttDevice "IP.txt"
+#define notification "notification1.txt"
 // BrewPage
-NextionComponent p1uhrzeit_text(nextion, 1, 3);
-NextionComponent p1current_text(nextion, 1, 4);
-NextionComponent p1remain_text(nextion, 1, 5);
-NextionComponent p1temp_text(nextion, 1, 1);
-NextionComponent p1target_text(nextion, 1, 2);
-NextionComponent p1progress(nextion, 1, 6);
-NextionComponent p1mqttDevice(nextion, 1, 8);
-NextionComponent p1notification(nextion, 1, 10);
+#define p1uhrzeit_text "p1clock.txt"
+#define p1current_text "p1current.txt"
+#define p1remain_text "p1remain.txt"
+#define p1temp_text "p1temp.txt"
+#define p1target_text "p1target.txt"
+#define p1progress "j0.txt"
+#define p1mqttDevice "IP.txt"
+#define p1notification "p1notification.txt"
 // InductionPage
-NextionComponent powerButton(nextion, 2, 3);
-NextionComponent p2uhrzeit_text(nextion, 2, 7);
-NextionComponent p2slider(nextion, 2, 1);
-NextionComponent p2temp_text(nextion, 2, 5);
-NextionComponent p2gauge(nextion, 2, 4);
+#define powerButton "buttonOnOff.val"
+#define p2uhrzeit_text "p2clock.txt"
+#define p2slider "sliderPower.val"
+#define p2temp_text "textTemp.txt"
+#define p2gauge "gauge.val"
 
 // CraftbeerPi4 definitions
 #define maxKettles 4

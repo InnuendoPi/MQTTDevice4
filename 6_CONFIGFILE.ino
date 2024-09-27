@@ -135,10 +135,14 @@ bool loadConfig()
     TickerDisp.stop();
   else
   {
-    softSerial.begin(9600, SWSERIAL_8N1, D1, D2, false);
+    softSerial.begin(DEF_NEXTION, SWSERIAL_8N1, D1, D2, false);
     pins_used[D1] = true;
     pins_used[D2] = true;
-    nextion.begin(softSerial);
+    nextion.begin(DEF_NEXTION);
+    if (getTagLevel("DIS") > 0)
+      nextion.setDebug(true);
+    else
+      nextion.setDebug(false);
     initDisplay();
     TickerDisp.start();
   }
@@ -301,18 +305,6 @@ bool saveConfig()
     TickerInd.start();
   else
     TickerInd.stop();
-
-  if (useDisplay) // Ticker Display
-  {
-    softSerial.begin(9600, SWSERIAL_8N1, D1, D2, false);
-    pins_used[D1] = true;
-    pins_used[D2] = true;
-    nextion.begin(softSerial);
-    initDisplay();
-    TickerDisp.start();
-  }
-  else
-    TickerDisp.stop();
 
   String Network = WiFi.SSID();
 

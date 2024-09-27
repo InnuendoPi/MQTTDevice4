@@ -1,8 +1,7 @@
 void setup()
 {
-  Serial.begin(115200);
-  // Serial.begin(9600); // Debug Nextion SoftwareSerial
-
+  Serial.begin(DEF_SERIAL);
+  
 #ifdef ESP32
   snprintf(mqtt_clientid, maxHostSign, "ESP32-%llX", ESP.getEfuseMac());
   // Serial.printf("\n*** SYSINFO: MQTTDevice32 ID: %X\n", mqtt_clientid);

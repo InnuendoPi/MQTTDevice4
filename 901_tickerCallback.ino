@@ -1,41 +1,10 @@
-void pageCallback0()
-{
-  if (PIN_BUZZER != -100)
-    sendAlarm(ALARM_INFO);
-
-  tempPage = 0;
-  TickerDisp.updatenow();
-}
-void pageCallback1()
-{
-  if (PIN_BUZZER != -100)
-    sendAlarm(ALARM_INFO);
-
-  tempPage = 1;
-  TickerDisp.updatenow();
-}
-void pageCallback2()
-{
-  if (PIN_BUZZER != -100)
-    sendAlarm(ALARM_INFO);
-
-  tempPage = 2;
-  TickerDisp.updatenow();
-}
-
-void powerButtonCallback()
-{
-  inductionCooker.setInductionState(!inductionCooker.getInductionState());
-}
 
 void tickerDispCallback()
 {
-  if (tempPage < 0)
-    activePage = nextion.getCurrentPageID();
-  else
+  if (nextion.currentPageId != nextion.lastCurrentPageId)
   {
-    activePage = tempPage;
-    tempPage = -1;
+    activePage = nextion.currentPageId;
+    nextion.lastCurrentPageId = nextion.currentPageId;
   }
 
   char ipMQTT[50];
@@ -46,29 +15,25 @@ void tickerDispCallback()
   else
     sprintf_P(ipMQTT, (PGM_P)F("http://%s"), WiFi.localIP().toString().c_str());
 
-  activePage = nextion.getCurrentPageID();
+  activePage = nextion.currentPageId;
   switch (activePage)
   {
-  case 0:            // BrewPage
-    // if (!activeBrew) // aktiver Step vorhanden?
-    //   strlcpy(currentStepName, "Overview", maxStepSign);
-    uhrzeit_text.attribute("txt", uhrzeit);
-    mqttDevice.attribute("txt", ipMQTT);
-
-    BrewPage();
+  case 0:            // KettlePage
+    nextion.writeStr(uhrzeit_text, uhrzeit);
+    nextion.writeStr(mqttDevice, ipMQTT);
+    KettlePage();
     break;
-  case 1:            // KettlePage
+  case 1:            // BrewPage
     if (strlen(structKettles[0].sensor) == 0)
       strlcpy(structKettles[0].current_temp, sensors[0].getTotalValueString(), maxTempSign);
 
-    p1mqttDevice.attribute("txt", ipMQTT);
-    p1uhrzeit_text.attribute("txt", uhrzeit);
-
-    KettlePage();
+    nextion.writeStr(p1mqttDevice, ipMQTT);
+    nextion.writeStr(p1uhrzeit_text, uhrzeit);
+    BrewPage();
     break;
   case 2: // Induction mode
     strlcpy(structKettles[0].current_temp, sensors[0].getTotalValueString(), maxTempSign);
-    p2uhrzeit_text.attribute("txt", uhrzeit);
+    nextion.writeStr(p2uhrzeit_text, uhrzeit);
     InductionPage();
     break;
   }
@@ -101,8 +66,7 @@ void tickerPUBSUBCallback() // Timer Objekt Sensoren
 
 void tickerSenCallback() // Timer Objekt Sensoren
 {
-  if (DS18B20.isConversionComplete())
-    DS18B20.requestTemperatures();
+  DS18B20.requestTemperatures();
   lastRequestSensors = millis();
   switch (sensorsStatus)
   {
