@@ -1,3 +1,6 @@
+// WebUpdate Board configuration ESP8266
+// "configuration": "xtal=80,vt=flash,exception=disabled,stacksmash=disabled,ssl=basic,mmu=4816H,non32xfer=fast,eesz=4M2M,ip=lm2f,dbg=Disabled,lvl=None____,wipe=none,baud=921600",
+
 bool upTools(String url, String fname, WiFiClientSecure &clientup)
 {
     HTTPClient https;
@@ -72,7 +75,6 @@ bool upTools(String url, String fname, WiFiClientSecure &clientup)
 
 void upFirm()
 {
-    // timeClient.update();
     WiFiClientSecure clientup;
     clientup.setInsecure();
     char line[120];
@@ -104,7 +106,6 @@ void upFirm()
 
 void updateTools()
 {
-    setTagLevel("SYS", INNU_INFO);
     configTzTime(ntpZone, ntpServer);
     getLocalTime(&timeinfo);
 
