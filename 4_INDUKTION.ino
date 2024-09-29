@@ -215,11 +215,13 @@ public:
       {
         sendCommand(CMD[CMD_CUR - 1]);
         isPower = false;
+        DEBUG_VERBOSE("IND", "off: %d level: %d time: %lu ms", power, CMD_CUR - 1, powerLast);
       }
       else
       {
         sendCommand(CMD[CMD_CUR]);
         isPower = true;
+        DEBUG_VERBOSE("IND", "on: %d level: %d time: %lu ms", power, CMD_CUR, powerLast);
       }
     }
     else if (isRelayon)

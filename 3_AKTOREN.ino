@@ -31,14 +31,17 @@ public:
         if (millis() > powerLast + DUTYCYLCE)
         {
           powerLast = millis();
+          // DEBUG_VERBOSE("ACT", "powerlast: %lu ms", powerLast);
         }
         if (millis() > powerLast + (DUTYCYLCE * power_actor / 100L))
         {
           digitalWrite(pin_actor, OFF);
+          DEBUG_VERBOSE("ACT", "%s off: %d %\t%s\t%s\t%lu ms", name_actor.c_str(), power_actor, PinToString(pin_actor).c_str(), argument_actor.c_str(), powerLast);
         }
         else
         {
           digitalWrite(pin_actor, ON);
+          DEBUG_VERBOSE("ACT", "%s on %d %\t%s\t%s\t%lu ms", name_actor.c_str(), power_actor, PinToString(pin_actor).c_str(), argument_actor.c_str(), powerLast);
         }
       }
       else

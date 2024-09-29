@@ -3,10 +3,11 @@ class TemperatureSensor
   int8_t sens_err = 0;
   bool sens_sw = false;          // Events aktivieren
   bool sens_state = true;        // Fehlerstatus ensor
+  bool old_state = true;         // Fehlerstatus ensor
   bool sens_isConnected;         // ist der Sensor verbunden
   float sens_offset1 = 0.0;      // Offset - Temp kalibrieren
   float sens_offset2 = 0.0;      // Offset - Temp kalibrieren
-  float sens_value = -127.0;     // Aktueller Wert
+  float sens_value = 0.0;        // Aktueller Wert
   float old_value = 0.0;         // Aktueller Wert
   String sens_name;              // Name für Anzeige auf Website
   char sens_mqtttopic[50];       // Für MQTT Kommunikation
@@ -28,33 +29,45 @@ public:
     sens_value = DS18B20.getTempC(sens_address);
     sensorsStatus = 0;
     sens_state = true;
+    if (simErr == 1) // simulate sensor error http://mqttdevice.local/setSenErr?err=1
+    {
+      sens_value = -127.0;
+    }
     if (sens_type == 0)
     {
       if (OneWire::crc8(sens_address, 7) != sens_address[7])
       {
-        DEBUG_ERROR("SEN", "sensor address CRC %s %s %s %s %s %s %s %s", sens_address[0], sens_address[1], sens_address[2], sens_address[3], sens_address[4], sens_address[5], sens_address[6], sens_address[7]);
+        if (old_state)
+          DEBUG_ERROR("SEN", "sensor address CRC %s %s %s %s %s %s %s %s", sens_address[0], sens_address[1], sens_address[2], sens_address[3], sens_address[4], sens_address[5], sens_address[6], sens_address[7]);
         sensorsStatus = EM_CRCER;
         sens_state = false;
+        old_state = sens_state;
       }
       else if (sens_value <= -127.0)
       {
         if (sens_isConnected && sens_address[0] != 0xFF) // Sensor connected AND sensor address exists (not default FF)
         {
           sensorsStatus = EM_DEVER;
+          if (old_state)
+            DEBUG_ERROR("SEN", "sensor address device error %s %s %s %s %s %s %s %s", sens_address[0], sens_address[1], sens_address[2], sens_address[3], sens_address[4], sens_address[5], sens_address[6], sens_address[7]);
           sens_state = false;
-          DEBUG_ERROR("SEN", "sensor address device error %s %s %s %s %s %s %s %s", sens_address[0], sens_address[1], sens_address[2], sens_address[3], sens_address[4], sens_address[5], sens_address[6], sens_address[7]);
+          old_state = sens_state;
         }
         else if (!sens_isConnected && sens_address[0] != 0xFF) // Sensor with valid address not connected
         {
           sensorsStatus = EM_UNPL;
+          if (old_state)
+            DEBUG_ERROR("SEN", "sensor address unplugged");
           sens_state = false;
-          DEBUG_ERROR("SEN", "sensor address unplugged");
+          old_state = sens_state;
         }
         else // not connected and unvalid address
         {
           sensorsStatus = EM_SENER;
+          if (old_state)
+            DEBUG_ERROR("SEN", "sensor error");
           sens_state = false;
-          DEBUG_ERROR("SEN", "sensor address error %s %s %s %s %s %s %s %s", sens_address[0], sens_address[1], sens_address[2], sens_address[3], sens_address[4], sens_address[5], sens_address[6], sens_address[7]);
+          old_state = sens_state;
         }
       } // sens_value -127
       else
@@ -87,8 +100,10 @@ public:
       if (sens_value > 120.0 || sens_value < -100.0) // außerhalb realistischer Messbereich
       {
         sensorsStatus = EM_SENER;
+        if (old_state)
+          DEBUG_ERROR("SEN", "PT100 sen error");
         sens_state = false;
-        DEBUG_ERROR("SEN", "PT100 sen error");
+        old_state = sens_state;
       }
       sens_err = sensorsStatus;
       // DEBUG_VERBOSE("SEN", "Update value: %.03f type: %d id: %d", sens_value, sens_type, sens_ptid);
@@ -114,13 +129,15 @@ public:
       if (sens_value > 120.0 || sens_value < -100.0) // außerhalb realistischer Messbereich
       {
         sensorsStatus = EM_SENER;
+        if (old_state)
+          DEBUG_ERROR("SEN", "PT1000 sen error");
         sens_state = false;
-        DEBUG_ERROR("SEN", "PT1000 sen error");
+        old_state = sens_state;
       }
       sens_err = sensorsStatus;
-      // DEBUG_VERBOSE("SEN", "Update value: %.03f type: %d id: %d", sens_value, sens_type, sens_ptid);
     } // if senstyp pt1000
-    DEBUG_VERBOSE("SEN", "name: %s type: %d offset1: %g offset2: %g pin: %d timeoutSensors: %d", sens_name.c_str(), sens_type, sens_offset1, sens_offset2, sens_pin, timeoutSensors);
+
+    DEBUG_VERBOSE("SEN", "%s\t%s\t%s\t%g\t%g/%g", sens_name.c_str(), sens_type == 0 ? "DS18B20" : "PT100x", sens_mqtttopic, sens_value, sens_offset1, sens_offset2);
     if (TickerPUBSUB.state() == RUNNING && TickerMQTT.state() != RUNNING)
       publishmqtt();
   } // void Update
@@ -167,14 +184,12 @@ public:
       if (senRes)
       {
         DS18B20.setResolution(sens_address, RESOLUTION_HIGH);
-        timeoutSensors = 750 / (1 << (12 - RESOLUTION_HIGH));
-        DEBUG_INFO("SEN", "senor: %s set resolution: 12 timeout: %d", sens_name.c_str(), timeoutSensors);
+        DEBUG_INFO("SEN", "senor: %s set resolution high", sens_name.c_str());
       }
       else
       {
         DS18B20.setResolution(sens_address, RESOLUTION);
-        timeoutSensors = 750 / (1 << (12 - RESOLUTION));
-        DEBUG_INFO("SEN", "senor: %s set resolution: 11 timeout: %d", sens_name.c_str(), timeoutSensors);
+        DEBUG_INFO("SEN", "senor: %s set resolution normal", sens_name.c_str());
       }
     }
   }
@@ -431,7 +446,7 @@ void handleSetSensor()
   saveConfig();
   setupPT();
   handleSensors(true);
-  TickerSen.setLastTime(millis());
+  TickerSen.setLastTime(millis()); // requiered for async mode
 }
 
 void handleDelSensor()
@@ -499,9 +514,9 @@ void handleRequestSensors()
       JsonObject sensorsObj = doc.add<JsonObject>();
       sensorsObj["name"] = sensors[i].getSensorName();
       sensorsObj["type"] = sensors[id].getSensType();
-      String str = sensors[i].getSensorName();
-      str.replace(" ", "%20"); // Erstze Leerzeichen für URL Charts
-      sensorsObj["namehtml"] = str;
+      // String str = sensors[i].getSensorName();
+      // str.replace(" ", "%20"); // Erstze Leerzeichen für URL Charts
+      // sensorsObj["namehtml"] = str;
       sensorsObj["offset1"] = sensors[i].getOffset1();
       sensorsObj["offset2"] = sensors[i].getOffset2();
       sensorsObj["sw"] = sensors[i].getSensorSwitch();
@@ -671,4 +686,11 @@ void setupPT()
     pins_used[CS5] = activePT_5;
 #endif
   }
+}
+
+void handleSetSenErr() // simulate sensor err
+{
+  simErr = server.arg(0).toInt();
+  DEBUG_ERROR("SEN", "simulate %d", simErr);
+  replyOK();
 }

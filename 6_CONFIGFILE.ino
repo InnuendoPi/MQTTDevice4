@@ -88,9 +88,11 @@ bool loadConfig()
   i = 0;
   for (JsonObject sensorsObj : sensorsArray)
   {
-    if (i < numberOfSensors)
+    if (i < numberOfSensors) // isHexadecimalDigit(sensorsObj["ADDRESS"])
     {
       sensors[i].change(sensorsObj["ADDRESS"], sensorsObj["SCRIPT"], sensorsObj["NAME"], sensorsObj["CBPIID"], sensorsObj["OFFSET1"], sensorsObj["OFFSET2"], sensorsObj["SW"], sensorsObj["TYPE"], sensorsObj["PIN"]);
+      // Test ArduinoJSON validation
+      // sensors[i].change(sensorsObj["ADDRESS"], sensorsObj["SCRIPT"], sensorsObj["NAME"], sensorsObj["CBPIID"], sensorsObj["OFFSET1"].is<float>() ? sensorsObj["OFFSET1"] : 0.0, sensorsObj["OFFSET2"].is<float>() ? sensorsObj["OFFSET2"] : 0.0, sensorsObj["SW"].is<bool>() ? sensorsObj["SW"] : false, sensorsObj["TYPE"].is<int>() ? constrain(sensorsObj["TYPE"], 0, 2) : 0, sensorsObj["PIN"].is<int>() ? constrain(sensorsObj["PIN"], 0, 2) : 0);
       DEBUG_INFO("CFG", "Sensor #: %d Name: %s Address: %s MQTT: %s CBPi-ID: %s Offset1: %.02f Offset2: %.02f SW: %d Type: %d Pin: %d", (i + 1), sensorsObj["NAME"].as<const char *>(), sensorsObj["ADDRESS"].as<const char *>(), sensorsObj["SCRIPT"].as<const char *>(), sensorsObj["CBPIID"].as<const char *>(), sensorsObj["OFFSET1"].as<float>(), sensorsObj["OFFSET2"].as<float>(), sensorsObj["SW"].as<int>(), sensorsObj["TYPE"].as<int>(), sensorsObj["PIN"].as<int>());
       i++;
     }
@@ -116,15 +118,9 @@ bool loadConfig()
   setupTime();
 
   if (numberOfSensors > 0) // Ticker Sensors
-  {
+  {   
     TickerSen.config(tickerSenCallback, (SENCYLCE * SEN_UPDATE), 0);
     TickerSen.start();
-    
-    // NON-blocking/async requestForConversion
-    DS18B20.setWaitForConversion(false); // TRUE : function requestTemperature() etc returns when conversion is ready
-    DS18B20.setCheckForConversion(true); // TRUE : function requestTemperature() etc will 'listen' to an IC to determine whether a conversion is complete
-    DS18B20.requestTemperatures();       // Alle Sensoren abfragen
-    lastRequestSensors = millis();
   }
   if (numberOfActors > 0) // Ticker Actors
     TickerAct.start();
@@ -283,15 +279,9 @@ bool saveConfig()
   {
     if (TickerSen.state() == RUNNING)
       TickerSen.stop();
-      
+    
     TickerSen.config(tickerSenCallback, (SENCYLCE * SEN_UPDATE), 0);
     TickerSen.start();
-    
-    // NON-blocking/async requestForConversion
-    DS18B20.setWaitForConversion(false); // TRUE : function requestTemperature() etc returns when conversion is ready
-    DS18B20.setCheckForConversion(true); // TRUE : function requestTemperature() etc will 'listen' to an IC to determine whether a conversion is complete
-    DS18B20.requestTemperatures();       // Alle Sensoren abfragen
-    lastRequestSensors = millis();
   }
   else
     TickerSen.stop();

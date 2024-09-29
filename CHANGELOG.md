@@ -9,6 +9,7 @@ Version 4.64
 - Fix:        DS18B20 sensor timeout when high resolution enabled
 - changed:    migrate web if ajax post methods to JSON format
 - changed:    Dallas DS18B20 temperature request async mode
+- changed:    logging output sensors, actors and induction
 - New:        web if client side validation
 - New:        InnuLog lib debug output on serial monitor
 - New:        InnuNextion Display lib (platformIO ready)

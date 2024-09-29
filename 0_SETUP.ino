@@ -65,6 +65,8 @@ void setup()
 
     // Starte Sensoren
     DS18B20.begin();
+    DS18B20.setWaitForConversion(false); // async mode
+    DS18B20.setCheckForConversion(false);
     pins_used[ONE_WIRE_BUS] = true;
     // Lade Konfiguration
     if (LittleFS.exists(CONFIG))
@@ -108,6 +110,7 @@ void setupServer()
   server.on("/reqPins", handlereqPins);               // GPIO Pins actors
   server.on("/reqIndu", handleRequestIndu);           // Induction für WebConfig
   server.on("/setSensor", handleSetSensor);           // Sensor ändern
+  server.on("/setSenErr", handleSetSenErr);           // Sensor ändern
   server.on("/setActor", handleSetActor);             // Aktor ändern
   server.on("/setIndu", handleSetIndu);               // Indu ändern
   server.on("/delSensor", handleDelSensor);           // Sensor löschen

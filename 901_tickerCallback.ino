@@ -18,12 +18,12 @@ void tickerDispCallback()
   activePage = nextion.currentPageId;
   switch (activePage)
   {
-  case 0:            // KettlePage
+  case 0: // KettlePage
     nextion.writeStr(uhrzeit_text, uhrzeit);
     nextion.writeStr(mqttDevice, ipMQTT);
     KettlePage();
     break;
-  case 1:            // BrewPage
+  case 1: // BrewPage
     if (strlen(structKettles[0].sensor) == 0)
       strlcpy(structKettles[0].current_temp, sensors[0].getTotalValueString(), maxTempSign);
 
@@ -67,107 +67,110 @@ void tickerPUBSUBCallback() // Timer Objekt Sensoren
 void tickerSenCallback() // Timer Objekt Sensoren
 {
   DS18B20.requestTemperatures();
-  lastRequestSensors = millis();
-  switch (sensorsStatus)
+  // lastRequestSensors = millis();
+  if (StopOnMQTTError) // Event handling enabled?
   {
-  case EM_OK:
-    // all sensors ok
-    lastSenInd = 0; // Delete induction timestamp after event
-    lastSenAct = 0; // Delete actor timestamp after event
-    // if (WiFi.status() == WL_CONNECTED && mqtt_state)
-    if (WiFi.status() == WL_CONNECTED && TickerPUBSUB.state() == RUNNING && mqtt_state)
+    switch (sensorsStatus)
     {
-      for (int i = 0; i < numberOfActors; i++)
+    case EM_OK:
+      // all sensors ok
+      lastSenInd = 0; // Delete induction timestamp after event
+      lastSenAct = 0; // Delete actor timestamp after event
+      // if (WiFi.status() == WL_CONNECTED && mqtt_state)
+      if (WiFi.status() == WL_CONNECTED && TickerPUBSUB.state() == RUNNING && mqtt_state)
       {
-        if (actors[i].getActorSwitch() && !actors[i].getActorState()) // Sensor in normal mode: check actor in error state
+        for (int i = 0; i < numberOfActors; i++)
         {
-          DEBUG_VERBOSE("SEN", "EM SenOK: %s isOnBeforeError: %d power level: %d", actors[i].getActorName().c_str(), actors[i].getIsOnBeforeError(), actors[i].getActorPower());
-          actors[i].setIsOn(actors[i].getIsOnBeforeError());
-          actors[i].setActorState(true);
-          actors[i].Update();
-          lastSenAct = 0; // Delete actor timestamp after event
+          if (actors[i].getActorSwitch() && !actors[i].getActorState()) // Sensor in normal mode: check actor in error state
+          {
+            DEBUG_VERBOSE("SEN", "EM SenOK: %s isOnBeforeError: %d power level: %d", actors[i].getActorName().c_str(), actors[i].getIsOnBeforeError(), actors[i].getActorPower());
+            actors[i].setIsOn(actors[i].getIsOnBeforeError());
+            actors[i].setActorState(true);
+            actors[i].Update();
+            lastSenAct = 0; // Delete actor timestamp after event
+          }
+          yield();
         }
-        yield();
-      }
 
-      if (!inductionCooker.getInductionState())
-      {
-        DEBUG_VERBOSE("SEN", "EM SenOK: Induction power: %d powerLevelOnError: %d powerLevelBeforeError: %d", inductionCooker.getPower(), inductionCooker.getPowerLevelOnError(), inductionCooker.getPowerLevelBeforeError());
         if (!inductionCooker.getInductionState())
         {
-          inductionCooker.setNewPower(inductionCooker.getPowerLevelBeforeError());
-          inductionCooker.setisInduon(true);
-          inductionCooker.setInductionState(true);
-          inductionCooker.Update();
-          lastSenInd = 0; // Delete induction timestamp after event
+          DEBUG_VERBOSE("SEN", "EM SenOK: Induction power: %d powerLevelOnError: %d powerLevelBeforeError: %d", inductionCooker.getPower(), inductionCooker.getPowerLevelOnError(), inductionCooker.getPowerLevelBeforeError());
+          if (!inductionCooker.getInductionState())
+          {
+            inductionCooker.setNewPower(inductionCooker.getPowerLevelBeforeError());
+            inductionCooker.setisInduon(true);
+            inductionCooker.setInductionState(true);
+            inductionCooker.Update();
+            lastSenInd = 0; // Delete induction timestamp after event
+          }
         }
       }
-    }
-    break;
-  case EM_CRCER:
-    // Sensor CRC ceck failed
-  case EM_DEVER:
-    // -127°C device error
-  case EM_UNPL:
-    // sensor unpluged
-  case EM_SENER:
-    // all other errors
-    // if (WiFi.status() == WL_CONNECTED && mqtt_state)
-    if (WiFi.status() == WL_CONNECTED && TickerPUBSUB.state() == RUNNING && mqtt_state)
-    {
-      for (int i = 0; i < numberOfSensors; i++)
+      break;
+    case EM_CRCER:
+      // Sensor CRC ceck failed
+    case EM_DEVER:
+      // -127°C device error
+    case EM_UNPL:
+      // sensor unpluged
+    case EM_SENER:
+      // all other errors
+      // if (WiFi.status() == WL_CONNECTED && mqtt_state)
+      if (WiFi.status() == WL_CONNECTED && TickerPUBSUB.state() == RUNNING && mqtt_state)
       {
-        if (!sensors[i].getSensorState())
+        for (int i = 0; i < numberOfSensors; i++)
         {
-          switch (sensorsStatus)
+          if (!sensors[i].getSensorState() && ( lastSenInd == 0 || lastSenAct == 0 ))
           {
-          case EM_CRCER:
-// Sensor CRC ceck failed
-            DEBUG_ERROR("SEN", "EM CRCER: Sensor %s crc check failed", sensors[i].getSensorName().c_str());
-            break;
-          case EM_DEVER:
-// -127°C device error
-            DEBUG_ERROR("SEN", "EM DEVER: Sensor %s device error", sensors[i].getSensorName().c_str());
-            break;
-          case EM_UNPL:
-// sensor unpluged
-            DEBUG_ERROR("SEN", "EM UNPL: Sensor %s unplugged", sensors[i].getSensorName().c_str());
-            break;
-          default:
-            break;
-          }
-        }
-
-        if (sensors[i].getSensorSwitch() && !sensors[i].getSensorState())
-        {
-          if (lastSenAct == 0)
-          {
-            lastSenAct = millis(); // Timestamp on error
-            DEBUG_VERBOSE("SEN", "EM SENER: timestamp actors due to sensor error: %l Wait on error actors: %d", lastSenAct, wait_on_Sensor_error_actor / 1000);
-          }
-          if (lastSenInd == 0)
-          {
-            lastSenInd = millis(); // Timestamp on error
-            DEBUG_VERBOSE("SEN", "EM SENER: timestamp induction due to sensor error: %l Wait on error induction: %d", lastSenInd, wait_on_Sensor_error_induction / 1000);
-          }
-          if (millis() - lastSenAct >= wait_on_Sensor_error_actor) // Wait bevor Event handling
-          {
-            actERR();
-          }
-          if (millis() - lastSenInd >= wait_on_Sensor_error_induction) // Wait bevor Event handling
-          {
-            if (inductionCooker.getisInduon() && inductionCooker.getPowerLevelOnError() < 100 && inductionCooker.getInductionState())
+            switch (sensorsStatus)
             {
-              inductionCooker.indERR();
+            case EM_CRCER:
+              // Sensor CRC ceck failed
+              DEBUG_ERROR("SEN", "EM CRCER: Sensor %s crc check failed", sensors[i].getSensorName().c_str());
+              break;
+            case EM_DEVER:
+              // -127°C device error
+              DEBUG_ERROR("SEN", "EM DEVER: Sensor %s device error", sensors[i].getSensorName().c_str());
+              break;
+            case EM_UNPL:
+              // sensor unpluged
+              DEBUG_ERROR("SEN", "EM UNPL: Sensor %s unplugged", sensors[i].getSensorName().c_str());
+              break;
+            default:
+              break;
             }
           }
-        } // Switchable
-        yield();
-      } // Iterate sensors
-    }   // wlan und mqtt state
-    break;
-  default:
-    break;
+
+          if (sensors[i].getSensorSwitch() && !sensors[i].getSensorState())
+          {
+            if (lastSenAct == 0)
+            {
+              lastSenAct = millis(); // Timestamp on error
+              DEBUG_VERBOSE("ACT", "timestamp actors due to sensor error: %l Wait on error actors: %d", lastSenAct, wait_on_Sensor_error_actor / 1000);
+            }
+            if (lastSenInd == 0)
+            {
+              lastSenInd = millis(); // Timestamp on error
+              DEBUG_VERBOSE("IND", "timestamp induction due to sensor error: %l Wait on error induction: %d", lastSenInd, wait_on_Sensor_error_induction / 1000);
+            }
+            if (millis() - lastSenAct >= wait_on_Sensor_error_actor) // Wait bevor Event handling
+            {
+              actERR();
+            }
+            if (millis() - lastSenInd >= wait_on_Sensor_error_induction) // Wait bevor Event handling
+            {
+              if (inductionCooker.getisInduon() && inductionCooker.getPowerLevelOnError() < 100 && inductionCooker.getInductionState())
+              {
+                inductionCooker.indERR();
+              }
+            }
+          } // Switchable
+          yield();
+        } // Iterate sensors
+      } // wlan und mqtt state
+      break;
+    default:
+      break;
+    }
   }
   handleSensors(false);
 }

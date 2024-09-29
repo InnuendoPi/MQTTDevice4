@@ -128,8 +128,7 @@ bool StopOnMQTTError = false;     // Event handling für MQTT Fehler
 unsigned long mqttconnectlasttry; // Zeitstempel bei Fehler MQTT
 bool mqtt_state = true;           // Status MQTT
 uint8_t wlanStatus = 0;
-unsigned long lastRequestSensors = 0;                    // Zeitstempel Sensorabfrage
-int16_t timeoutSensors = 750 / (1 << (12 - RESOLUTION)); // Sensor timeout zur Berechnung der Temepratur - bei 11bit 375ms
+uint8_t simErr = 0;
 
 // Ticker Objekte
 InnuTicker TickerSen;

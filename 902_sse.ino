@@ -181,6 +181,7 @@ void SSEBroadcastJson(const char *jsonValue, uint8_t typ)
             else if (typ == 1) // actors
             {
                 sprintf_P(response, PSTR("event: actors\ndata: %s\nid: %lu\nretry: 5000\n\n"), jsonValue, millis());
+                
             }
             else if (typ == 2) // induction
             {
@@ -195,6 +196,7 @@ void SSEBroadcastJson(const char *jsonValue, uint8_t typ)
                 DEBUG_ERROR("SYS", "unknown SSE broadcast type %d", typ);
                 continue;
             }
+            DEBUG_VERBOSE("SYS", "%s", response);
             client.print(response);
         }
     }
