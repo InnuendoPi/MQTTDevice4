@@ -39,12 +39,12 @@ MQTTDevice4 ist ein Arduino Sketch für Wemos ESP8266 D1 mini Module. Mit dem MQ
 
 ## 🗺️ Changelog Version 4.65
 
-ESP8266 Arduino 3.1.2
-VSCode 1.93 Arduino 0.6 Arduino CLI 1.0.4
-VSCode plugin ESP8266LittleFS based on ESP8266fs
-InnuTicker task scheduler lib
-InnuNextion Display lib based on EasyNext
-InnuFramework CSS/JS bootstrap 4.6.2
+ESP8266 Arduino 3.1.2\
+VSCode 1.93 Arduino 0.6 Arduino CLI 1.0.4\
+VSCode plugin ESP8266LittleFS based on ESP8266fs\
+InnuTicker task scheduler lib\
+InnuNextion Display lib based on EasyNext\
+InnuFramework CSS/JS bootstrap 4.6.2\
 Server Sent Events (6 SSE channels)
 
 * Fix:        ESP32 pin mapping D16 incorrect
