@@ -64,7 +64,6 @@ void tickerPUBSUBCallback() // Timer Objekt Sensoren
 
 void tickerSenCallback() // Timer Objekt Sensoren
 {
-  DS18B20.requestTemperatures();
   if (StopOnMQTTError) // Event handling enabled?
   {
     switch (sensorsStatus)
@@ -168,8 +167,10 @@ void tickerSenCallback() // Timer Objekt Sensoren
     default:
       break;
     }
-  }
+  } // StopOnMQTTError
+
   handleSensors(false);
+  DS18B20.requestTemperatures(); // immediately request all sensors after handleSensores -> next tick TickerSen in minimum 1000ms
 }
 
 void tickerActCallback() // Timer Objekt Sensoren
