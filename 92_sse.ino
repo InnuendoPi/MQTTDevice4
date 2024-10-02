@@ -150,7 +150,6 @@ void SSEHandler(uint8_t channel)
 
     if (s.clientIP != client.remoteIP())
     { // IP addresses don't match, reject this client
-        // log_e("Unregistered client with IP %s tries to listen", server.client().remoteIP().toString().c_str());
         return handleNotFound();
     }
     client.setNoDelay(true);
@@ -158,7 +157,7 @@ void SSEHandler(uint8_t channel)
 
     server.setContentLength(CONTENT_LENGTH_UNKNOWN); // the payload can go on forever
     server.sendContent_P(PSTR("HTTP/1.1 200 OK\nContent-Type: text/event-stream\nConnection: keep-alive\nCache-Control: no-cache\nAccess-Control-Allow-Origin: *\n\n"));
-    s.keepAliveTimer.attach(15.0, SSEKeepAlive); // Refresh time every 30s - WebUpdate benötigt bei langsamer Leitung über 60s
+    s.keepAliveTimer.attach(15.0, SSEKeepAlive); // Refresh time every 15s
     initialSSE(channel);
 }
 

@@ -52,7 +52,6 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
 
   if (inductionCooker.getTopic() == topic)
   {
-    // inductionCooker.handlemqtt(payload_msg);
     inductionCooker.handlemqtt(payload, length);
     return;
   }
@@ -63,13 +62,12 @@ void mqttcallback(char *topic, unsigned char *payload, unsigned int length)
     {
       if (actors[i].getActorTopic() == topic)
       {
-        // actors[i].handlemqtt(payload_msg);
         actors[i].handlemqtt(payload);
         return;
       }
     }
   }
-  
+
   if (useDisplay)
   {
     char *p;
@@ -141,7 +139,7 @@ void handleRequestMisc2()
     doc["mdns"] = nameMDNS;
   else
     doc["mdns"] = 0;
-  
+
   char response[measureJson(doc) + 2];
   serializeJson(doc, response, sizeof(response));
   replyResponse(response);
@@ -167,7 +165,6 @@ void handleRequestMisc()
   doc["pass"] = mqttpass;
   doc["mdns_name"] = nameMDNS;
   doc["mdns"] = startMDNS;
-  // doc["buzzer"] = startBuzzer;
   doc["mqbuz"] = mqttBuzzer;
   doc["res"] = senRes;
   doc["display"] = useDisplay;
@@ -184,7 +181,7 @@ void handleRequestMisc()
   doc["zone"] = ntpZone;
   doc["duty"] = DUTYCYLCE;
   doc["sen"] = SENCYLCE;
-  
+
   doc["logCFG"] = getTagLevel("CFG");
   doc["logSen"] = getTagLevel("SEN");
   doc["logAct"] = getTagLevel("ACT");
@@ -194,7 +191,7 @@ void handleRequestMisc()
     doc["logDis"] = 1;
   else
     doc["logDis"] = 0;
-    
+
   String message = "";
   if (isPin(PIN_BUZZER))
   {
@@ -219,7 +216,7 @@ void handleRequestMisc()
     }
   }
   doc["buz"] = message;
-  
+
   char response[measureJson(doc) + 2];
   serializeJson(doc, response, sizeof(response));
   replyResponse(response);
@@ -244,19 +241,11 @@ void handleRequestFirm()
 {
   String request = server.arg(0);
   String message;
-  // if (startMDNS)
-  // {
-  //   message = nameMDNS;
-  //   message += F(" V ");
-  // }
-  // else
-  // {
 #ifdef ESP32
-    message = F("MQTTDevice32 V ");
+  message = F("MQTTDevice32 V ");
 #elif ESP8266
-    message = F("MQTTDevice V ");
+  message = F("MQTTDevice V ");
 #endif
-  // }
   message += Version;
   if (devBranch == 1)
     message += F(" dev");
@@ -269,7 +258,7 @@ void handleGetTitle()
 #ifdef ESP32
   replyResponse("MQTTDevice32 ");
 #elif ESP8266
-  replyResponse("MQTTDevice4 ");  
+  replyResponse("MQTTDevice4 ");
 #endif
 }
 
@@ -278,18 +267,18 @@ void handleReqSys()
   JsonDocument doc;
   String message;
 #ifdef ESP32
-    message = F("MQTTDevice32 V");
-    doc["title"] = "MQTTDevice32";
+  message = F("MQTTDevice32 V");
+  doc["title"] = "MQTTDevice32";
 #elif ESP8266
-    message = F("MQTTDevice4 V");
-    doc["title"] = "MQTTDevice4";
+  message = F("MQTTDevice4 V");
+  doc["title"] = "MQTTDevice4";
 #endif
   message += Version;
   if (devBranch == 1)
     message += F(" dev");
 
   doc["firm"] = message;
-    
+
   char response[measureJson(doc) + 2];
   serializeJson(doc, response, sizeof(response));
   replyResponse(response);
@@ -305,7 +294,7 @@ void handleSetMisc()
     replyServerError("Server error deserialize misc settings");
     return;
   }
-   
+
   if (doc["reset"] && doc["clear"])
   {
     LittleFS.remove(CONFIG);
@@ -326,10 +315,10 @@ void handleSetMisc()
     LittleFS.remove(CONFIG);
     EM_REBOOT();
   }
-  
+
   PIN_BUZZER = StringToPin(doc["buz"]);
   pins_used[PIN_BUZZER] = true;
-  
+
   mqttport = doc["mqttport"];
   strlcpy(mqtthost, doc["mqtthost"] | "", maxHostSign);
   strlcpy(mqttuser, doc["mqttuser"] | "", maxUserSign);
@@ -347,20 +336,10 @@ void handleSetMisc()
   wait_on_error_mqtt = doc["d_mqtt"].as<int>() * 1000;
   wait_on_Sensor_error_actor = doc["dsa"].as<int>() * 1000;
   wait_on_Sensor_error_induction = doc["dsi"].as<int>() * 1000;
-     
+
   strlcpy(ntpServer, doc["ntp"] | NTP_ADDRESS, maxNTPSign);
   strlcpy(ntpZone, doc["zone"] | NTP_ZONE, maxNTPSign);
-      // checkChars(ntpServer);
   startSPI = doc["spi"];
-  
-    // if (server.argName(i) == "lang")
-    //   int8_t temp = -1;
-    //   if (isValidDigit(server.arg(i)))
-    //   if (temp != selLang && temp >= 0)
-    //   {
-    //     selLang = temp;
-    //   }
-
   DUTYCYLCE = doc["duty"];
   SENCYLCE = doc["sen"];
   setTagLevel("CFG", doc["logCFG"]);
@@ -383,7 +362,6 @@ void handleSetMisc()
   miscSSE();
 }
 
-// Some helper functions WebIf
 void handleRestore()
 {
   HTTPUpload &upload = server.upload();

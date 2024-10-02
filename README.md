@@ -37,12 +37,38 @@ MQTTDevice4 ist ein Arduino Sketch für Wemos ESP8266 D1 mini Module. Mit dem MQ
 * Dateiexplorer
 * Unterstützung für versch. Sprachen
 
+## 🗺️ Changelog Version 4.65
+
+ESP8266 Arduino 3.1.2
+VSCode 1.93 Arduino 0.6 Arduino CLI 1.0.4
+VSCode plugin ESP8266LittleFS based on ESP8266fs
+InnuTicker task scheduler lib
+InnuNextion Display lib based on EasyNext
+InnuFramework CSS/JS bootstrap 4.6.2
+Server Sent Events (6 SSE channels)
+
+* Fix:        ESP32 pin mapping D16 incorrect
+* Fix:        ESP32 used_pin array at position D16 incorrect
+* Fix:        ESP32 second sensor PT100x exception fixed (mapping GPIO D16)
+* Fix:        Replaced deprecated ArduinoJSON function containskey
+* Fix:        DS18B20 sensor timeout when high resolution enabled
+* Fix:        DS18B20 sensor id mismatch
+* Removed:    Debug code
+* changed:    migrate web if ajax post methods to JSON format
+* changed:    Dallas DS18B20 temperature request async mode
+* changed:    logging output sensors, actors and induction
+* New:        web if client side validation
+* New:        InnuLog lib debug output on serial monitor
+* New:        InnuNextion Display lib (platformIO ready)
+* Update:     ArduinoJSON 7.2.0
+* Update:     ESPTool 4.8.1
+
 ## 💻 Installation
 
 * Download [Firmeware.zip](https://github.com/InnuendoPi/MQTTDevice4/blob/main/tools/Firmware.zip)
 * Firmware.zip entpacken
 * Flashen.cmd editieren:
-* "COM3" in Zeile 6  und Zeile 8"esptool.exe -p COM3" anpassen
+* "COM3" in Zeile 6  und Zeile 8"esptool.exe *p COM3" anpassen
 * Eingabeaufforderung (cmd.exe) öffnen und in das Verzeichnis von firmware.zip wechseln
 * Firmware auf ESP8266 laden mit "flashen.cmd"
 

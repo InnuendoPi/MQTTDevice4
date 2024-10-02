@@ -2,8 +2,6 @@
 #include "InnuNextion.h"
 #endif
 
-// More info see base lib https://seithan.com/Easy-Nextion-Library/Custom-Protocol/ and on the documentation of the library
-
 InnuNex::InnuNex(SoftwareSerial &serial)
 {
     _serial = &serial;

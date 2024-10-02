@@ -448,7 +448,6 @@ void actERR()
       actors[i].Update();
 
       DEBUG_ERROR("ACT", "ACT MQTT event handling - actor: %s state: %d isOnBeforeError: %d", actors[i].getActorName().c_str(), actors[i].getActorState(), actors[i].getIsOnBeforeError());
-
     }
     yield();
   }

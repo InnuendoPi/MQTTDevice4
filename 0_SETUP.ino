@@ -1,10 +1,9 @@
 void setup()
 {
   Serial.begin(DEF_SERIAL);
-  
+
 #ifdef ESP32
   snprintf(mqtt_clientid, maxHostSign, "ESP32-%llX", ESP.getEfuseMac());
-  // Serial.printf("\n*** SYSINFO: MQTTDevice32 ID: %X\n", mqtt_clientid);
   DEBUG_INFO("SYS", "\n*** SYSINFO: MQTTDevice32 ID: %X", mqtt_clientid);
   // WLAN Events
   WiFi.onEvent(WiFiEvent);
@@ -13,7 +12,6 @@ void setup()
                                        WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
 #elif ESP8266
   snprintf(mqtt_clientid, maxHostSign, "ESP8266-%08X", ESP.getChipId());
-  // Serial.printf("\n*** SYSINFO: start up MQTTDevice - device ID: %s\n", mqtt_clientid);
   DEBUG_INFO("SYS", "\n*** SYSINFO: start up MQTTDevice - device ID: %s", mqtt_clientid);
   // WLAN Events
   wifiConnectHandler = WiFi.onStationModeGotIP(EM_WIFICONNECT);
@@ -121,7 +119,7 @@ void setupServer()
   server.on("/reqMiscAlert", handleRequestMiscAlert); // Misc Infos für WebConfig
   server.on("/reqFirm", handleRequestFirm);           // Firmware version
   server.on("/setMisc", handleSetMisc);               // Misc ändern
-  server.on("/setMiscLang", handleSetMiscLang);               // Misc ändern
+  server.on("/setMiscLang", handleSetMiscLang);       // Misc ändern
   server.on("/startHTTPUpdate", startHTTPUpdate);     // Firmware WebUpdate
   server.on("/channel", handleChannel);               // Server Sent Events will be handled from this URI
   server.on("/startSSE", startSSE);                   // Server Sent Events will be handled from this URI

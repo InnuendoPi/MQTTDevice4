@@ -1,6 +1,11 @@
 #ifndef INNUNEX_H
 #define INNUNEX_H
 
+//   Author:	Innuendo
+//   Version: 0.0.1
+//   More info see base lib https://seithan.com/Easy-Nextion-Library/Custom-Protocol/ and lib documentation
+
+
 #include "Arduino.h"
 #include <SoftwareSerial.h>
 

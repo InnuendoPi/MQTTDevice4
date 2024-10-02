@@ -72,7 +72,6 @@ public:
 
       if (isPin(PIN_INTERRUPT))
       {
-        // Interrupt deaktivert
         detachInterrupt(PIN_INTERRUPT);
         pinMode(PIN_INTERRUPT, OUTPUT);
         // digitalWrite(PIN_INTERRUPT, HIGH);
@@ -108,7 +107,6 @@ public:
       PIN_INTERRUPT = pinblue;  // off possible
       if (isPin(PIN_INTERRUPT)) // D7
       {
-        // Interrupt deaktivert
         pinMode(PIN_INTERRUPT, INPUT_PULLUP);
         attachInterrupt(digitalPinToInterrupt(PIN_INTERRUPT), readInputWrap, CHANGE);
         pins_used[PIN_INTERRUPT] = true;
@@ -125,7 +123,7 @@ public:
       {
         char subscribemsg[50];
         mqtttopic.toCharArray(subscribemsg, 50);
-        DEBUG_VERBOSE("IND",  "Subscribing to %s", subscribemsg);
+        DEBUG_VERBOSE("IND", "Subscribing to %s", subscribemsg);
         pubsubClient.subscribe(subscribemsg);
       }
     }
@@ -137,7 +135,7 @@ public:
     {
       char subscribemsg[50];
       mqtttopic.toCharArray(subscribemsg, 50);
-      DEBUG_VERBOSE("IND",  "Unsubscribing from %s", subscribemsg);
+      DEBUG_VERBOSE("IND", "Unsubscribing from %s", subscribemsg);
       pubsubClient.unsubscribe(subscribemsg);
     }
   }
@@ -297,7 +295,7 @@ public:
     // Glitch rausfiltern
     if (signalTime > 10)
     {
-      if (ishigh) // PIN ist auf Rising, Bit senden hat gestartet :)
+      if (ishigh) // PIN ist auf Rising, Bit senden hat gestartet
       {
         lastInterrupt = newInterrupt;
       }
@@ -348,7 +346,7 @@ public:
     if (isInduon && powerLevelOnError < 100 && induction_state) // powerlevelonerror == 100 -> kein event handling
     {
       powerLevelBeforeError = power;
-      DEBUG_VERBOSE("IND",  "MQTT event handling induction - power level: %d event power level: %d", power, powerLevelOnError);
+      DEBUG_VERBOSE("IND", "MQTT event handling induction - power level: %d event power level: %d", power, powerLevelOnError);
       if (powerLevelOnError == 0)
         isInduon = false;
       else
@@ -472,7 +470,6 @@ public:
 induction inductionCooker = induction();
 
 #ifdef ESP32
-// Interrupt deaktivert
 void ARDUINO_ISR_ATTR readInputWrap()
 {
   inductionCooker.readInput();
@@ -529,15 +526,15 @@ void handleRequestIndu()
     {
     case 0:
       pinswitched = inductionCooker.getPinWhite();
-      tempNUMBEROFPINS = NUMBEROFPINS - 1; // without off
+      tempNUMBEROFPINS = NUMBEROFPINS - 1; // ohne aus (-)
       break;
     case 1:
       pinswitched = inductionCooker.getPinYellow();
-      tempNUMBEROFPINS = NUMBEROFPINS - 1; // without off
+      tempNUMBEROFPINS = NUMBEROFPINS - 1;
       break;
     case 2:
       pinswitched = inductionCooker.getPinInterrupt();
-      tempNUMBEROFPINS = NUMBEROFPINS; // with off
+      tempNUMBEROFPINS = NUMBEROFPINS; // mit aus (-)
       break;
     }
     if (isPin(pinswitched))
@@ -570,7 +567,6 @@ void handleSetIndu()
     replyServerError("Server error set induction");
     return;
   }
-  Serial.println(server.arg(0));
   inductionCooker.change(StringToPin(doc["pinw"]), StringToPin(doc["piny"]), StringToPin(doc["pinb"]), doc["topic"], doc["enabled"], doc["pl"]);
   saveConfig();
   replyOK();

@@ -1,4 +1,3 @@
-
 void tickerDispCallback()
 {
   if (nextion.currentPageId != nextion.lastCurrentPageId)
@@ -8,7 +7,6 @@ void tickerDispCallback()
   }
 
   char ipMQTT[50];
-  // sprintf_P(uhrzeit, (PGM_P)F("%02d:%02d"), timeClient.getHours(), timeClient.getMinutes());
   sprintf_P(uhrzeit, (PGM_P)F("%02d:%02d"), timeinfo.tm_hour, timeinfo.tm_min);
   if (startMDNS)
     sprintf_P(ipMQTT, (PGM_P)F("http://%s.local"), nameMDNS);
@@ -67,7 +65,6 @@ void tickerPUBSUBCallback() // Timer Objekt Sensoren
 void tickerSenCallback() // Timer Objekt Sensoren
 {
   DS18B20.requestTemperatures();
-  // lastRequestSensors = millis();
   if (StopOnMQTTError) // Event handling enabled?
   {
     switch (sensorsStatus)
@@ -119,7 +116,7 @@ void tickerSenCallback() // Timer Objekt Sensoren
       {
         for (int i = 0; i < numberOfSensors; i++)
         {
-          if (!sensors[i].getSensorState() && ( lastSenInd == 0 || lastSenAct == 0 ))
+          if (!sensors[i].getSensorState() && (lastSenInd == 0 || lastSenAct == 0))
           {
             switch (sensorsStatus)
             {
@@ -233,7 +230,6 @@ void tickerTimeCallback()
 {
   getLocalTime(&timeinfo);
   strftime(zeit, sizeof(zeit), "%H:%M:%S", &timeinfo);
-  // DEBUG_VERBOSE("SYS", "SNTP time: %s", zeit);
   if (useDisplay)
     tickerDispCallback();
 }

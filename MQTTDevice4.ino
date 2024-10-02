@@ -58,7 +58,7 @@ DallasTemperature DS18B20(&oneWire);
 // IDS2 Interrupt
 volatile uint8_t newError = 0; // Fehlercode IDS als Integer
 uint8_t oldError = 0;
-// portMUX_TYPE errCode = portMUX_INITIALIZER_UNLOCKED;
+// portMUX_TYPE errCode = portMUX_INITIALIZER_UNLOCKED; // checkIDSstate
 
 // WiFi und MQTT
 #ifdef ESP32

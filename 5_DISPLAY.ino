@@ -3,12 +3,12 @@ void readCustomCommand()
   int tempID = nextion.cmdGroup;
   int tempPage = nextion.cmdLength;
 
-  if (tempID == 102) // 0x66 -> receive page command from readcustomcommand
+  if (tempID == 102) // 0x66 -> page command empfangen
   {
     DEBUG_VERBOSE("DIS", "page command activePage: %d currentPage: %d lastcurrent: %d cmdLength: %d cmdGroup: %d", activePage, nextion.currentPageId, nextion.lastCurrentPageId, tempPage, tempID);
     tickerDispCallback();
   }
-  else // 0x65 -> receive component id from readcustomcommand
+  else // 0x65 -> component id empfangen
   {
     DEBUG_VERBOSE("DIS", "componentID: %d activePage: %d currentPage: %d lastcurrent: %d cmdLength: %d", tempID, activePage, nextion.currentPageId, nextion.lastCurrentPageId, tempPage);
 
@@ -46,7 +46,7 @@ void initDisplay()
     break;
   case 1:
     nextion.writeStr("page 1");
-    nextion.currentPageId = 1;      // setze currentPageId wenn Startseite nicht 0
+    nextion.currentPageId = 1; // setze currentPageId wenn Startseite nicht 0
     nextion.lastCurrentPageId = 0;
     break;
   case 2:
@@ -61,7 +61,7 @@ void initDisplay()
     nextion.lastCurrentPageId = 1;
     break;
   }
-  
+
   if (nextion.getDebug())
     DEBUG_INFO("CFG", "activePage: %d startPage: %d currentPage: %d lastcurrent: %d", activePage, startPage, nextion.currentPageId, nextion.lastCurrentPageId);
   tickerDispCallback();
@@ -134,31 +134,10 @@ void KettlePage() // Seite 1
 
 void BrewPage() // Seite 2
 {
-  // DEBUG_INFO("DIS", "BrewPage");
   if (strlen(structKettles[0].sensor) != 0)
   {
     nextion.writeStr(p1temp_text, structKettles[0].current_temp);
     nextion.writeStr(p1target_text, structKettles[0].target_temp);
-
-    // Serial.printf("KettlePage sensor %s current temp: %s\n", structKettles[0].sensor, structKettles[0].current_temp);
-
-    // if (sensors[0].getId() != "")
-    // {
-    //   for (uint8_t i = 0; i < maxKettles; i++)
-    //   {
-    //     if (strcmp(structKettles[i].sensor, sensors[0].getId().c_str()) == 0)
-    //     {
-    //       p1temp_text.attribute("txt", structKettles[i].current_temp);
-    //       p1target_text.attribute("txt", structKettles[i].target_temp);
-    //       break;
-    //     }
-    //   }
-    // }
-    // else
-    // {
-    //   p1temp_text.attribute("txt", structKettles[0].current_temp);
-    //   p1target_text.attribute("txt", "na");
-    // }
   }
   else
   {
@@ -174,15 +153,11 @@ void BrewPage() // Seite 2
 
 void InductionPage()
 {
-  // log_e("Disp: InductionPage activeBrew: %d kettleID0: %s", activeBrew, structKettles[0].id);
-  // p2uhrzeit_text
-  // p2slider
-  // p2temp_text
   // 316 = 0°C - 360 = 44°C - 223 = 100°C -- 53,4 je 20°C
 
   int32_t aktSlider = nextion.readNum(p2slider);
   if (aktSlider >= 0 && aktSlider <= 100)
-    inductionCooker.inductionNewPower(aktSlider); // inductionCooker.handleInductionPage(aktSlider);
+    inductionCooker.inductionNewPower(aktSlider);
 
   nextion.writeStr(p2temp_text, String(structKettles[0].current_temp).c_str());
   if (sensors[0].calcOffset() < 16.0)
@@ -387,7 +362,6 @@ void cbpi4steps_handlemqtt(unsigned char *payload)
 
   for (uint8_t i = 0; i < stepsCounter; i++)
   {
-    // if (structSteps[i].id == doc["id"])
     if (strcmp(structSteps[i].id, doc["id"]) == 0)
     {
       int minutes = props["Timer"].as<int>() | 0;
@@ -422,7 +396,6 @@ void cbpi4steps_handlemqtt(unsigned char *payload)
       current_step = true;
       for (uint8_t i = 0; i < stepsCounter; i++)
       {
-        // if (structSteps[i].name == doc["name"])
         if (strcmp(structSteps[i].name, doc["name"]) == 0)
         {
           if (stepsCounter >= i + 1)
@@ -527,7 +500,6 @@ void cbpi4steps_handlemqtt(unsigned char *payload)
     }
     else
     {
-      // if (props.containsKey("Timer"))
       if (props["Timer"].is<int>())
       {
         int minutes = props["Timer"].as<int>();
@@ -616,16 +588,8 @@ void cbpi4notification_handlemqtt(unsigned char *payload)
   strlcpy(notify, doc["message"] | "", maxNotifySign);
 }
 
-// void cbpi4fermenter_handlemqtt(unsigned char *payload, unsigned int length)
 void cbpi4fermenter_handlemqtt(unsigned char *payload)
 {
-  // Serial.printf("Display ferm len: %d\n", length);
-  // for (unsigned int i = 0; i < length; i++)
-  // {
-  //   Serial.print((char)payload[i]);
-  // }
-  // Serial.println();
-
   JsonDocument doc;
   JsonDocument filter;
   filter["id"] = true;
@@ -635,13 +599,12 @@ void cbpi4fermenter_handlemqtt(unsigned char *payload)
   filter["target_temp"] = true;
   // filter["steps"]["name"] = true;
   DeserializationError error = deserializeJson(doc, (const char *)payload, DeserializationOption::Filter(filter));
-  // DeserializationError error = deserializeJson(doc, (const char *)payload);
   if (error)
   {
     DEBUG_ERROR("DIS", "handlemqtt fermenter deserialize Json error %s MemoryUsage %d", error.c_str());
     return;
   }
-  
+
   fermenterStatus = doc["state"] | false;
 
   for (uint8_t i = 0; i < maxKettles; i++)
@@ -655,9 +618,6 @@ void cbpi4fermenter_handlemqtt(unsigned char *payload)
       char sensorupdate[45];
       sprintf(sensorupdate, "%s%s", cbpi4sensor_topic, structKettles[i].sensor);
       pubsubClient.subscribe(sensorupdate);
-
-      // Serial.printf("#%d new kettle name %s kettle-id: %s sensor-id: %s target: %s update: %s\n", i, structKettles[i].name, structKettles[i].id, structKettles[i].sensor, structKettles[i].target_temp, sensorupdate);
-
       switch (i)
       {
       case 0:
@@ -683,7 +643,6 @@ void cbpi4fermenter_handlemqtt(unsigned char *payload)
     {
       if (strcmp(structKettles[i].id, doc["id"]) == 0)
       {
-      // Serial.printf("#%d old kettle name %s kettle-id: %s sensor-id: %s target: %s update: %s\n", i, structKettles[i].name, structKettles[i].id, structKettles[i].sensor, structKettles[i].target_temp, sensorupdate);
         dtostrf(doc["target_temp"], -1, 1, structKettles[i].target_temp);
         switch (i)
         {
@@ -718,12 +677,11 @@ void cbpi4fermentersteps_handlemqtt(unsigned char *payload)
     DEBUG_ERROR("DIS", "handlemqtt notification deserialize Json error %s MemoryUsage %d", error.c_str());
     return;
   }
-  
+
   if (fermenterStatus)
   {
     strlcpy(currentStepName, doc["name"] | "", maxStepSign);
     sprintf(currentStepRemain, "%s", "");
-    // sprintf(currentStepRemain, "%02d:%02d:%02d", doc["props"]["TimerD"].as<int>(), doc["props"]["TimerH"].as<int>(), doc["props"]["TimerM"].as<int>());
   }
   else
   {

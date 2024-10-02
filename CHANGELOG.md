@@ -1,12 +1,14 @@
 # Changelog
 
-Version 4.64
+Version 4.65
 
 - Fix:        ESP32 pin mapping D16 incorrect
 - Fix:        ESP32 used_pin array at position D16 incorrect
 - Fix:        ESP32 second sensor PT100x exception fixed (mapping GPIO D16)
 - Fix:        Replaced deprecated ArduinoJSON function containskey
 - Fix:        DS18B20 sensor timeout when high resolution enabled
+- Fix:        DS18B20 sensor id mismatch
+- Removed:    Debug code
 - changed:    migrate web if ajax post methods to JSON format
 - changed:    Dallas DS18B20 temperature request async mode
 - changed:    logging output sensors, actors and induction

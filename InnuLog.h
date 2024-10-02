@@ -1,6 +1,9 @@
 #ifndef INNULOG_H
 #define INNULOG_H
 
+//   Author:	Innuendo
+//   Version: 0.0.1
+
 #ifdef ESP32
 #include "esp32-hal-log.h"
 #endif
@@ -25,23 +28,26 @@
 
 struct InnuLogTag
 {
-    String tagName;
-    int level;
+  String tagName;
+  int level;
 };
 
 #ifdef ESP8266 // required for logging on ESP8266
-const char* IRAM_ATTR pathToFileName (const char* path) {
-    size_t i = 0;
-    size_t pos = 0;
-    char* p = (char*)path;
-    while (*p) {
-        i++;
-        if (*p == '/' || *p == '\\') {
-            pos = i;
-        }
-        p++;
+const char *IRAM_ATTR pathToFileName(const char *path)
+{
+  size_t i = 0;
+  size_t pos = 0;
+  char *p = (char *)path;
+  while (*p)
+  {
+    i++;
+    if (*p == '/' || *p == '\\')
+    {
+      pos = i;
     }
-    return path + pos;
+    p++;
+  }
+  return path + pos;
 }
 #endif
 
@@ -53,32 +59,32 @@ struct InnuLogTag InnuTagLevel[LOGS_COUNT]{
     {"SYS", INNU_INFO},
     {"DIS", INNU_NONE}};
 
-#define DEBUG_ERROR(TAG, ...)                                                                                               \
-    if (getTagLevel(TAG) >= INNU_ERROR)                                                                                     \
-    {                                                                                                                       \
-        DEBUG_ESP_PORT.printf(LOG_COLOR_ERROR);                                                                             \
-        DEBUG_ESP_PORT.printf(PSTR("[%6lu][E][%s:%d] %s(): "), millis(), pathToFileName(__FILE__), __LINE__, __FUNCTION__); \
-        DEBUG_ESP_PORT.printf(__VA_ARGS__);                                                                                 \
-        DEBUG_ESP_PORT.println(LOG_COLOR_RESET);                                                                            \
-    }
+#define DEBUG_ERROR(TAG, ...)                                                                                           \
+  if (getTagLevel(TAG) >= INNU_ERROR)                                                                                   \
+  {                                                                                                                     \
+    DEBUG_ESP_PORT.printf(LOG_COLOR_ERROR);                                                                             \
+    DEBUG_ESP_PORT.printf(PSTR("[%6lu][E][%s:%d] %s(): "), millis(), pathToFileName(__FILE__), __LINE__, __FUNCTION__); \
+    DEBUG_ESP_PORT.printf(__VA_ARGS__);                                                                                 \
+    DEBUG_ESP_PORT.println(LOG_COLOR_RESET);                                                                            \
+  }
 
-#define DEBUG_INFO(TAG, ...)                                                                                                \
-    if (getTagLevel(TAG) >= INNU_INFO)                                                                                      \
-    {                                                                                                                       \
-        DEBUG_ESP_PORT.printf(LOG_COLOR_INFO);                                                                              \
-        DEBUG_ESP_PORT.printf(PSTR("[%6lu][I][%s:%d] %s(): "), millis(), pathToFileName(__FILE__), __LINE__, __FUNCTION__); \
-        DEBUG_ESP_PORT.printf(__VA_ARGS__);                                                                                 \
-        DEBUG_ESP_PORT.println(LOG_COLOR_RESET);                                                                            \
-    }
+#define DEBUG_INFO(TAG, ...)                                                                                            \
+  if (getTagLevel(TAG) >= INNU_INFO)                                                                                    \
+  {                                                                                                                     \
+    DEBUG_ESP_PORT.printf(LOG_COLOR_INFO);                                                                              \
+    DEBUG_ESP_PORT.printf(PSTR("[%6lu][I][%s:%d] %s(): "), millis(), pathToFileName(__FILE__), __LINE__, __FUNCTION__); \
+    DEBUG_ESP_PORT.printf(__VA_ARGS__);                                                                                 \
+    DEBUG_ESP_PORT.println(LOG_COLOR_RESET);                                                                            \
+  }
 
-#define DEBUG_VERBOSE(TAG, ...)                                                                                             \
-    if (getTagLevel(TAG) >= INNU_VERBOSE)                                                                                   \
-    {                                                                                                                       \
-        DEBUG_ESP_PORT.printf(LOG_COLOR_VERBOSE);                                                                           \
-        DEBUG_ESP_PORT.printf(PSTR("[%6lu][V][%s:%d] %s(): "), millis(), pathToFileName(__FILE__), __LINE__, __FUNCTION__); \
-        DEBUG_ESP_PORT.printf(__VA_ARGS__);                                                                                 \
-        DEBUG_ESP_PORT.println(LOG_COLOR_RESET);                                                                            \
-    }
+#define DEBUG_VERBOSE(TAG, ...)                                                                                         \
+  if (getTagLevel(TAG) >= INNU_VERBOSE)                                                                                 \
+  {                                                                                                                     \
+    DEBUG_ESP_PORT.printf(LOG_COLOR_VERBOSE);                                                                           \
+    DEBUG_ESP_PORT.printf(PSTR("[%6lu][V][%s:%d] %s(): "), millis(), pathToFileName(__FILE__), __LINE__, __FUNCTION__); \
+    DEBUG_ESP_PORT.printf(__VA_ARGS__);                                                                                 \
+    DEBUG_ESP_PORT.println(LOG_COLOR_RESET);                                                                            \
+  }
 
 #endif
 

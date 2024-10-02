@@ -43,7 +43,6 @@ bool loadConfig()
   strlcpy(mqttuser, miscObj["MQTTUSER"] | "", maxUserSign);
   strlcpy(mqttpass, miscObj["MQTTPASS"] | "", maxPassSign);
   mqttport = miscObj["MQTTPORT"] | 1883;
-    // strlcpy(ntpServer, miscObj["ntp"] | NTP_ADDRESS, maxHostSign);
   strlcpy(ntpServer, miscObj["ntp"] | NTP_ADDRESS, maxNTPSign);
   strlcpy(ntpZone, miscObj["zone"] | NTP_ZONE, maxNTPSign);
   startSPI = miscObj["spi"] | 0;
@@ -91,8 +90,6 @@ bool loadConfig()
     if (i < numberOfSensors) // isHexadecimalDigit(sensorsObj["ADDRESS"])
     {
       sensors[i].change(sensorsObj["ADDRESS"], sensorsObj["SCRIPT"], sensorsObj["NAME"], sensorsObj["CBPIID"], sensorsObj["OFFSET1"], sensorsObj["OFFSET2"], sensorsObj["SW"], sensorsObj["TYPE"], sensorsObj["PIN"]);
-      // Test ArduinoJSON validation
-      // sensors[i].change(sensorsObj["ADDRESS"], sensorsObj["SCRIPT"], sensorsObj["NAME"], sensorsObj["CBPIID"], sensorsObj["OFFSET1"].is<float>() ? sensorsObj["OFFSET1"] : 0.0, sensorsObj["OFFSET2"].is<float>() ? sensorsObj["OFFSET2"] : 0.0, sensorsObj["SW"].is<bool>() ? sensorsObj["SW"] : false, sensorsObj["TYPE"].is<int>() ? constrain(sensorsObj["TYPE"], 0, 2) : 0, sensorsObj["PIN"].is<int>() ? constrain(sensorsObj["PIN"], 0, 2) : 0);
       DEBUG_INFO("CFG", "Sensor #: %d Name: %s Address: %s MQTT: %s CBPi-ID: %s Offset1: %.02f Offset2: %.02f SW: %d Type: %d Pin: %d", (i + 1), sensorsObj["NAME"].as<const char *>(), sensorsObj["ADDRESS"].as<const char *>(), sensorsObj["SCRIPT"].as<const char *>(), sensorsObj["CBPIID"].as<const char *>(), sensorsObj["OFFSET1"].as<float>(), sensorsObj["OFFSET2"].as<float>(), sensorsObj["SW"].as<int>(), sensorsObj["TYPE"].as<int>(), sensorsObj["PIN"].as<int>());
       i++;
     }
@@ -112,13 +109,13 @@ bool loadConfig()
   inductionCooker.change(StringToPin(indObj["PINWHITE"]), StringToPin(indObj["PINYELLOW"]), StringToPin(indObj["PINBLUE"]), indObj["TOPIC"], indObj["ENABLED"], indObj["PL"]);
   DEBUG_INFO("CFG", "Induction: %d MQTT: %s Relais (WHITE): %s, Command channel (YELLOW): %s, Backchannel (BLUE): %s, PlOnErr: %d", inductionCooker.getIsEnabled(), inductionCooker.getTopic().c_str(), PinToString(inductionCooker.getPinWhite()).c_str(), PinToString(inductionCooker.getPinYellow()).c_str(), PinToString(inductionCooker.getPinInterrupt()).c_str(), inductionCooker.getPowerLevelOnError());
   DEBUG_INFO("CFG", TRENNLINIE);
-  
+
   configFile.close();
   // Setze NTP Server
   setupTime();
 
   if (numberOfSensors > 0) // Ticker Sensors
-  {   
+  {
     TickerSen.config(tickerSenCallback, (SENCYLCE * SEN_UPDATE), 0);
     TickerSen.start();
   }
@@ -222,9 +219,7 @@ bool saveConfig()
   miscObj["del_sen_ind"] = wait_on_Sensor_error_induction;
   miscObj["delay_mqtt"] = wait_on_error_mqtt;
   miscObj["enable_mqtt"] = (int)StopOnMQTTError;
-  // miscObj["buzzer"] = (int)startBuzzer;
   miscObj["buz"] = PinToString(PIN_BUZZER);
-  // if (startBuzzer)
   if (PIN_BUZZER != -100)
     miscObj["mqbuz"] = (int)mqttBuzzer;
   else
@@ -279,7 +274,7 @@ bool saveConfig()
   {
     if (TickerSen.state() == RUNNING)
       TickerSen.stop();
-    
+
     TickerSen.config(tickerSenCallback, (SENCYLCE * SEN_UPDATE), 0);
     TickerSen.start();
   }

@@ -49,7 +49,7 @@ public:
         {
           sensorsStatus = EM_DEVER;
           if (old_state)
-            DEBUG_ERROR("SEN", "sensor address device error %s %s %s %s %s %s %s %s", sens_address[0], sens_address[1], sens_address[2], sens_address[3], sens_address[4], sens_address[5], sens_address[6], sens_address[7]);
+            DEBUG_ERROR("SEN", "sensor address device error");
           sens_state = false;
           old_state = sens_state;
         }
@@ -106,7 +106,6 @@ public:
         old_state = sens_state;
       }
       sens_err = sensorsStatus;
-      // DEBUG_VERBOSE("SEN", "Update value: %.03f type: %d id: %d", sens_value, sens_type, sens_ptid);
     } // if senstyp pt100
     else if (sens_type == 2)
     {
@@ -269,12 +268,10 @@ public:
     dtostrf(sens_value, -1, 1, buf);
     return buf;
   }
-
   float getTotalValueFloat()
   {
     return round((calcOffset() - 0.05) * 10) / 10.0;
   }
-
   char *getTotalValueString()
   {
     if (sens_value == -127.00)
@@ -286,7 +283,6 @@ public:
     }
     return buf;
   }
-
   float calcOffset()
   {
     if (sens_value == -127.00)
@@ -307,7 +303,6 @@ public:
     }
     return sens_value;
   }
-
   String getSens_adress_string()
   {
     return SensorAddressToString(sens_address);
@@ -513,10 +508,7 @@ void handleRequestSensors()
     {
       JsonObject sensorsObj = doc.add<JsonObject>();
       sensorsObj["name"] = sensors[i].getSensorName();
-      sensorsObj["type"] = sensors[id].getSensType();
-      // String str = sensors[i].getSensorName();
-      // str.replace(" ", "%20"); // Erstze Leerzeichen für URL Charts
-      // sensorsObj["namehtml"] = str;
+      sensorsObj["type"] = sensors[i].getSensType();
       sensorsObj["offset1"] = sensors[i].getOffset1();
       sensorsObj["offset2"] = sensors[i].getOffset2();
       sensorsObj["sw"] = sensors[i].getSensorSwitch();
@@ -535,8 +527,8 @@ void handleRequestSensors()
 
       sensorsObj["script"] = sensors[i].getSensorTopic();
       sensorsObj["cbpiid"] = sensors[i].getId();
-      sensorsObj["type"] = sensors[id].getSensType();
-      sensorsObj["pin"] = sensors[id].getSensPin();
+      sensorsObj["type"] = sensors[i].getSensType();
+      sensorsObj["pin"] = sensors[i].getSensPin();
       yield();
     }
   }

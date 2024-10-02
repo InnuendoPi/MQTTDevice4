@@ -101,9 +101,6 @@ void upFirm()
     return;
 }
 
-//   // Stack dump
-//   // https://github.com/esp8266/Arduino/blob/master/doc/Troubleshooting/stack_dump.md
-
 void updateTools()
 {
     configTzTime(ntpZone, ntpServer);
@@ -259,7 +256,6 @@ void startHTTPUpdate()
         if (LittleFS.exists(DEVBRANCH))
             bool check = LittleFS.remove(DEVBRANCH);
     }
-// debugLog(UPDATELOG, "*** WebUpdate Firmware reboot");
     DEBUG_INFO("SYS", "%s", "WebUpdate Firmware reboot");
     LittleFS.end();
     millis2wait(1000);
