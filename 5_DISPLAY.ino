@@ -5,6 +5,7 @@ void readCustomCommand()
 
   if (tempID == 102) // 0x66 -> page command empfangen
   {
+    activePage = nextion.currentPageId;
     DEBUG_VERBOSE("DIS", "page command activePage: %d currentPage: %d lastcurrent: %d cmdLength: %d cmdGroup: %d", activePage, nextion.currentPageId, nextion.lastCurrentPageId, tempPage, tempID);
     tickerDispCallback();
   }
@@ -20,10 +21,13 @@ void readCustomCommand()
       switch (tempID)
       {
       case 3: // OnOff Button
+        DEBUG_INFO("IND", "power button status: %d power %u", manStatus, manPower);
         break;
       case 8: // Plus
+        DEBUG_INFO("IND", "plus status: %u power %u", manStatus, manPower);
         break;
       case 9: // Minus
+        DEBUG_INFO("IND", "minus status: %u power %u", manStatus, manPower);
         break;
       }
       if (manStatus && manPower > 0)
