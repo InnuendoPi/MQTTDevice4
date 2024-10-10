@@ -50,9 +50,9 @@ bool loadConfig()
   DUTYCYLCE = miscObj["dutyCycle"] | 5000;
   SENCYLCE = miscObj["senCycle"] | 1;
 
-  DEBUG_INFO("CFG", "Wait on sensor error actors: %d sec", wait_on_Sensor_error_actor / 1000);
-  DEBUG_INFO("CFG", "Wait on sensor error induction: %d sec", wait_on_Sensor_error_induction / 1000);
-  DEBUG_INFO("CFG", "Switch off actors on MQTT error: %d after %d sec", StopOnMQTTError, (wait_on_error_mqtt / 1000));
+  DEBUG_INFO("CFG", "Wait on sensor error actors: %lu sec", wait_on_Sensor_error_actor / 1000);
+  DEBUG_INFO("CFG", "Wait on sensor error induction: %lu sec", wait_on_Sensor_error_induction / 1000);
+  DEBUG_INFO("CFG", "Switch off actors on MQTT error: %d after %lu sec", StopOnMQTTError, (wait_on_error_mqtt / 1000));
   DEBUG_INFO("CFG", "Buzzer: %d mqttBuzzer: %d", PIN_BUZZER, mqttBuzzer);
   DEBUG_INFO("CFG", "Display: %d startPage: %d Fermenter: %d", useDisplay, startPage, useFerm);
   DEBUG_INFO("CFG", "mDNS: %d name: %s", startMDNS, nameMDNS);
@@ -128,7 +128,8 @@ bool loadConfig()
     TickerDisp.stop();
   else
   {
-    softSerial.begin(DEF_NEXTION, SWSERIAL_8N1, D1, D2, false);
+    softSerial.begin(DEF_NEXTION, EspSoftwareSerial::SWSERIAL_8N1, D1, D2);
+    // softSerial.enableIntTx(false);
     pins_used[D1] = true;
     pins_used[D2] = true;
     nextion.begin(DEF_NEXTION);

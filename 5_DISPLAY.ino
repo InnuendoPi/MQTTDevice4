@@ -6,30 +6,17 @@ void readCustomCommand()
   if (tempID == 102) // 0x66 -> page command empfangen
   {
     activePage = nextion.currentPageId;
-    DEBUG_VERBOSE("DIS", "page command activePage: %d currentPage: %d lastcurrent: %d cmdLength: %d cmdGroup: %d", activePage, nextion.currentPageId, nextion.lastCurrentPageId, tempPage, tempID);
+    if (PIN_BUZZER != -100)
+      sendAlarm(ALARM_INFO);
     tickerDispCallback();
   }
   else // 0x65 -> component id empfangen
   {
-    DEBUG_VERBOSE("DIS", "componentID: %d activePage: %d currentPage: %d lastcurrent: %d cmdLength: %d", tempID, activePage, nextion.currentPageId, nextion.lastCurrentPageId, tempPage);
-
     // Trigger Buttons manueller Modus
     if (activePage == 2) // Induction page
     {
       uint8_t manStatus = nextion.readNum(powerButton);
       uint8_t manPower = nextion.readNum(p2slider);
-      switch (tempID)
-      {
-      case 3: // OnOff Button
-        DEBUG_INFO("IND", "power button status: %d power %u", manStatus, manPower);
-        break;
-      case 8: // Plus
-        DEBUG_INFO("IND", "plus status: %u power %u", manStatus, manPower);
-        break;
-      case 9: // Minus
-        DEBUG_INFO("IND", "minus status: %u power %u", manStatus, manPower);
-        break;
-      }
       if (manStatus && manPower > 0)
         inductionCooker.setNewPower(manPower);
       else

@@ -159,25 +159,13 @@ public:
       sens_ptid = -1;
       if (new_address.length() == 16)
       {
-        char address_char[20];
-        new_address.toCharArray(address_char, new_address.length() + 1);
-        // strlcpy(address_char, new_address.c_str(), 19);
-        // sprintf(address_char, "%s", new_address.c_str());
-        char hexbyte[2];
-        int32_t octets[8];
-        for (uint8_t d = 0; d < 16; d += 2)
+        for (size_t i = 0; i < 8; i++)
         {
-          // Assemble a digit pair into the hexbyte string
-          hexbyte[0] = address_char[d];
-          hexbyte[1] = address_char[d + 1];
-
-          // Convert the hex pair to an integer
-          sscanf(hexbyte, "%x", &octets[d / 2]);
-          yield();
-        }
-        for (uint8_t i = 0; i < 8; i++)
-        {
-          sens_address[i] = octets[i];
+          char cMSB = new_address[2 * i];
+          char cLSB = new_address[2 * i + 1];
+          uint8_t tmpValue = 0;
+          if (towCharToHex(cMSB, cLSB, &tmpValue))
+            sens_address[i] = tmpValue;
         }
       }
       if (senRes)
@@ -407,11 +395,16 @@ uint8_t searchSensors()
   return n;
 }
 
-String SensorAddressToString(unsigned char addr[8])
+String SensorAddressToString(unsigned char deviceAddress[8])
 {
-  char charbuffer[50];
-  sprintf(charbuffer, "%02x%02x%02x%02x%02x%02x%02x%02x", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5], addr[6], addr[7]);
-  return charbuffer;
+	String addressString = "";
+	for (size_t i = 0; i < 8; i++)
+	{
+		if (deviceAddress[i] < 16)
+			addressString += "0";
+		addressString += String(deviceAddress[i], HEX);
+	}
+	return addressString;
 }
 
 void handleSetSensor()

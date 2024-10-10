@@ -1,7 +1,9 @@
 # Changelog
 
-Version 4.65.1
+Version 4.65.2
 
+- Fix:        convert sensor address
+- Fix:        SoftSerial handling Nextion Display
 - Fix:        InnuNextion Display lib error handling buttons
 - Fix:        ESP32 pin mapping D16 incorrect
 - Fix:        ESP32 used_pin array at position D16 incorrect

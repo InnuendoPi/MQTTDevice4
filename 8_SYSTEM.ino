@@ -46,13 +46,32 @@ void setupTime()
   // TickerTime.updatenow();
 }
 
-String decToHex(unsigned char decValue, unsigned char desiredStringLength)
+// Sensor Adresse String to Hex 
+uint8_t charToHex(char c)
 {
-  String hexString = String(decValue, HEX);
-  while (hexString.length() < desiredStringLength)
-    hexString = "0" + hexString;
+	if ((c >= '0') && (c <= '9'))
+		return c - '0';
+	if ((c >= 'A') && (c <= 'F'))
+		return 10 + c - 'A';
+	if ((c >= 'a') && (c <= 'f'))
+		return 10 + c - 'a';
+	return 255;
+}
 
-  return "0x" + hexString;
+bool towCharToHex(char MSB, char LSB, uint8_t *ptrValue)
+{
+	uint8_t uMSB = charToHex(MSB);
+	uint8_t uLSB = charToHex(LSB);
+
+	if (uMSB == 255 || uLSB == 255)
+		return false;
+
+	if (uMSB > 0)
+		*ptrValue = uMSB * 16 + uLSB;
+	else
+		*ptrValue = uLSB;
+
+	return true;
 }
 
 String IPtoString(IPAddress ip)

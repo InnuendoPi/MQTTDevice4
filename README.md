@@ -49,6 +49,8 @@ Server Sent Events (6 SSE channels)
 
 * Fix:        InnuNextion Display lib buttons handling failed, when reading from serial receives not enough chars
 * Fix:        Replaced deprecated ArduinoJSON function containskey
+* Fix:        ESP32 used_pin array at position D16 incorrect
+* Fix:        ESP32 second sensor PT100x exception fixed (mapping GPIO D16)
 * Fix:        DS18B20 sensor timeout when high resolution enabled
 * Fix:        DS18B20 sensor id mismatch
 * Removed:    Debug code

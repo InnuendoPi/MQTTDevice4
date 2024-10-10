@@ -168,7 +168,7 @@ int8_t selLang = 0;       // Sprache
 // Serial
 #define DEF_SERIAL 115200
 #define DEF_NEXTION 9600
-SoftwareSerial softSerial;
+EspSoftwareSerial::UART softSerial;
 
 // Display Next
 #define NUMBEROFPAGES 3
