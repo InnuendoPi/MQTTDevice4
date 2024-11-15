@@ -2,13 +2,13 @@ class TemperatureSensor
 {
   int8_t sens_err = 0;
   bool sens_sw = false;          // Events aktivieren
-  bool sens_state = true;        // Fehlerstatus ensor
-  bool old_state = true;         // Fehlerstatus ensor
+  bool sens_state = true;        // Fehlerstatus Sensor
+  bool old_state = true;         // vorheriger Sensorstatus
   bool sens_isConnected;         // ist der Sensor verbunden
   float sens_offset1 = 0.0;      // Offset - Temp kalibrieren
   float sens_offset2 = 0.0;      // Offset - Temp kalibrieren
-  float sens_value = 0.0;        // Aktueller Wert
-  float old_value = 0.0;         // Aktueller Wert
+  float sens_value = 0.0;        // Aktueller Sensorwert
+  float old_value = 0.0;         // vorheriger Snsorwert
   String sens_name;              // Name für Anzeige auf Website
   char sens_mqtttopic[50];       // Für MQTT Kommunikation
   unsigned char sens_address[8]; // 1-Wire Adresse
@@ -35,41 +35,14 @@ public:
     }
     if (sens_type == 0)
     {
-      if (OneWire::crc8(sens_address, 7) != sens_address[7])
+      if (sens_value <= DEVICE_DISCONNECTED_C)
       {
+        sensorsStatus = EM_SENER;
         if (old_state)
-          DEBUG_ERROR("SEN", "sensor address CRC %s %s %s %s %s %s %s %s", sens_address[0], sens_address[1], sens_address[2], sens_address[3], sens_address[4], sens_address[5], sens_address[6], sens_address[7]);
-        sensorsStatus = EM_CRCER;
+          DEBUG_ERROR("SEN", "sensor error");
         sens_state = false;
         old_state = sens_state;
       }
-      else if (sens_value <= -127.0)
-      {
-        if (sens_isConnected && sens_address[0] != 0xFF) // Sensor connected AND sensor address exists (not default FF)
-        {
-          sensorsStatus = EM_DEVER;
-          if (old_state)
-            DEBUG_ERROR("SEN", "sensor address device error");
-          sens_state = false;
-          old_state = sens_state;
-        }
-        else if (!sens_isConnected && sens_address[0] != 0xFF) // Sensor with valid address not connected
-        {
-          sensorsStatus = EM_UNPL;
-          if (old_state)
-            DEBUG_ERROR("SEN", "sensor address unplugged");
-          sens_state = false;
-          old_state = sens_state;
-        }
-        else // not connected and unvalid address
-        {
-          sensorsStatus = EM_SENER;
-          if (old_state)
-            DEBUG_ERROR("SEN", "sensor error");
-          sens_state = false;
-          old_state = sens_state;
-        }
-      } // sens_value -127
       else
       {
         sensorsStatus = EM_OK;
@@ -342,7 +315,6 @@ void handleSensors(bool checkSen)
   {
     sensors[i].Update();
 
-    // get max sensorstatus
     if (sensors[i].getSensorSwitch() && max_status < sensors[i].getErr())
       max_status = sensors[i].getErr();
     if (sensors[i].getValue() != sensors[i].oldValue())
@@ -355,14 +327,9 @@ void handleSensors(bool checkSen)
     sseObj["typ"] = sensors[i].getSensType();
     if (sensors[i].getErr() == EM_OK)
       sseObj["value"] = sensors[i].getTotalValueString();
-    else if (sensors[i].getErr() == EM_CRCER)
-      sseObj["value"] = "CRC";
-    else if (sensors[i].getErr() == EM_DEVER)
-      sseObj["value"] = "DER";
-    else if (sensors[i].getErr() == EM_UNPL)
-      sseObj["value"] = "UNP";
-    else if (sensors[i].getErr() == EM_SENER)
+    else
       sseObj["value"] = "ERR";
+
     yield();
   }
   sensorsStatus = max_status;
@@ -374,37 +341,16 @@ void handleSensors(bool checkSen)
   }
 }
 
-uint8_t searchSensors()
-{
-  uint8_t n = 0;
-  unsigned char addr[8];
-
-  while (oneWire.search(addr))
-  {
-
-    if (OneWire::crc8(addr, 7) == addr[7])
-    {
-      for (uint8_t i = 0; i < 8; i++)
-      {
-        addressesFound[n][i] = addr[i];
-      }
-      n++;
-    }
-  }
-  oneWire.reset_search();
-  return n;
-}
-
 String SensorAddressToString(unsigned char deviceAddress[8])
 {
-	String addressString = "";
-	for (size_t i = 0; i < 8; i++)
-	{
-		if (deviceAddress[i] < 16)
-			addressString += "0";
-		addressString += String(deviceAddress[i], HEX);
-	}
-	return addressString;
+  String addressString = "";
+  for (size_t i = 0; i < 8; i++)
+  {
+    if (deviceAddress[i] < 16)
+      addressString += "0";
+    addressString += String(deviceAddress[i], HEX);
+  }
+  return addressString;
 }
 
 void handleSetSensor()
@@ -471,7 +417,10 @@ void handleDelSensor()
 
 void handleRequestSensorAddresses()
 {
-  uint8_t numberOfSensorsFound = searchSensors();
+  uint8_t numberOfSensorsFound = DS18B20.getDeviceCount();
+  if (numberOfSensorsFound > NUMBEROFSENSORSMAX)
+    numberOfSensorsFound = NUMBEROFSENSORSMAX;
+
   int8_t id = server.arg(0).toInt();
   String message;
   if (id != -1)
@@ -482,6 +431,7 @@ void handleRequestSensorAddresses()
   }
   for (uint8_t i = 0; i < numberOfSensorsFound; i++)
   {
+    DS18B20.getAddress(addressesFound[i], i);
     message += OPTIONSTART;
     message += SensorAddressToString(addressesFound[i]);
     message += OPTIONEND;

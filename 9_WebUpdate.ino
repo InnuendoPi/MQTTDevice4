@@ -144,13 +144,19 @@ void updateTools()
         test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice32/development/data/", "mqttfont.ttf", clientup);
         test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice32/development/data/", "mqttdevice.min.css", clientup);
         test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice32/development/data/", "mqttdevice.min.js", clientup);
+        test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice32/development/data/", "lang.js", clientup);
         test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice32/development/data/", "en.json", clientup);
         test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice32/development/data/", "de.json", clientup);
+        test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice32/development/data/", "no.json", clientup);
         test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice32/development/data/", "favicon.ico", clientup);
 #elif ESP8266
         test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "mqttfont.ttf", clientup);
         test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "mqttdevice.min.css", clientup);
         test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "mqttdevice.min.js", clientup);
+        test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "lang.js", clientup);
+        test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "de.json", clientup);
+        test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "en.json", clientup);
+        test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "no.json", clientup);
         test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/development/data/", "favicon.ico", clientup);
 #endif
     }
@@ -160,15 +166,19 @@ void updateTools()
         test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice32/master/data/", "mqttfont.ttf", clientup);
         test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice32/master/data/", "mqttdevice.min.css", clientup);
         test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice32/master/data/", "mqttdevice.min.js", clientup);
+        test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice32/master/data/", "lang.js", clientup);
         test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice32/master/data/", "en.json", clientup);
         test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice32/master/data/", "de.json", clientup);
+        test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice32/master/data/", "no.json", clientup);
         test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice32/master/data/", "favicon.ico", clientup);
 #elif ESP8266
         test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "mqttfont.ttf", clientup);
         test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "mqttdevice.min.css", clientup);
         test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "mqttdevice.min.js", clientup);
+        test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "lang.js", clientup);
         test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "en.json", clientup);
         test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "de.json", clientup);
+        test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "no.json", clientup);
         test = upTools("https://raw.githubusercontent.com/InnuendoPi/MQTTDevice4/master/data/", "favicon.ico", clientup);
 #endif
     }

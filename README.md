@@ -39,18 +39,24 @@ MQTTDevice4 ist ein Arduino Sketch für Wemos ESP8266 D1 mini Module. Mit dem MQ
 
 ## 🗺️ Changelog Version 4.65
 
-ESP8266 Arduino 3.1.2\
-VSCode 1.93 Arduino 0.6 Arduino CLI 1.0.4\
+ESP8266 Arduino 3.2\
+VSCode 1.95 Arduino 0.7 Arduino CLI 1.0.4\
 VSCode plugin ESP8266LittleFS based on ESP8266fs\
 InnuTicker task scheduler lib\
 InnuNextion Display lib based on EasyNext\
 InnuFramework CSS/JS bootstrap 4.6.2\
 Server Sent Events (6 SSE channels)
 
-* Fix:        InnuNextion Display lib buttons handling failed, when reading from serial receives not enough chars
-* Fix:        Replaced deprecated ArduinoJSON function containskey
+* new:        add norwegian language file - thank you for supporting this projekt @ user oyvind
+* changed:    DS18B20 sensors error handling
+* Fix:        DS18B20 sensors address search (ESP8266)
+* Fix:        convert sensor address
+* Fix:        SoftSerial handling Nextion Display
+* Fix:        InnuNextion Display lib error handling buttons
+* Fix:        ESP32 pin mapping D16 incorrect
 * Fix:        ESP32 used_pin array at position D16 incorrect
 * Fix:        ESP32 second sensor PT100x exception fixed (mapping GPIO D16)
+* Fix:        Replaced deprecated ArduinoJSON function containskey
 * Fix:        DS18B20 sensor timeout when high resolution enabled
 * Fix:        DS18B20 sensor id mismatch
 * Removed:    Debug code

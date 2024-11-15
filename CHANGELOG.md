@@ -1,7 +1,10 @@
 # Changelog
 
-Version 4.65.2
+Version 4.65.4
 
+- new:        norwegian language file added - thank you for supporting this projekt @ user oyvind
+- changed:    DS18B20 sensors error handling
+- Fix:        DS18B20 sensors address search (ESP8266)
 - Fix:        convert sensor address
 - Fix:        SoftSerial handling Nextion Display
 - Fix:        InnuNextion Display lib error handling buttons
