@@ -38,13 +38,13 @@ bool upTools(String url, String fname, WiFiClientSecure &clientup)
                 fsUploadFile = LittleFS.open("/" + fname, "r");
                 if (fsUploadFile.size() == startlen)
                 {
-                    sprintf(line, "Framwork/Tools update %s getSize: %d fileSize: %d", fname.c_str(), startlen, fsUploadFile.size());
+                    sprintf(line, "Framework/Tools update %s getSize: %d fileSize: %d", fname.c_str(), startlen, fsUploadFile.size());
                     debugLog(UPDATELOG, line);
                     DEBUG_INFO("SYS", "%s", line);
                 }
                 else
                 {
-                    sprintf(line, "Framwork/Tools update Fehler %s getSize: %d fileSize: %d", fname.c_str(), startlen, fsUploadFile.size());
+                    sprintf(line, "Framework/Tools update Fehler %s getSize: %d fileSize: %d", fname.c_str(), startlen, fsUploadFile.size());
                     debugLog(UPDATELOG, line);
                     DEBUG_ERROR("SYS", "%s", line);
                 }
@@ -57,7 +57,7 @@ bool upTools(String url, String fname, WiFiClientSecure &clientup)
         }
         else
         {
-            sprintf(line, "Framwork/Tools2 update Fehler %s %s", fname.c_str(), https.errorToString(httpCode).c_str());
+            sprintf(line, "Framework/Tools update Fehler %s %s", fname.c_str(), https.errorToString(httpCode).c_str());
             debugLog(UPDATELOG, line);
             DEBUG_ERROR("SYS", "%s", line);
             https.end();
@@ -66,7 +66,7 @@ bool upTools(String url, String fname, WiFiClientSecure &clientup)
     }
     else
     {
-        sprintf(line, "Framwork/Tools3 update Fehler https start %s", fname.c_str());
+        sprintf(line, "Framework/Tools update Fehler https start %s", fname.c_str());
         debugLog(UPDATELOG, line);
         DEBUG_INFO("SYS", "%s", line);
         return false;
@@ -103,9 +103,11 @@ void upFirm()
 
 void updateTools()
 {
+    setTagLevel("SYS", INNU_INFO);
     configTzTime(ntpZone, ntpServer);
     getLocalTime(&timeinfo);
-
+    strftime(zeit, sizeof(zeit), "%H:%M:%S", &timeinfo);
+    
     WiFiClientSecure clientup;
     clientup.setInsecure();
     fsUploadFile = LittleFS.open(LOGUPDATETOOLS, "r");
@@ -194,6 +196,8 @@ void updateSys()
     setTagLevel("SYS", INNU_INFO);
     configTzTime(ntpZone, ntpServer);
     getLocalTime(&timeinfo);
+    strftime(zeit, sizeof(zeit), "%H:%M:%S", &timeinfo);
+
     char line[120];
     fsUploadFile = LittleFS.open(LOGUPDATESYS, "r");
     int8_t anzahlVersuche = 0;

@@ -29,11 +29,12 @@ void setTicker()
 
 void setupTime()
 {
-#ifdef ESP32
+// #ifdef ESP32
+//   configTzTime(ntpZone, ntpServer);
+// #elif ESP8266
+//   configTime(ntpZone, ntpServer);
+// #endif
   configTzTime(ntpZone, ntpServer);
-#elif ESP8266
-  configTime(ntpZone, ntpServer);
-#endif
   getLocalTime(&timeinfo);
   // 1 Minute vor Winterzeit 27.10.2024 2:59:00 1729994340
   // 1 Minute vor Sommerzeit 31.03.2024 1:59:00 1711846740
