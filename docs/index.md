@@ -222,15 +222,14 @@ Sensor setting
 
     Multicast DNS is used to resolve hostnames to IP addresses in small networks. A mDNS name can be used instead of the IP address to open the mqttdevice web interface in a browser. Default mDNS name is mqttdevice. Open the configuration panel <http://mqttdevice.local> in your web browser. The name is freely selectable. The mDNS name must be unique in local network and must not contain any spaces or special characters. Please note: if you use two or more MQTTDevices you must change default mDNS "mqttdevice" into an unique identifier! Reboot your mqttdevice after changing mDNS.
 
-    **NTP Zeitserver:**
+    **NTP time server:**
 
     The Network Time Protocol (NTP) regularly synchronizes the time with a time server. The default time server is europe.pool.ntp.org (Berlin, Germany) and is a timer on the Internet. If there is a time server on the local network, this time server can be used. For example, if a Fritz.box (c) is in use, fritz.box can be entered as the time server. If a local NTP server is configured, the Brautomat does not need access to the Internet.
 
-    **NTP Zeitzone:**
+    **NTP time zone:**
 
     The time zone is determined from a table. The time zone Europe Berlin is preset and is <CET-1CEST,M3.5.0,M10.5.0/3>.
     The time zone is used to determine the correct time, including daylightsavings. All time zones are listed in the zones.csv file.
-
 
 2. MQTT Settings
 

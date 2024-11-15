@@ -1,5 +1,9 @@
 # Changelog
 
+Version 4.66
+
+- merge:      merge development branch into new release 4.66
+
 Version 4.65.4
 
 - new:        norwegian language file added - thank you for supporting this projekt @ user oyvind
