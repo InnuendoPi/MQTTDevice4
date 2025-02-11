@@ -37,16 +37,20 @@ MQTTDevice4 ist ein Arduino Sketch für Wemos ESP8266 D1 mini Module. Mit dem MQ
 * Dateiexplorer
 * Unterstützung für versch. Sprachen
 
-## 🗺️ Changelog Version 4.65
+## 🗺️ Changelog Version 4.67
 
 ESP8266 Arduino 3.2\
-VSCode 1.95 Arduino 0.7 Arduino CLI 1.0.4\
+VSCode 1.97 Arduino 0.7 Arduino CLI 1.1.1\
 VSCode plugin ESP8266LittleFS based on ESP8266fs\
 InnuTicker task scheduler lib\
 InnuNextion Display lib based on EasyNext\
 InnuFramework CSS/JS bootstrap 4.6.2\
 Server Sent Events (6 SSE channels)
 
+* Fix:        LittleFS image broken, after upgrade mklittlefs. downgrade mklittlefs 3.2.0 (littlefs version)
+* Update:     ArduinoJSON 7.3
+* Update:     Dallas Temperature 4.0.4
+* Fix:        ArduinoJSON type err
 * new:        add norwegian language file - thank you for supporting this projekt @ user oyvind
 * changed:    DS18B20 sensors error handling
 * Fix:        DS18B20 sensors address search (ESP8266)
@@ -71,7 +75,7 @@ Server Sent Events (6 SSE channels)
 
 ## 💻 Installation
 
-* Download [Firmeware.zip](https://github.com/InnuendoPi/MQTTDevice4/blob/main/tools/Firmware.zip)
+* Download [Firmware.zip](https://github.com/InnuendoPi/MQTTDevice4/blob/main/tools/Firmware.zip)
 * Firmware.zip entpacken
 * Flashen.cmd editieren:
 * "COM3" in Zeile 6  und Zeile 8"esptool.exe *p COM3" anpassen
@@ -106,11 +110,11 @@ _Unterstützte das Projekt und übersetze das MQTTDevice in eine neue Sprache bz
 
 ## 📰 Sketch Information
 
-Libraries: Version 4.58, 12.2023
+Libraries: Version 4.67, 02.2025
 
 * ESP8266 3.1.2
 * Arduino IDE 1.8.19
-* VSCode 1.85 Arduino-CLI ESP8266FS Plugin (modifiziert für LittleFS)
+* VSCode 1.97 Arduino-CLI ESPFS
 * OneWire
 * DallasTemperature
 * PubSubClient

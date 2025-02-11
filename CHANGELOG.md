@@ -1,11 +1,8 @@
 # Changelog
 
-Version 4.66
+Version 4.67
 
-- merge:      merge development branch into new release 4.66
-
-Version 4.65.4
-
+- Fix:        LittleFS image broken, after upgrade mklittlefs. downgrade mklittlefs 3.2.0 (littlefs version)
 - new:        norwegian language file added - thank you for supporting this projekt @ user oyvind
 - changed:    DS18B20 sensors error handling
 - Fix:        DS18B20 sensors address search (ESP8266)

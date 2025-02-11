@@ -452,7 +452,9 @@ void cbpi4steps_handlemqtt(unsigned char *payload)
       if (activePage == 1)
         nextion.writeStr(p1current_text, currentStepName);
     }
-    if (doc["state_text"] != 0 && doc["state_text"] != "Waiting for Target Temp")
+    // 
+    // if (doc["state_text"] != 0 && doc["state_text"] != "Waiting for Target Temp")
+    if (doc["state_text"].as<int>() != 0 && doc["state_text"] != "Waiting for Target Temp")
     {
       strlcpy(currentStepRemain, doc["state_text"] | "", maxRemainSign);
       if (activePage == 0)

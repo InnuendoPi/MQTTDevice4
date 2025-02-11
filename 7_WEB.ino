@@ -298,6 +298,7 @@ void handleSetMisc()
   if (doc["reset"] && doc["clear"])
   {
     LittleFS.remove(CONFIG);
+    LittleFS.remove(LOG_CFG);
     WiFi.disconnect();
     wifiManager.resetSettings();
     delay(PAUSE1SEC);
@@ -313,6 +314,7 @@ void handleSetMisc()
   if (doc["clear"])
   {
     LittleFS.remove(CONFIG);
+    LittleFS.remove(LOG_CFG);
     EM_REBOOT();
   }
 
@@ -347,7 +349,7 @@ void handleSetMisc()
   setTagLevel("ACT", doc["logAct"]);
   setTagLevel("IND", doc["logInd"]);
   setTagLevel("SYS", doc["logSys"]);
-  if (doc["logDis"] > 0)
+  if (doc["logDis"].as<int>() > 0)
   {
     setTagLevel("DIS", 3);
     nextion.setDebug(true);

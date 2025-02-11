@@ -13,6 +13,7 @@ libraries
 ld_h
 arduino.ar
 build.options.json
+compile_result.json
 MQTTDevice4.ino.elf
 MQTTDevice4.ino.map
 includes.cache
